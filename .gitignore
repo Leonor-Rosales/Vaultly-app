@@ -134,3 +134,12 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Variables locales y secretos
+.env
+.env.*
+!.env.example
+
+# Datos locales, si se utilizan carpetas para persistencia
+pgdata/
+miniodata/
