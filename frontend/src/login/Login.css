@@ -1,0 +1,250 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #fcfaf7;
+  color: #542818;
+}
+
+
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 50px;
+}
+
+/* LOGO */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.logo-icon {
+  width: 60px;
+  height: 60px;
+  background: #ce7040;
+  color: white;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 40px;
+}
+
+.logo span {
+  font-size: 45px;
+  font-weight: 500;
+}
+
+/* TARJETA */
+
+.login-card {
+  width: 422px;
+  height: 550px;
+
+  padding: 33px 31px;
+
+  background: #faf5ef;
+
+  border: 1px solid #ecd5c1;
+  border-radius: 7px;
+
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+}
+
+.login-card h1 {
+  display: block;
+  margin: 0 0 7px 0;
+  padding: 0;
+
+  color: #542818;
+  font-size: 25px;
+  font-weight: 625;
+  line-height: 2.1;
+
+  text-align: left;
+}
+
+.subtitle {
+  margin: 0 0 27px 0;
+  color: #907e73;
+  font-size: 15px;
+}
+
+/* LABELS */
+
+.login-card label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* INPUTS */
+
+.login-card input {
+  width: 100%;
+  height: 36px;
+
+  padding: 0 11px;
+
+  margin-bottom: 17px;
+
+  border: 1px solid #e8cdb7;
+  border-radius: 6px;
+
+  background: #fffdfb;
+
+  outline: none;
+
+  color: #542818;
+  font-size: 12 px;
+}
+
+.login-card input::placeholder {
+  color: #d6a98e;
+}
+
+.login-card input:focus {
+  border-color: #ce7040;
+}
+
+/* PASSWORD */
+
+.password-container {
+  position: relative;
+}
+
+.password-container input {
+  margin-bottom: 0;
+  padding-right: 38px;
+}
+
+.eye-button {
+  position: absolute;
+
+  right: 9px;
+  top: 7px;
+
+  border: none;
+  background: transparent;
+
+  color: #d58a62;
+
+  cursor: pointer;
+
+  font-size: 17px;
+}
+
+/* OLVIDASTE CONTRASEÑA */
+
+.forgot {
+  text-align: right;
+
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.forgot a {
+  color: #542818;
+
+  font-size: 11px;
+
+  text-decoration: none;
+}
+
+/* BOTÓN */
+
+.login-button {
+  width: 100%;
+  height: 38px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: #ce7040;
+  color: white;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: #bd6032;
+}
+
+/* DIVISOR */
+
+.divider {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  margin: 29px 0;
+}
+
+.divider span {
+  flex: 1;
+
+  height: 1px;
+
+  background: #ead8ca;
+}
+
+.divider p {
+  margin: 0;
+
+  color: #a99487;
+
+  font-size: 10px;
+}
+
+/* REGISTRO */
+
+.register {
+  text-align: center;
+
+  margin: 0;
+
+  color: #9b8a80;
+
+  font-size: 11px;
+}
+
+.register a {
+  color: #ce6333;
+
+  text-decoration: none;
+
+  font-weight: 600;
+}
+
+.login-card {
+  text-align: left;
+}
+
+.login-card h1,
+.login-card .subtitle,
+.login-card label {
+  text-align: left;
+}

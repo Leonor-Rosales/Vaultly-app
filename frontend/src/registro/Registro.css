@@ -1,0 +1,293 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #fcfaf7;
+  color: #542818;
+}
+
+.registro-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 42px;
+}
+
+/* LOGO */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.logo-icon {
+  width: 54px;
+  height: 54px;
+  background: #ce7040;
+  color: white;
+  border-radius: 7px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 30px;
+}
+
+.logo-icon svg {
+  width: 30px;
+  height: 30px;
+}
+
+.logo span {
+  font-size: 40px;
+  font-weight: 700;
+}
+
+/* TARJETA */
+
+.registro-card {
+  width: 400px;
+  min-height: 503px;
+
+  padding: 25px 25px;
+
+  background: #faf5ef;
+
+  border: 1px solid #ecd5c1;
+  border-radius: 7px;
+
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+
+  text-align: left;
+}
+
+/* TITULO */
+
+.registro-card h1 {
+  margin: 0 0 4px;
+
+  font-size: 25px;
+  font-weight: 625;
+
+  color: #542818;
+}
+
+.subtitle {
+  margin: 0 0 20px;
+
+  color: #907e73;
+  font-size: 12px;
+}
+
+/* LABELS */
+
+.registro-card label {
+  display: block;
+
+  margin-bottom: 5px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* INPUTS */
+
+.registro-card input {
+  width: 100%;
+  height: 36px;
+
+  padding: 0 11px;
+
+  margin-bottom: 12px;
+
+  border: 1px solid #e8cdb7;
+  border-radius: 6px;
+
+  background: #fffdfb;
+
+  outline: none;
+
+  color: #542818;
+
+  font-size: 12px;
+  
+}
+
+.registro-card input::placeholder {
+  color: #d6a98e;
+  opacity: 1;
+}
+
+.registro-card input:focus {
+  border-color: #ce7040;
+}
+
+/* ICONO DEL CORREO */
+
+.input-icon {
+  position: relative;
+}
+
+.input-icon input {
+  padding-right: 35px;
+}
+
+.input-icon svg {
+  position: absolute;
+
+  right: 10px;
+  top: 9px;
+
+  width: 17px;
+  height: 17px;
+
+  color: #ce7040;
+}
+
+/* CONTRASEÑA */
+
+.password-container {
+  position: relative;
+}
+
+.password-container input {
+  margin-bottom: 0;
+  padding-right: 38px;
+}
+
+.eye-button {
+  position: absolute;
+  right: 8px;
+  top: 10px;
+  border: none;
+  background: transparent;
+  color: #907e73;
+  cursor: pointer;
+  padding: 0;
+}
+
+.eye-button svg {
+  width: 17px;
+  height: 17px;
+}
+.confirm-password-label {
+  margin-top: 12px;
+}
+
+
+/* FUERZA */
+
+.password-strength {
+  display: flex;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.password-strength span {
+  height: 4px;
+  flex: 1;
+  border-radius: 3px;
+  background: #d2d2d2;
+}
+
+.password-strength span.active {
+  background: #ce7040;
+}
+.strength-text {
+  margin: 4px 0 1px;
+  font-size: 12px;
+  color: #907e73;
+}
+
+.strength-text.baja strong {
+  color: #c20f09;
+}
+
+.strength-text.media strong {
+  color: #ce7040;
+}
+
+.strength-text.alta strong {
+  color: #4c9a57;
+}
+
+
+
+/* ERROR */
+
+
+
+.error-message {
+  margin: 1px 0 -10px;
+  color: #e75c5c;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.email-error {
+  margin: -10px 0 1px;
+  color: #e75c5c;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* BOTÓN */
+
+.register-button {
+  width: 100%;
+  height: 36px;
+  margin-top: 20px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: #ce7040;
+  color: white;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.register-button:hover {
+  background: #bd6032;
+}
+
+/* LOGIN */
+
+.register {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 12px;
+}
+
+.registrer-divider {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  margin: 2px 0;
+}
+
+.registrer-divider span {
+  flex: 1;
+  height: 1px;
+  background: #ead8ca;
+  margin-top: 20px;
+}
+
+.registrer-divider p {
+  margin: 0;
+  color: #a99487;
+  font-size: 10px;
+  margin-top: 20px;
+}
