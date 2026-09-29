@@ -61,7 +61,17 @@ async function buscarPendientePorCorreo(correo, estadoPendiente) {
   );
   return rows[0] || null;
 }
+async function actualizarPassword(id, passwordHash) {
+  const { rows } = await pool.query(
+    `UPDATE usuarios
+     SET password_hash = $2
+     WHERE id = $1
+     RETURNING id`,
+    [id, passwordHash]
+  );
 
+  return rows[0] || null;
+}
 module.exports = {
   buscarRolPorNombre,
   crearUsuario,
@@ -70,4 +80,5 @@ module.exports = {
   activarSiPendiente,
   obtenerEstado,
   buscarPendientePorCorreo,
+  actualizarPassword,
 };

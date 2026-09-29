@@ -5,6 +5,7 @@ const { iniciarSesion } = require('../usecases/iniciarSesion');
 const { verificarCorreo } = require('../usecases/verificarCorreo');
 const { reenviarVerificacion } = require('../usecases/reenviarVerificacion');
 const { obtenerPerfil } = require('../usecases/obtenerPerfil');
+const { solicitarRecuperacion } = require('../usecases/solicitarRecuperacion');
 
 function responderError(res, err) {
   if (err instanceof ErrorApp) {
@@ -51,4 +52,31 @@ const me = manejar(async (req, res) => {
   res.json(await obtenerPerfil(req.usuario.sub));
 });
 
-module.exports = { register, login, verificar, reenviar, me };
+const recuperar = manejar(async (req, res) => {
+  const resultado = await solicitarRecuperacion(
+    (req.body || {}).email
+  );
+
+  res.json(resultado);
+});
+const {
+  restablecerPassword,
+} = require('../usecases/restablecerPassword');
+
+const restablecer = manejar(async (req, res) => {
+  const resultado = await restablecerPassword(
+    (req.body || {}).token,
+    (req.body || {}).password
+  );
+
+  res.json(resultado);
+});
+module.exports = {
+  register,
+  login,
+  verificar,
+  reenviar,
+  me,
+  recuperar,
+  restablecer,
+};

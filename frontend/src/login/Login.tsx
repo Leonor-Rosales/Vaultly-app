@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { login } from "../services/auth";
 import { Icon } from "@iconify/react";
 import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import "./Login.css";
-
 function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
-const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+   useEffect(() => {
+    if (searchParams.get("verificado") === "1") {
+      
+
+      searchParams.delete("verificado");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="login-page">
@@ -24,13 +34,20 @@ const [password, setPassword] = useState("");
 
         <form
   onSubmit={async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
+  try {
     await login({
       email,
       password,
     });
-  }}
+
+    alert("¡Ya entraste! 🎉");
+  } catch (error) {
+    console.error(error);
+    alert("Correo o contraseña incorrectos");
+  }
+}}
 >
           <label>Correo electrónico</label>
           <input
@@ -65,8 +82,8 @@ const [password, setPassword] = useState("");
           </div>
 
           <div className="forgot">
-            <a href="#">¿Olvidaste tu contraseña?</a>
-          </div>
+  <Link to="/recuperar">¿Olvidaste tu contraseña?</Link>
+</div>
 
           <button type="submit" className="login-button">
             Iniciar sesión
