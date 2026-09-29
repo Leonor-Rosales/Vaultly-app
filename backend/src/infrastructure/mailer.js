@@ -1,13 +1,20 @@
 const nodemailer = require('nodemailer');
 
-if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+const host = process.env.MAIL_HOST || 'smtp.gmail.com';
+const port = Number(process.env.MAIL_PORT || 587);
+
+if (!process.env.MAIL_HOST && (!process.env.MAIL_USER || !process.env.MAIL_PASS)) {
   console.warn('Aviso: faltan MAIL_USER o MAIL_PASS en .env; no se podrán enviar correos');
 }
 
-// Gmail con "contraseña de aplicación" (no la contraseña normal de la cuenta)
+// Sin MAIL_USER no se usa autenticación (por ejemplo, con Mailpit en desarrollo)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
+  host,
+  port,
+  secure: port === 465,
+  auth: process.env.MAIL_USER
+    ? { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS }
+    : undefined,
 });
 
 const escapar = (s) =>
