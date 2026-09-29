@@ -1,0 +1,90 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Falta POSTGRES_DB en .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Falta POSTGRES_USER en .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    restart: unless-stopped
+
+    command: server /data --console-address ":9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Falta MINIO_ROOT_USER en .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Falta MINIO_ROOT_PASSWORD en .env}
+
+    ports:
+      - "127.0.0.1:${MINIO_API_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+
+    volumes:
+      - miniodata:/data
+
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+    restart: "no"
+
+    depends_on:
+      minio:
+        condition: service_started
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Falta MINIO_ROOT_USER en .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Falta MINIO_ROOT_PASSWORD en .env}
+      MINIO_BUCKET: ${MINIO_BUCKET:?Falta MINIO_BUCKET en .env}
+
+    entrypoint: ["/bin/sh", "-c"]
+
+    command:
+      - |
+        set -eu
+
+        intentos=0
+
+        until mc alias set vaultly http://minio:9000 \
+          "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" >/dev/null 2>&1 \
+          && mc ls vaultly >/dev/null 2>&1
+        do
+          intentos=$$((intentos + 1))
+
+          if [ "$$intentos" -ge 30 ]; then
+            echo "ERROR: no fue posible conectar con MinIO. Revisa el servicio y las credenciales."
+            exit 1
+          fi
+
+          echo "Esperando a MinIO..."
+          sleep 2
+        done
+
+        mc mb --ignore-existing "vaultly/$$MINIO_BUCKET"
+        mc anonymous set none "vaultly/$$MINIO_BUCKET"
+        mc stat "vaultly/$$MINIO_BUCKET"
+        mc anonymous get "vaultly/$$MINIO_BUCKET"
+
+        echo "Bucket listo y privado: $$MINIO_BUCKET"
+
+volumes:
+  pgdata:
+  miniodata:
