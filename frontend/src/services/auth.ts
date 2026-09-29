@@ -16,3 +16,19 @@ export const login = async (data: LoginData) => {
 export const register = async (data: RegisterData) => {
   console.log("Datos de registro:", data);
 };
+export interface RequestPasswordResetData {
+  email: string;
+}
+
+export interface ResetPasswordData {
+  token: string;
+  password: string;
+}
+
+export const requestPasswordReset = async (data: RequestPasswordResetData) => {
+  console.log("Solicitud de recuperación:", data);
+};
+
+export const resetPassword = async (data: ResetPasswordData) => {
+  console.log("Restablecer contraseña:", data);
+};

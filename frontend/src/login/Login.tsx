@@ -65,7 +65,7 @@ const [password, setPassword] = useState("");
           </div>
 
           <div className="forgot">
-            <a href="#">¿Olvidaste tu contraseña?</a>
+            <Link to="/recuperar">¿Olvidaste tu contraseña?</Link>
           </div>
 
           <button type="submit" className="login-button">
