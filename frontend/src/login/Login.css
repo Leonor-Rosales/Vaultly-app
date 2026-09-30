@@ -248,3 +248,111 @@ body,
 .login-card label {
   text-align: left;
 }
+
+/* ========================================= */
+/* MODAL - USUARIO NO REGISTRADO */
+/* ========================================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.45);
+
+  z-index: 9999;
+}
+
+.registro-modal {
+  width: 420px;
+  padding: 42px 40px;
+
+  box-sizing: border-box;
+
+  background: #fcfaf7;
+  border: 1px solid #e8cdb8;
+  border-radius: 10px;
+
+  text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.18);
+
+  animation: modalEntrada 0.2s ease-out;
+}
+
+.modal-icon {
+  width: 66px;
+  height: 66px;
+
+  margin: 0 auto 28px;
+
+  border: 1px solid #d47743;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #d47743;
+  font-size: 30px;
+}
+
+.registro-modal h2 {
+  width: 100%;
+  margin: 0 0 12px;
+
+  text-align: center;
+
+  color: #542818;
+  font-size: 27px;
+  font-weight: 700;
+}
+
+.registro-modal p {
+  width: 100%;
+  max-width: 330px;
+
+  margin: 0 auto 30px;
+
+  text-align: center;
+
+  color: #8a7468;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.modal-register-button {
+  width: 100%;
+  height: 50px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: #d47743;
+  color: white;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.modal-register-button:hover {
+  background: #c46736;
+}
+.login-error {
+  color: #e53935;
+  font-size: 13px;
+  margin-top: 7px;
+  margin-bottom: 0;
+  text-align: left;
+}

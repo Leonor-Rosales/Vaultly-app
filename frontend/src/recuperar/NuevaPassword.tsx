@@ -5,18 +5,23 @@ import toast from "react-hot-toast";
 import { resetPassword } from "../services/auth";
 import "./Recuperar.css";
 
-const MIN_LENGTH = 8;
+
 
 // Devuelve 0 (vacía) a 3 (fuerte).
 function passwordScore(password: string): number {
   if (password.length === 0) return 0;
 
-  let points = 0;
-  if (password.length >= MIN_LENGTH) points++;
-  if (/[a-z]/.test(password) && /[A-Z0-9]/.test(password)) points++;
-  if (/[^A-Za-z0-9]/.test(password) && password.length >= 10) points++;
+  let points = 1;
 
-  return Math.max(1, points);
+  if (/[a-z]/.test(password) && /[A-Z0-9]/.test(password)) {
+    points++;
+  }
+
+  if (/[^A-Za-z0-9]/.test(password) && password.length >= 8) {
+    points++;
+  }
+
+  return points;
 }
 
 const STRENGTH_LABELS = ["", "Débil", "Media", "Fuerte"];
@@ -36,9 +41,8 @@ function NuevaPassword() {
 
   const score = passwordScore(password);
   const mismatch = confirm.length > 0 && password !== confirm;
-  const tooShort = password.length > 0 && password.length < MIN_LENGTH;
   const canSubmit =
-    password.length >= MIN_LENGTH && password === confirm && !saving;
+    password.length > 0 && password === confirm && !saving;
 
   return (
     <div className="rec-page">
@@ -86,7 +90,7 @@ function NuevaPassword() {
               <input
                 id="rec-password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Nueva contraseña"
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -114,11 +118,7 @@ function NuevaPassword() {
                   Fuerza: <strong>{STRENGTH_LABELS[score]}</strong>
                 </p>
               )}
-              {tooShort && (
-                <p className="rec-error" style={{ margin: "4px 0 0" }}>
-                  Debe tener al menos {MIN_LENGTH} caracteres
-                </p>
-              )}
+              
             </div>
 
             <label htmlFor="rec-confirm">Confirmar contraseña</label>
