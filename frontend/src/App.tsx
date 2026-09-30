@@ -15,22 +15,10 @@ function App() {
       <Route path="/registro" element={<Registro />} />
 
       <Route path="/recuperar" element={<Recuperar />} />
+      <Route path="/recuperar/confirmacion" element={<AvisoRecuperar />} />
+      <Route path="/recuperar/enviado" element={<AvisoRecuperar />} />
+      <Route path="/restablecer/:token" element={<NuevaPassword />} />
 
-      <Route
-        path="/recuperar/confirmacion"
-        element={<AvisoRecuperar />}
-      />
-
-      <Route
-        path="/recuperar/enviado"
-        element={<AvisoRecuperar />}
-      />
-
-      {/* Enlace que llega desde el correo */}
-      <Route
-        path="/restablecer"
-        element={<NuevaPassword />}
-      />
       <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
   );

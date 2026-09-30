@@ -4,11 +4,13 @@ import { Icon } from "@iconify/react";
 import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import "./Login.css";
+import { useNavigate } from "react-router-dom";
 function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
    useEffect(() => {
     if (searchParams.get("verificado") === "1") {
@@ -42,7 +44,7 @@ function App() {
       password,
     });
 
-    alert("¡Ya entraste! 🎉");
+    navigate("/dashboard");
   } catch (error) {
     console.error(error);
     alert("Correo o contraseña incorrectos");
