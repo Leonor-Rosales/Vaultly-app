@@ -30,9 +30,6 @@ export interface RegisterResponse {
   correo_enviado: boolean;
 }
 
-// Error con el mensaje que envía el backend.
-// `code` vale, por ejemplo, "CORREO_NO_CONFIRMADO"
-// cuando la cuenta aún no se activó por correo.
 export class ApiError extends Error {
   status: number;
   code?: string;

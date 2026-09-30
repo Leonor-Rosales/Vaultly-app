@@ -11,6 +11,7 @@ function App() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
   const [errorCredenciales, setErrorCredenciales] = useState("");
+  
 
   const navigate = useNavigate();
 
@@ -27,7 +28,8 @@ function App() {
       {/* LOGO */}
       <div className="logo">
         <div className="logo-icon">
-          <Icon icon="lucide:vault" />
+          <Icon icon="lucide:vault" 
+          />
         </div>
         <span>Vaultly</span>
       </div>

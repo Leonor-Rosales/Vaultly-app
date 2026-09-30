@@ -14,6 +14,7 @@ function Registro() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [creatingAccount, setCreatingAccount] = useState(false);
 
   // Modal de correo existente
   const [mostrarLogin, setMostrarLogin] = useState(false);
@@ -87,11 +88,11 @@ function Registro() {
 
             // Campos vacíos
             if (!name.trim() || !email.trim() || !password || !confirmPassword) {
-  setErrorCampos("Debes completar todos los campos");
-  return;
-}
+              setErrorCampos("Debes completar todos los campos");
+              return;
+            }
 
-setErrorCampos("");
+          setErrorCampos("");
 
             // Validar correo Gmail
             if (!/^[^\s@]+@gmail\.com$/.test(email)) {
@@ -104,41 +105,46 @@ setErrorCampos("");
             }
 
             try {
-              await register({
-                name,
-                email,
-                password,
-              });
+  setCreatingAccount(true);
 
-              toast.success("Cuenta creada correctamente");
+  await register({
+    name,
+    email,
+    password,
+  });
 
-              setTimeout(() => {
-                navigate("/");
-              }, 1500);
+  toast.success("Cuenta creada correctamente");
 
-            } catch (error) {
-              console.error(error);
+  setTimeout(() => {
+    navigate("/");
+  }, 1500);
 
-              // CORREO YA REGISTRADO
-              if (
-                  error instanceof ApiError &&
-                  (
-                    error.code === "CORREO_YA_REGISTRADO" ||
-                    error.status === 409
-                  )
-                ) {
-                  setMostrarLogin(true);
-                  return;
-                }
+} catch (error) {
+  console.error(error);
 
-              // Otro error
-              toast.error(
-                error instanceof ApiError
-                  ? error.message
-                  : "No se pudo crear la cuenta"
-              );
-            }
+  if (
+    error instanceof ApiError &&
+    (
+      error.code === "CORREO_YA_REGISTRADO" ||
+      error.status === 409
+    )
+  ) {
+    setMostrarLogin(true);
+    return;
+  }
+
+  toast.error(
+    error instanceof ApiError
+      ? error.message
+      : "No se pudo crear la cuenta"
+  );
+
+} finally {
+  setCreatingAccount(false);
+}
+            
           }}
+          
         >
 
           {errorCampos && (
@@ -269,8 +275,9 @@ setErrorCampos("");
           <button
             type="submit"
             className="register-button"
+            disabled={creatingAccount}
           >
-            Crear cuenta
+            {creatingAccount ? "Creando cuenta..." : "Crear cuenta"}
           </button>
 
           <div className="registrer-divider">
