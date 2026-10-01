@@ -1,0 +1,291 @@
+/* Pantalla "Confirmar contratación". Todas las clases llevan prefijo ct-
+   para no chocar con las de login, dashboard o recuperar. */
+
+.ct-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 40px 16px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  background: #fcfaf7;
+  color: #542818;
+  
+}
+
+/* LOGO */
+
+.ct-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.ct-logo-icon {
+  width: 40px;
+  height: 40px;
+  background: #cf7040;
+  color: white;
+  border-radius: 6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 26px;
+}
+
+.ct-logo span {
+  font-size: 34px;
+  font-weight: 500;
+}
+
+/* TARJETA */
+
+.ct-card {
+  width: 440px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 22px 24px 24px;
+
+  background: #faf5ef;
+  border: 1px solid #ecd5c1;
+  border-radius: 7px;
+
+  text-align: left;
+}
+
+.ct-card h1 {
+  margin: 0 0 14px;
+  color: #542818;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+/* RESUMEN: PLAN + MÉTODO */
+
+.ct-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.ct-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #88796e;
+  font-size: 10px;
+}
+
+.ct-box {
+  height: calc(100% - 19px);
+  box-sizing: border-box;
+  padding: 9px 10px;
+
+  background: #fffdfb;
+  border: 1px solid #ecd5c1;
+  border-radius: 6px;
+
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.ct-box-title {
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ecd5c1;
+  color: #88796e;
+}
+
+.ct-box-detail {
+  color: #cf7040;
+}
+
+.ct-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+
+  color: #8e8076;
+  cursor: pointer;
+}
+
+.ct-radio input {
+  margin: 0;
+  accent-color: #cf7040;
+}
+
+.ct-total {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid #ecd5c1;
+  color: #542818;
+}
+
+/* CAMPOS */
+
+.ct-field {
+  margin-bottom: 12px;
+}
+
+.ct-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.ct-input {
+  width: 100%;
+  height: 34px;
+  box-sizing: border-box;
+  padding: 0 10px;
+
+  background: #fffdfb;
+  border: 1px solid #e8cdb7;
+  border-radius: 6px;
+  outline: none;
+
+  color: #542818;
+  font-size: 12px;
+}
+
+.ct-input::placeholder {
+  color: #d6a98e;
+}
+
+.ct-input:focus {
+  border-color: #cf7040;
+}
+
+.ct-input.invalid {
+  border-color: #d64545;
+}
+
+.ct-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ct-error {
+  margin: 4px 0 0;
+  color: #d64545;
+  font-size: 10px;
+}
+
+/* NÚMERO DE TARJETA */
+
+.ct-number {
+  position: relative;
+}
+
+.ct-number .ct-input {
+  padding-right: 150px;
+}
+
+.ct-number-extras {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ct-eye {
+  padding: 0;
+  margin-right: 3px;
+
+  background: transparent;
+  border: none;
+  color: #d58a62;
+
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ct-badge {
+  padding: 3px 6px;
+
+  background: #efe5da;
+  border-radius: 3px;
+  color: #a99487;
+
+  font-size: 7px;
+  font-weight: 700;
+}
+
+/* BOTONES */
+
+.ct-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.ct-primary,
+.ct-secondary {
+  height: 38px;
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ct-primary {
+  background: #cf7040;
+  border: none;
+  color: white;
+}
+
+.ct-primary:hover:not(:disabled) {
+  background: #bd6032;
+}
+
+.ct-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ct-secondary {
+  background: transparent;
+  border: 1px solid #cf7040;
+  color: #cf7040;
+}
+
+.ct-secondary:hover {
+  background: #f5e9dd;
+}
+
+.ct-note {
+  margin: 16px 0 0;
+  color: #88796e;
+  font-size: 10px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .ct-summary,
+  .ct-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-number .ct-input {
+    padding-right: 12px;
+  }
+
+  .ct-number-extras {
+    display: none;
+  }
+}

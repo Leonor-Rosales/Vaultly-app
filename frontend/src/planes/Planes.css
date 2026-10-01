@@ -1,0 +1,122 @@
+/* Pantalla de planes. La barra lateral y el layout general salen de
+   dashboard/Dashboard.css; aquí solo va lo propio de esta pantalla. */
+
+.planes-subtitle {
+  margin: 4px 0 0;
+  font-size: 10px;
+  color: #9a8d83;
+}
+
+/* GRILLA DE PLANES */
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-top: 26px;
+}
+
+.plan-card {
+  position: relative;
+  min-height: 410px;
+  padding: 12px 12px 34px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+
+  background: #faf5ef;
+  border: 1px solid #ead8c7;
+  border-radius: 7px;
+  text-align: center;
+}
+
+.plan-card.current {
+  border-color: #542818;
+}
+
+.plan-name {
+  width: 100%;
+  margin: 0;
+  padding-bottom: 6px;
+
+  border-bottom: 1px solid #ead8c7;
+
+  color: #542818;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.plan-features {
+  flex: 1;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.plan-features strong {
+  color: #cf7040;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* BOTONES */
+
+.plan-button {
+  padding: 5px 14px;
+
+  background: transparent;
+  border: 1px solid #cf7040;
+  border-radius: 5px;
+
+  color: #cf7040;
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.plan-button:hover:not(:disabled) {
+  background: #f5e9dd;
+}
+
+.plan-button.current {
+  background: #cf7040;
+  color: white;
+  cursor: default;
+}
+
+/* RENOVACIÓN */
+
+.plan-renewal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+
+  color: #9a8d83;
+  font-size: 8px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-card {
+    min-height: 320px;
+  }
+}

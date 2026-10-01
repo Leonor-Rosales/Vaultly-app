@@ -6,6 +6,9 @@ import Recuperar from "./recuperar/Recuperar";
 import AvisoRecuperar from "./recuperar/AvisoRecuperar";
 import NuevaPassword from "./recuperar/NuevaPassword";
 import Dashboard from "./dashboard/Dashboard";
+import Planes from "./planes/Planes";
+import Contratar from "./planes/Contratar";
+import Historial from "./planes/Historial";
 
 function App() {
   return (
@@ -20,6 +23,9 @@ function App() {
       <Route path="/restablecer" element={<NuevaPassword />} />
 
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/planes" element={<Planes />} />
+      <Route path="/planes/contratar" element={<Contratar />} />
+      <Route path="/planes/historial" element={<Historial />} />
     </Routes>
   );
 }

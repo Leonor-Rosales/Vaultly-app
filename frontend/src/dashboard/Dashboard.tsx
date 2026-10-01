@@ -1,7 +1,8 @@
 import { Icon } from "@iconify/react";
 import "./Dashboard.css";
-
+import { useNavigate } from "react-router-dom";
 function Dashboard() {
+  const navigate = useNavigate();
   return (
     <div className="dashboard-page">
 
@@ -32,7 +33,7 @@ function Dashboard() {
             <span>Biblioteca Pública</span>
           </div>
 
-          <div className="menu-item">
+          <div className="menu-item" onClick={() => navigate("/planes")}>
             <Icon icon="lucide:credit-card" />
             <span>Planes y Facturación</span>
           </div>
