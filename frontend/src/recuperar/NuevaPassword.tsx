@@ -11,20 +11,16 @@ import "./Recuperar.css";
 function passwordScore(password: string): number {
   if (password.length === 0) return 0;
 
-  let points = 1;
-
-  if (/[a-z]/.test(password) && /[A-Z0-9]/.test(password)) {
-    points++;
+  if (password.length < 5) {
+    return 1;
+  } else if (password.length <= 8) {
+    return 2;
+  } else {
+    return 3;
   }
-
-  if (/[^A-Za-z0-9]/.test(password) && password.length >= 8) {
-    points++;
-  }
-
-  return points;
 }
 
-const STRENGTH_LABELS = ["", "Débil", "Media", "Fuerte"];
+const STRENGTH_LABELS = ["", "Baja", "Media", "Alta"];
 
 // Pantalla 3: el usuario llega desde el enlace del correo (/restablecer?token=...)
 // y define su nueva contraseña.
