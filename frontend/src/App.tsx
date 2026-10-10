@@ -9,6 +9,7 @@ import Dashboard from "./dashboard/Dashboard";
 import Planes from "./planes/Planes";
 import Contratar from "./planes/Contratar";
 import Historial from "./planes/Historial";
+import Archivos from "./Archivos/Archivos";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
       <Route path="/restablecer" element={<NuevaPassword />} />
 
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/archivos" element={<Archivos />} />
       <Route path="/planes" element={<Planes />} />
       <Route path="/planes/contratar" element={<Contratar />} />
       <Route path="/planes/historial" element={<Historial />} />

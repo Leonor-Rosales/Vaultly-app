@@ -1,38 +1,50 @@
+
 import { Icon } from "@iconify/react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import type { Usuario } from "../services/auth";
+import "./Sidebar.css";
 
-// Barra lateral compartida. Usa las clases de dashboard/Dashboard.css
-// (.sidebar, .menu-item, etc.), así que quien la use debe importar ese CSS.
-
-export type SidebarSection =
-  | "dashboard"
-  | "archivos"
-  | "biblioteca"
-  | "planes"
-  | "configuracion";
-
-interface SidebarItem {
-  key: SidebarSection;
-  label: string;
-  icon: string;
-  // Ruta a la que navega. Si no existe todavía, queda sin definir.
-  to?: string;
-}
-
-const ITEMS: SidebarItem[] = [
+const ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: "lucide:layout-dashboard", to: "/dashboard" },
-  { key: "archivos", label: "Mis Archivos", icon: "lucide:folder" },
-  { key: "biblioteca", label: "Biblioteca Pública", icon: "lucide:globe" },
+  { key: "archivos", label: "Mis Archivos", icon: "lucide:folder", to: "/archivos" },
+  { key: "biblioteca", label: "Biblioteca Pública", icon: "lucide:globe", to: "/biblioteca" },
   { key: "planes", label: "Planes y Facturación", icon: "lucide:credit-card", to: "/planes" },
-  { key: "configuracion", label: "Configuración", icon: "lucide:settings" },
-];
+  { key: "configuracion", label: "Configuración", icon: "lucide:settings", to: "/configuracion" },
+] as const;
 
-interface SidebarProps {
-  active: SidebarSection;
-}
-
-function Sidebar({ active }: SidebarProps) {
+function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  let usuario: Usuario | null = null;
+
+  try {
+    const guardado = localStorage.getItem("usuario");
+    usuario = guardado ? JSON.parse(guardado) : null;
+  } catch {
+    usuario = null;
+  }
+
+  const nombre = usuario?.nombre_completo || "Usuario";
+
+  const iniciales = nombre
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((parte) => parte[0])
+    .join("")
+    .toUpperCase();
+
+  const obtenerSeccion = () => {
+    if (location.pathname.startsWith("/planes")) return "planes";
+    if (location.pathname.startsWith("/archivos")) return "archivos";
+    if (location.pathname.startsWith("/biblioteca")) return "biblioteca";
+    if (location.pathname.startsWith("/configuracion")) return "configuracion";
+    return "dashboard";
+  };
+
+  const active = obtenerSeccion();
+  const plan = "Free"; // Temporal hasta conectar las suscripciones.
 
   return (
     <aside className="sidebar">
@@ -50,9 +62,12 @@ function Sidebar({ active }: SidebarProps) {
             className={`menu-item${item.key === active ? " active" : ""}`}
             role="link"
             tabIndex={0}
-            onClick={() => item.to && navigate(item.to)}
+            onClick={() => navigate(item.to)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && item.to) navigate(item.to);
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate(item.to);
+              }
             }}
           >
             <Icon icon={item.icon} />
@@ -61,12 +76,11 @@ function Sidebar({ active }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Datos fijos igual que en Dashboard.tsx, hasta tener sesión real */}
       <div className="sidebar-user">
-        <div className="user-avatar">FP</div>
+        <div className="user-avatar">{iniciales}</div>
         <div className="user-info">
-          <strong>Fernando Pérez</strong>
-          <span>Pro Developer</span>
+          <strong>{nombre}</strong>
+          <span className="user-plan">{plan}</span>
         </div>
       </div>
     </aside>

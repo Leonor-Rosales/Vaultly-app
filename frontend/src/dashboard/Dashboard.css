@@ -1,3 +1,8 @@
+
+/* =========================
+   CONTENEDOR PRINCIPAL
+========================= */
+
 .dashboard-page {
   min-height: 100vh;
   display: flex;
@@ -6,140 +11,25 @@
   font-family: Arial, sans-serif;
 }
 
-/* =========================
-   SIDEBAR
-========================= */
-
-.sidebar {
-  width: 230px;
-  min-height: 100vh;
-  background: #faf5ef;
-  border-right: 1px solid #ead8c7;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-.sidebar-logo {
-  height: 80px;
-  display: flex;
-  align-items: center;
-  padding: 0 22px;
-  gap: 9px;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.sidebar-logo-icon {
-  width: 27px;
-  height: 27px;
-  background: #cf7040;
-  color: white;
-  border-radius: 4px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 17px;
-}
-
-.sidebar-menu {
-  padding: 8px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.menu-item {
-  height: 40px;
-  padding: 0 12px;
-
-  display: flex;
-  align-items: center;
-  gap: 11px;
-
-  border-radius: 7px;
-
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.menu-item svg {
-  font-size: 16px;
-}
-
-.menu-item.active {
-  background: #f3e5d7;
-  color: #cf7040;
-  font-weight: 600;
-}
-
-.menu-item:hover {
-  background: #f5e9dd;
-}
-
-
-/* USUARIO */
-
-.sidebar-user {
-  margin-top: auto;
-  padding: 20px 18px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.user-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-
-  background: #cf7040;
-  color: white;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 11px;
-  font-weight: bold;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.user-info strong {
-  font-size: 11px;
-}
-
-.user-info span {
-  font-size: 9px;
-  color: #cf7040;
-}
-
-
-/* =========================
-   CONTENIDO
-========================= */
-
 .dashboard-content {
   flex: 1;
-  padding: 32px 30px;
+  min-width: 0;
+  padding: 26px 24px 26px 24px;
+  margin: 0;
   box-sizing: border-box;
+  text-align: left;
 }
 
-
-/* HEADER */
+/* =========================
+   ENCABEZADO
+========================= */
 
 .dashboard-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 21px;
+  gap: 16px;
+  margin-bottom: 25px;
 }
 
 .dashboard-header h1 {
@@ -150,50 +40,49 @@
 }
 
 .upload-button {
-  border: none;
-  background: #cf7040;
-  color: white;
-
   height: 36px;
   padding: 0 15px;
-
+  border: none;
   border-radius: 6px;
-
+  background: #cf7040;
+  color: white;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
-
   font-size: 12px;
   font-weight: 600;
-
   cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.upload-button:hover {
+  background: #b95d32;
 }
 
 .upload-button svg {
   font-size: 15px;
 }
 
-
 /* =========================
-   ESTADÍSTICAS
+   TARJETAS DE ESTADÍSTICAS
 ========================= */
 
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1.15fr 1fr 1.15fr;
-  gap: 11px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
   margin-bottom: 27px;
+  align-items: start;
 }
 
 .stat-card {
-  min-height: 86px;
-  padding: 13px;
-
+  min-width: 0;
+  min-height: 87px;
+  padding: 14px 15px;
   border: 1px solid #ead8c7;
   border-radius: 7px;
-
-  background: #fcfaf7;
-
+  background: #f9f4ee;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -201,91 +90,88 @@
 }
 
 .stat-title {
-  font-size: 10px;
+  margin-bottom: 8px;
   color: #88796e;
-  margin-bottom: 7px;
+  font-size: 10px;
 }
 
 .stat-card strong {
-  font-size: 14px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
+  font-size: 16px;
+  line-height: 1.2;
 }
 
 .stat-card small {
-  font-size: 9px;
   color: #9a8d83;
+  font-size: 10px;
 }
+
+/* DESCARGAS */
 
 .download-number {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .download-number svg {
   color: #cf7040;
-  font-size: 17px;
+  font-size: 18px;
 }
 
-
-/* STORAGE */
+/* ALMACENAMIENTO */
 
 .storage-card {
-  position: relative;
+  gap: 0;
 }
 
 .storage-text {
+  margin-top: -2px;
+  margin-bottom: 9px;
   font-size: 14px;
   font-weight: 600;
-  margin-top: -5px;
-  margin-bottom: 8px;
 }
 
 .storage-bar {
   width: 100%;
   height: 6px;
-
-  background: #eee2d5;
-  border-radius: 10px;
-
   overflow: hidden;
+  border-radius: 10px;
+  background: #eee2d5;
 }
 
 .storage-progress {
   width: 62%;
   height: 100%;
+  border-radius: inherit;
   background: #cf7040;
 }
 
-
 /* =========================
-   ARCHIVOS
+   ARCHIVOS RECIENTES
 ========================= */
 
 .recent-files h2 {
-  font-size: 15px;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  color: #542818;
+  font-size: 16px;
 }
 
 .files-table {
+  overflow: hidden;
   border: 1px solid #ead8c7;
   border-radius: 7px;
-  overflow: hidden;
 }
 
 .file-row {
   min-height: 51px;
-
+  padding: 0 13px;
   display: grid;
-  grid-template-columns: 1fr 140px 85px;
-
+  grid-template-columns: minmax(0, 1fr) 140px 85px;
   align-items: center;
-
-  padding: 0 14px;
-
+  gap: 10px;
   border-bottom: 1px solid #ead8c7;
-
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .file-row:last-child {
@@ -293,11 +179,9 @@
 }
 
 .file-header {
-  min-height: 29px;
+  min-height: 30px;
   background: #f4e7d9;
-
   color: #88796e;
-
   font-size: 9px;
 }
 
@@ -309,49 +193,47 @@
   text-align: center;
 }
 
-
-/* NOMBRE */
+/* NOMBRE E ICONO DEL ARCHIVO */
 
 .file-name {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 11px;
 }
 
+.file-name > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .file-icon {
-  width: 26px;
-  height: 26px;
-
-  background: #f4e9dd;
+  width: 29px;
+  height: 29px;
+  flex-shrink: 0;
   border-radius: 5px;
-
+  background: #f4e9dd;
   display: flex;
   align-items: center;
   justify-content: center;
-
   color: #cf7040;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .file-row > span:not(.visibility) {
   color: #8e8076;
 }
 
-
 /* VISIBILIDAD */
 
 .visibility {
-  justify-self: center;
-
   min-width: 66px;
-
-  padding: 5px 10px;
-
+  justify-self: center;
+  padding: 4px 10px;
   border-radius: 20px;
-
   text-align: center;
-
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
 }
 
@@ -365,31 +247,91 @@
   color: white;
 }
 
+/* Encabezado de archivos recientes */
+.recent-files-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.recent-files-header h2 {
+  margin: 0;
+}
+
+.view-all-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: #cf7040;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-all-button:hover {
+  color: #b95d32;
+}
+
+/* Estado vacío del Dashboard */
+.dashboard-empty {
+  min-height: 210px;
+  padding: 30px 20px;
+  border: 1px dashed #ead8c7;
+  border-radius: 7px;
+  background: #f9f4ee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.dashboard-empty > svg {
+  color: #cf7040;
+  font-size: 32px;
+}
+
+.dashboard-empty h3,
+.dashboard-empty p {
+  margin: 0;
+}
+
+.dashboard-empty h3 {
+  font-size: 15px;
+}
+
+.dashboard-empty p {
+  color: #88796e;
+  font-size: 12px;
+}
+
+.dashboard-empty .upload-button {
+  margin-top: 8px;
+}
+
 
 /* =========================
    RESPONSIVE
 ========================= */
 
-@media (max-width: 900px) {
-
-  .sidebar {
-    width: 190px;
-  }
-
+@media (max-width: 1100px) {
   .stats-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
 }
 
 @media (max-width: 650px) {
-
-  .sidebar {
-    display: none;
+  .dashboard-content {
+    padding: 20px 15px;
   }
 
-  .dashboard-content {
-    padding: 20px;
+  .dashboard-header h1 {
+    font-size: 23px;
   }
 
   .stats-grid {
@@ -397,11 +339,21 @@
   }
 
   .file-row {
-    grid-template-columns: 1fr 90px;
+    grid-template-columns: minmax(0, 1fr) 80px;
+    gap: 8px;
+    padding: 0 9px;
   }
 
+  .file-header span:nth-child(2),
   .file-row > span:nth-child(2) {
     display: none;
   }
 
+  .file-header span:nth-child(3) {
+    text-align: center;
+  }
+
+  .file-name {
+    gap: 7px;
+  }
 }
