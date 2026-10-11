@@ -1,4 +1,5 @@
 const { ErrorApp } = require('../domain/errores');
+const { validarPassword } = require('../domain/passwordPolicy');
 const { hashear } = require('../infrastructure/contrasenas');
 const {
   verificarTokenRecuperacion,
@@ -10,16 +11,7 @@ async function restablecerPassword(token, nuevaPassword) {
     throw new ErrorApp('Token de recuperación inválido', 400);
   }
 
-  if (!nuevaPassword || typeof nuevaPassword !== 'string') {
-    throw new ErrorApp('La contraseña es obligatoria', 400);
-  }
-
-  if (nuevaPassword.length < 8) {
-    throw new ErrorApp(
-      'La contraseña debe tener al menos 8 caracteres',
-      400
-    );
-  }
+  validarPassword(nuevaPassword);
 
   let payload;
 

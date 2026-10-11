@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { login, ApiError } from "../services/auth";
+import { emailValido } from "../services/passwordPolicy";
 import { Icon } from "@iconify/react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import "./Login.css";
@@ -88,7 +89,7 @@ function App() {
             onChange={(e) => setEmail(e.target.value)}
           />
 
-          {email.length > 0 && !email.endsWith("@gmail.com") && (
+          {email.length > 0 && !emailValido(email.trim()) && (
             <p className="email-error">
               La dirección del correo electrónico no es válida
             </p>

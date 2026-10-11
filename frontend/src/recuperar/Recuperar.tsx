@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { requestPasswordReset } from "../services/auth";
+import { requestPasswordReset, ApiError } from "../services/auth";
 import "./Recuperar.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,8 +45,10 @@ function Recuperar() {
             try {
               await requestPasswordReset({ email });
               navigate("/recuperar/enviado", { state: { email } });
-            } catch {
-              toast.error("No pudimos enviar el enlace. Intenta de nuevo.");
+            } catch (error) {
+              toast.error(error instanceof ApiError
+                ? error.message
+                : "No pudimos enviar el enlace. Intenta de nuevo.");
             } finally {
               setSending(false);
             }

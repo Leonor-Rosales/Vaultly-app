@@ -34,7 +34,7 @@ function Historial() {
 
   return (
     <div className="dashboard-page">
-      <Sidebar active="planes" />
+      <Sidebar />
 
       <main className="dashboard-content">
         <div className="dashboard-header">

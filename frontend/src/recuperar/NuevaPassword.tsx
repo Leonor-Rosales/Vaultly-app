@@ -2,25 +2,12 @@ import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { resetPassword } from "../services/auth";
+import { resetPassword, ApiError } from "../services/auth";
+import { errorPassword, evaluarPassword } from "../services/passwordPolicy";
+import PasswordRequirements from "../components/PasswordRequirements";
 import "./Recuperar.css";
 
 
-
-// Devuelve 0 (vacía) a 3 (fuerte).
-function passwordScore(password: string): number {
-  if (password.length === 0) return 0;
-
-  if (password.length < 5) {
-    return 1;
-  } else if (password.length <= 8) {
-    return 2;
-  } else {
-    return 3;
-  }
-}
-
-const STRENGTH_LABELS = ["", "Baja", "Media", "Alta"];
 
 // Pantalla 3: el usuario llega desde el enlace del correo (/restablecer?token=...)
 // y define su nueva contraseña.
@@ -35,10 +22,8 @@ function NuevaPassword() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const score = passwordScore(password);
+  const [error, setError] = useState("");
   const mismatch = confirm.length > 0 && password !== confirm;
-  const canSubmit =
-    password.length > 0 && password === confirm && !saving;
 
   return (
     <div className="rec-page">
@@ -67,24 +52,30 @@ function NuevaPassword() {
             noValidate
             onSubmit={async (e) => {
               e.preventDefault();
-              if (!canSubmit) return;
+              if (saving) return;
+              const problema = errorPassword(password, confirm);
+              setError(problema);
+              if (problema) return;
 
               setSaving(true);
               try {
                 await resetPassword({ token, password });
                 toast.success("Contraseña actualizada. Ya puedes iniciar sesión.");
                 navigate("/");
-              } catch {
-                toast.error("No pudimos actualizar la contraseña. Intenta de nuevo.");
+              } catch (error) {
+                setError(error instanceof ApiError ? error.message : "No pudimos actualizar la contraseña. Intenta de nuevo.");
               } finally {
                 setSaving(false);
               }
             }}
           >
+            {error && <p className="rec-error" id="rec-error" role="alert">{error}</p>}
             <label htmlFor="rec-password">Nueva contraseña</label>
             <div className="rec-password">
               <input
                 id="rec-password"
+                aria-describedby="rec-requisitos rec-error"
+                aria-invalid={password.length > 0 && !evaluarPassword(password).valida}
                 type={showPassword ? "text" : "password"}
                 placeholder="Nueva contraseña"
                 autoComplete="new-password"
@@ -103,24 +94,14 @@ function NuevaPassword() {
               </button>
             </div>
 
-            <div className="rec-strength">
-              <div className="rec-strength-bars">
-                {[1, 2, 3].map((level) => (
-                  <span key={level} className={score >= level ? "rec-on" : ""} />
-                ))}
-              </div>
-              {score > 0 && (
-                <p>
-                  Fuerza: <strong>{STRENGTH_LABELS[score]}</strong>
-                </p>
-              )}
-              
-            </div>
+            <PasswordRequirements password={password} id="rec-requisitos" />
 
             <label htmlFor="rec-confirm">Confirmar contraseña</label>
             <div className="rec-password rec-field-gap">
               <input
                 id="rec-confirm"
+                aria-describedby="rec-confirm-error rec-error"
+                aria-invalid={mismatch}
                 type={showConfirm ? "text" : "password"}
                 placeholder="Repite la contraseña"
                 autoComplete="new-password"
@@ -140,12 +121,12 @@ function NuevaPassword() {
               </button>
             </div>
             {mismatch && (
-              <p className="rec-error" style={{ margin: "-10px 0 14px" }}>
+              <p className="rec-error" id="rec-confirm-error" role="alert" style={{ margin: "-10px 0 14px" }}>
                 Las contraseñas no coinciden
               </p>
             )}
 
-            <button type="submit" className="rec-button" disabled={!canSubmit}>
+            <button type="submit" className="rec-button" disabled={saving}>
               {saving ? "Guardando..." : "Reestablecer contraseña"}
             </button>
           </form>

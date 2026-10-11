@@ -1,4 +1,5 @@
 const { ErrorApp } = require('./errores');
+const { validarPassword } = require('./passwordPolicy');
 
 const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
@@ -11,9 +12,7 @@ function validarRegistro({ nombre_completo, correo_electronico, password, confir
   if (!emailValido(correo_electronico)) {
     throw new ErrorApp('Correo no válido', 400);
   }
-  if (password.length < 8) {
-    throw new ErrorApp('La contraseña debe tener al menos 8 caracteres', 400);
-  }
+  validarPassword(password);
   if (confirmar_password !== undefined && confirmar_password !== password) {
     throw new ErrorApp('Las contraseñas no coinciden', 400);
   }

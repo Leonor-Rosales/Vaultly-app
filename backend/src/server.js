@@ -4,7 +4,12 @@ const cors = require('cors');
 
 const { PORT, FRONTEND_URL } = require('./infrastructure/config');
 const authRoutes = require('./controllers/authRoutes');
-const archivosRoutes = require('./controllers/archivosRoutes');
+const { crearArchivosRoutes } = require('./controllers/archivosRoutes');
+const { crearCasosArchivos } = require('./usecases/archivos');
+const archivosRoutes = crearArchivosRoutes(crearCasosArchivos({
+  repositorio: require('./infrastructure/archivoRepositorio'),
+  almacenamiento: require('./infrastructure/almacenamientoMinio'),
+}));
 
 const app = express();
 

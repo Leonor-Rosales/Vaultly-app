@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { register, ApiError } from "../services/auth";
+import { register, resendVerification, ApiError } from "../services/auth";
+import { emailValido, errorPassword, evaluarPassword } from "../services/passwordPolicy";
+import PasswordRequirements from "../components/PasswordRequirements";
 import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 
 import "./Registro.css";
 
@@ -19,22 +20,9 @@ function Registro() {
   // Modal de correo existente
   const [mostrarLogin, setMostrarLogin] = useState(false);
   const [errorCampos, setErrorCampos] = useState("");
+  const [resultado, setResultado] = useState<{ mensaje: string; correo_enviado: boolean } | null>(null);
 
   const navigate = useNavigate();
-
-  let passwordStrength = "";
-  let strengthBars = 0;
-
-  if (password.length >= 1 && password.length < 5) {
-    passwordStrength = "Baja";
-    strengthBars = 1;
-  } else if (password.length >= 5 && password.length <= 8) {
-    passwordStrength = "Media";
-    strengthBars = 2;
-  } else if (password.length > 8) {
-    passwordStrength = "Alta";
-    strengthBars = 3;
-  }
 
   return (
     <div className="registro-page">
@@ -83,8 +71,10 @@ function Registro() {
         </p>
 
         <form
+          noValidate
           onSubmit={async (e) => {
             e.preventDefault();
+            if (creatingAccount || resultado) return;
 
             // Campos vacíos
             if (!name.trim() || !email.trim() || !password || !confirmPassword) {
@@ -94,30 +84,30 @@ function Registro() {
 
           setErrorCampos("");
 
-            // Validar correo Gmail
-            if (!/^[^\s@]+@gmail\.com$/.test(email)) {
-              return; 
+            if (!emailValido(email.trim())) {
+              setErrorCampos("Correo no válido");
+              return;
             }
 
             // Validar contraseñas
-            if (password !== confirmPassword) {
+            const error = errorPassword(password, confirmPassword);
+            if (error) {
+              setErrorCampos(error);
               return;
             }
 
             try {
   setCreatingAccount(true);
 
-  await register({
+  const respuesta = await register({
     name,
-    email,
+    email: email.trim(),
     password,
+    confirmPassword,
   });
-
-  toast.success("Cuenta creada correctamente");
-
-  setTimeout(() => {
-    navigate("/");
-  }, 1500);
+  setResultado(respuesta);
+  setPassword("");
+  setConfirmPassword("");
 
 } catch (error) {
   console.error(error);
@@ -133,7 +123,7 @@ function Registro() {
     return;
   }
 
-  toast.error(
+  setErrorCampos(
     error instanceof ApiError
       ? error.message
       : "No se pudo crear la cuenta"
@@ -148,14 +138,16 @@ function Registro() {
         >
 
           {errorCampos && (
-  <p className="error-message">
+  <p className="error-message" id="registro-error" role="alert">
     {errorCampos}
   </p>
 )}
 
-<label>Nombre completo</label>
+          {!resultado && <>
+<label htmlFor="registro-nombre">Nombre completo</label>
 
 <input
+  id="registro-nombre"
   type="text"
   placeholder=""
   value={name}
@@ -166,33 +158,39 @@ function Registro() {
 />
 
           {/* CORREO */}
-          <label>Correo electrónico</label>
+          <label htmlFor="registro-correo">Correo electrónico</label>
 
           <div className="input-icon">
             <input
-              type="text"
+              id="registro-correo"
+              type="email"
+              disabled={!!resultado}
               value={email}
               autoComplete="off"
               onChange={(e) => setEmail(e.target.value)}
             />
 
-            {email.endsWith("@gmail.com") && (
+            {emailValido(email.trim()) && (
               <Icon icon="lucide:circle-check" />
             )}
           </div>
 
-          {email.length > 0 && !email.endsWith("@gmail.com") && (
+          {email.length > 0 && !emailValido(email.trim()) && (
             <p className="email-error">
               La dirección del correo electrónico no es válida
             </p>
           )}
 
           {/* CONTRASEÑA */}
-          <label>Contraseña</label>
+          <label htmlFor="registro-password">Contraseña</label>
 
           <div className="password-container">
 
             <input
+              id="registro-password"
+              autoComplete="new-password"
+              aria-describedby="registro-requisitos registro-error"
+              aria-invalid={password.length > 0 && !evaluarPassword(password).valida}
               type={showPassword ? "text" : "password"}
               placeholder="••••••••••••"
               value={password}
@@ -202,6 +200,7 @@ function Registro() {
             <button
               type="button"
               className="eye-button"
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
               onClick={() => setShowPassword(!showPassword)}
             >
               <Icon
@@ -216,30 +215,20 @@ function Registro() {
           </div>
 
           {/* FUERZA */}
-          {password.length > 0 && (
-            <>
-              <div className="password-strength">
-                <span className={strengthBars >= 1 ? "active" : ""}></span>
-                <span className={strengthBars >= 2 ? "active" : ""}></span>
-                <span className={strengthBars >= 3 ? "active" : ""}></span>
-              </div>
-
-              <p
-                className={`strength-text ${passwordStrength.toLowerCase()}`}
-              >
-                Fuerza: <strong>{passwordStrength}</strong>
-              </p>
-            </>
-          )}
+          <PasswordRequirements password={password} id="registro-requisitos" />
 
           {/* CONFIRMAR CONTRASEÑA */}
-          <label className="confirm-password-label">
+          <label htmlFor="registro-confirmacion" className="confirm-password-label">
             Confirmar contraseña
           </label>
 
           <div className="password-container">
 
             <input
+              id="registro-confirmacion"
+              autoComplete="new-password"
+              aria-describedby="registro-confirmacion-error registro-error"
+              aria-invalid={confirmPassword.length > 0 && confirmPassword !== password}
               type={showConfirmPassword ? "text" : "password"}
               placeholder="••••••••••••"
               value={confirmPassword}
@@ -252,6 +241,7 @@ function Registro() {
               onClick={() =>
                 setShowConfirmPassword(!showConfirmPassword)
               }
+              aria-label={showConfirmPassword ? "Ocultar confirmación" : "Mostrar confirmación"}
             >
               <Icon
                 icon={
@@ -266,7 +256,7 @@ function Registro() {
 
           {confirmPassword.length > 0 &&
             confirmPassword !== password && (
-              <p className="error-message">
+              <p className="error-message" id="registro-confirmacion-error" role="alert">
                 Las contraseñas no coinciden
               </p>
             )}
@@ -275,10 +265,34 @@ function Registro() {
           <button
             type="submit"
             className="register-button"
-            disabled={creatingAccount}
+            disabled={creatingAccount || !!resultado}
           >
             {creatingAccount ? "Creando cuenta..." : "Crear cuenta"}
           </button>
+          </>}
+
+          {resultado && (
+            <div role="status">
+              <p>{resultado.mensaje}</p>
+              {!resultado.correo_enviado && (
+                <button type="button" className="register-button" disabled={creatingAccount}
+                  onClick={async () => {
+                    setCreatingAccount(true);
+                    try {
+                      const respuesta = await resendVerification(email.trim());
+                      setResultado({ mensaje: respuesta.mensaje, correo_enviado: true });
+                    } catch (error) {
+                      setErrorCampos(error instanceof ApiError ? error.message : "No se pudo reenviar el correo");
+                    } finally {
+                      setCreatingAccount(false);
+                    }
+                  }}>
+                  Reenviar verificación
+                </button>
+              )}
+              <Link to="/">Ir a iniciar sesión</Link>
+            </div>
+          )}
 
           <div className="registrer-divider">
             <span></span>
