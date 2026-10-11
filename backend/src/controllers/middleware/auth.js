@@ -1,16 +1,19 @@
-const { verificarTokenSesion } = require('../../infrastructure/tokens');
+function crearRequiereAuth(verificarTokenSesion) {
 
-// Protege rutas: exige un header  Authorization: Bearer <token>
-function requiereAuth(req, res, next) {
-  const cabecera = req.headers.authorization || '';
-  const token = cabecera.startsWith('Bearer ') ? cabecera.slice(7) : null;
-  if (!token) return res.status(401).json({ error: 'No autenticado' });
-  try {
-    req.usuario = verificarTokenSesion(token);
-    next();
-  } catch {
-    res.status(401).json({ error: 'Sesión inválida o expirada' });
+  // Protege rutas: exige un header  Authorization: Bearer <token>
+  function requiereAuth(req, res, next) {
+    const cabecera = req.headers.authorization || '';
+    const token = cabecera.startsWith('Bearer ') ? cabecera.slice(7) : null;
+    if (!token) return res.status(401).json({ error: 'No autenticado' });
+    try {
+      req.usuario = verificarTokenSesion(token);
+      next();
+    } catch {
+      res.status(401).json({ error: 'Sesión inválida o expirada' });
+    }
   }
+
+  return requiereAuth;
 }
 
 // Restringe una ruta a ciertos roles, por ejemplo: requiereRol('ADMIN')
@@ -23,4 +26,4 @@ function requiereRol(...roles) {
   };
 }
 
-module.exports = { requiereAuth, requiereRol };
+module.exports = { crearRequiereAuth, requiereRol };

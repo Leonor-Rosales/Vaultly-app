@@ -1,20 +1,15 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const path = require('node:path');
 const { Readable } = require('node:stream');
 const express = require('express');
-const loadWith = require('./loadWith');
+const { crearRequiereAuth } = require('../src/controllers/middleware/auth');
+const { crearArchivosRoutes } = require('../src/controllers/archivosRoutes');
 const { crearCasosArchivos } = require('../src/usecases/archivos');
 
 test('HTTP conserva autenticación, endpoints, respuestas, multipart y descarga privada', async (t) => {
-  const middleware = loadWith(path.resolve(__dirname, '../src/controllers/middleware/auth.js'), {
-    '../../infrastructure/tokens': { verificarTokenSesion: (token) => {
-      if (!['propietario', 'intruso'].includes(token)) throw new Error('token inválido');
-      return { sub: token };
-    } },
-  });
-  const { crearArchivosRoutes } = loadWith(path.resolve(__dirname, '../src/controllers/archivosRoutes.js'), {
-    './middleware/auth': middleware,
+  const requiereAuth = crearRequiereAuth((token) => {
+    if (!['propietario', 'intruso'].includes(token)) throw new Error('token inválido');
+    return { sub: token };
   });
   let metadata;
   let bytes;
@@ -42,7 +37,7 @@ test('HTTP conserva autenticación, endpoints, respuestas, multipart y descarga 
   });
   const app = express();
   app.use(express.json());
-  app.use('/api/archivos', crearArchivosRoutes(casos));
+  app.use('/api/archivos', crearArchivosRoutes(casos, requiereAuth));
   const server = await new Promise((resolve) => { const s = app.listen(0, '127.0.0.1', () => resolve(s)); });
   t.after(() => new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve())));
   const base = `http://127.0.0.1:${server.address().port}/api/archivos`;

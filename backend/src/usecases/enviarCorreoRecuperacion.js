@@ -1,17 +1,16 @@
-const { FRONTEND_URL } = require('../infrastructure/config');
-const {
-  enviarCorreoRecuperacion: enviarCorreo,
-} = require('../infrastructure/mailer');
 
-async function enviarCorreoRecuperacion({ para, nombre, token }) {
-  const enlace =
-    `${FRONTEND_URL}/restablecer?token=${encodeURIComponent(token)}`;
+function crearEnviarCorreoRecuperacion({ enviarCorreo, frontendUrl }) {
+  async function enviarCorreoRecuperacion({ para, nombre, token }) {
+    const enlace =
+      `${frontendUrl}/restablecer?token=${encodeURIComponent(token)}`;
 
-  await enviarCorreo({
-    para,
-    nombre,
-    enlace,
-  });
+    await enviarCorreo({
+      para,
+      nombre,
+      enlace,
+    });
+  }
+  return enviarCorreoRecuperacion;
 }
 
-module.exports = { enviarCorreoRecuperacion };
+module.exports = { crearEnviarCorreoRecuperacion };

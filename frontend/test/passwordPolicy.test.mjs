@@ -18,6 +18,16 @@ test('confirmación distinta, vacía e igual', () => {
   assert.equal(errorPassword('Aa1!aaaa', ''), 'Las contraseñas no coinciden');
   assert.equal(errorPassword('Aa1!aaaa', 'Aa1!aaaa'), '');
 });
+
+test('el exceso de bytes usa el error existente sin añadir requisitos visibles', () => {
+  for (const password of ['Aa1!' + 'a'.repeat(69), 'Aa1!' + 'é'.repeat(35), 'Aa1!' + '😀'.repeat(18)]) {
+    assert.equal(errorPassword(password, password), 'La contraseña es demasiado larga. Usa una más corta.');
+    assert.equal(evaluarPassword(password).valida, false);
+    assert.equal(evaluarPassword(password).nivel, 'Baja');
+    assert.equal(evaluarPassword(password).requisitos.some(({ id }) => id === 'bytes'), false);
+  }
+  assert.equal(errorPassword('Aa1!' + 'é'.repeat(34), 'Aa1!' + 'é'.repeat(34)), '');
+});
 test('frontend y backend coinciden en límites UTF-8, Unicode, espacios y combinaciones', () => {
   const passwords = ['Áé1!abcd', ' Aa1!aa ', 'Aa1!' + 'é'.repeat(34), 'Aa1!' + 'é'.repeat(35), 'Aa1!😀abc', 'Aa1!😀ab'];
   for (const prefix of ['Aa1!', 'AA1!', 'aa1!', 'Aaa!', 'Aaa1', 'Aa1 ', 'Aa1\n']) {
