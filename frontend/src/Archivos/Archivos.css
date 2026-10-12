@@ -212,6 +212,34 @@
 
 /* Icono del archivo */
 
+.archivo-detalles {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: min(280px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #e8cdb7;
+  border-radius: 10px;
+  background: #faf5ef;
+  color: #542818;
+  box-shadow: 0 4px 14px #54281814;
+  scrollbar-width: thin;
+  scrollbar-color: #d9c2af #faf5ef;
+  font-family: inherit;
+  text-align: left;
+}
+
+.archivo-detalles::backdrop { background: transparent; }
+.archivo-detalles h3 { margin: 0 0 10px; padding-bottom: 9px; border-bottom: 1px solid #e8d5c4; font-size: 12px; font-weight: 600; }
+.archivo-detalles dl { margin: 0; }
+.archivo-detalles dl > div { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.archivo-detalles dl > div + div { margin-top: 8px; }
+.archivo-detalles dt { color: #88796e; font-size: 11px; line-height: 1.5; margin: 0; }
+.archivo-detalles dd { margin: 0; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+
 .archivo-card-icon {
   width: 54px;
   height: 54px;

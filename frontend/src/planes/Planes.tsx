@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { obtenerCatalogo } from "../services/consumo";
 import Sidebar from "../components/Sidebar";
 import { obtenerPlanActual, type PlanActual } from "../services/pagos";
-import { PLANES, formatPrecio, textoDescargas } from "./planesData";
+import { formatPrecio, textoDescargas, type Plan } from "./planesData";
 import "../dashboard/Dashboard.css";
 import "./Planes.css";
 
@@ -11,8 +13,10 @@ function Planes() {
   const navigate = useNavigate();
   const [actual, setActual] = useState<PlanActual | null>(null);
 
+  const [planes, setPlanes] = useState<Plan[]>([]);
   useEffect(() => {
-    obtenerPlanActual().then(setActual);
+    obtenerPlanActual().then(setActual).catch(e => toast.error(e.message));
+    obtenerCatalogo().then(setPlanes).catch(e => toast.error(e.message));
   }, []);
 
   return (
@@ -39,7 +43,7 @@ function Planes() {
         </div>
 
         <section className="plans-grid" aria-label="Planes disponibles">
-          {PLANES.map((plan) => {
+          {planes.map((plan) => {
             const esActual = actual?.planId === plan.id;
 
             return (
@@ -86,7 +90,7 @@ function Planes() {
                 )}
 
                 {esActual && actual && (
-                  <span className="plan-renewal">Renueva el {actual.renovacion}</span>
+                  <span className="plan-renewal">Fin del ciclo: {actual.renovacion}</span>
                 )}
               </article>
             );

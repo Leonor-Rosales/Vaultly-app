@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import { Link, useNavigate } from "react-router-dom";
 
 import "./Registro.css";
+import "../recuperar/Recuperar.css";
 
 function Registro() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +24,40 @@ function Registro() {
   const [resultado, setResultado] = useState<{ mensaje: string; correo_enviado: boolean } | null>(null);
 
   const navigate = useNavigate();
+
+  if (resultado) return (
+    <div className="rec-page">
+      <div className="rec-logo">
+        <div className="rec-logo-icon"><Icon icon="lucide:vault" /></div>
+        <span>Vaultly</span>
+      </div>
+      <div className="rec-card rec-card-center">
+        <div className="rec-mail-icon"><Icon icon={resultado.correo_enviado ? "lucide:mail-check" : "lucide:mail-warning"} /></div>
+        <h1>{resultado.correo_enviado ? "Revisa tu correo" : "Tu cuenta fue creada"}</h1>
+        <p className="rec-subtitle" role="status">
+          {resultado.correo_enviado ? <>Te enviamos un enlace para activar tu cuenta a <strong>{email.trim()}</strong>.</> : resultado.mensaje}
+        </p>
+        {resultado.correo_enviado && <p className="rec-subtitle">Abre el enlace del correo para activar tu cuenta. Si no lo encuentras, revisa la carpeta de spam.</p>}
+        {errorCampos && <p className="error-message" role="alert">{errorCampos}</p>}
+        {!resultado.correo_enviado && <button type="button" className="register-button" disabled={creatingAccount}
+          onClick={async () => {
+            setCreatingAccount(true);
+            setErrorCampos("");
+            try {
+              const respuesta = await resendVerification(email.trim());
+              setResultado({ mensaje: respuesta.mensaje, correo_enviado: true });
+            } catch (error) {
+              setErrorCampos(error instanceof ApiError ? error.message : "No se pudo reenviar el correo");
+            } finally { setCreatingAccount(false); }
+          }}>
+          {creatingAccount ? "Enviando…" : "Reenviar verificación"}
+        </button>}
+        <Link to="/login" className="rec-link">
+          Volver a iniciar sesión
+        </Link>
+      </div>
+    </div>
+  );
 
   return (
     <div className="registro-page">
@@ -270,29 +305,6 @@ function Registro() {
             {creatingAccount ? "Creando cuenta..." : "Crear cuenta"}
           </button>
           </>}
-
-          {resultado && (
-            <div role="status">
-              <p>{resultado.mensaje}</p>
-              {!resultado.correo_enviado && (
-                <button type="button" className="register-button" disabled={creatingAccount}
-                  onClick={async () => {
-                    setCreatingAccount(true);
-                    try {
-                      const respuesta = await resendVerification(email.trim());
-                      setResultado({ mensaje: respuesta.mensaje, correo_enviado: true });
-                    } catch (error) {
-                      setErrorCampos(error instanceof ApiError ? error.message : "No se pudo reenviar el correo");
-                    } finally {
-                      setCreatingAccount(false);
-                    }
-                  }}>
-                  Reenviar verificación
-                </button>
-              )}
-              <Link to="/">Ir a iniciar sesión</Link>
-            </div>
-          )}
 
           <div className="registrer-divider">
             <span></span>

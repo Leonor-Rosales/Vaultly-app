@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Icon } from "@iconify/react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { contratarPlan, type MetodoPago } from "../services/pagos";
-import { formatPrecio, getPlan, textoDescargas } from "./planesData";
+import { formatPrecio, textoDescargas, type Plan } from "./planesData";
 import "./Contratar.css";
+import { obtenerCatalogo } from "../services/consumo";
 
 const BANCOS = [
   "Banco Industrial",
@@ -44,7 +45,9 @@ const vencimientoValido = (valor: string): boolean => {
 function Contratar() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const plan = getPlan(searchParams.get("plan"));
+  const [planes, setPlanes] = useState<Plan[] | null>(null);
+  const plan = planes?.find(p => p.id === searchParams.get("plan"));
+  useEffect(() => { obtenerCatalogo().then(setPlanes).catch(e => { toast.error(e.message); setPlanes([]); }); }, []);
 
   const [metodo, setMetodo] = useState<MetodoPago>("tarjeta");
   const [intentado, setIntentado] = useState(false);
@@ -63,6 +66,7 @@ function Contratar() {
   const [titularTransferencia, setTitularTransferencia] = useState("");
 
   // Sin un plan válido en la URL no hay nada que contratar.
+  if (planes === null) return <p>Cargando plan…</p>;
   if (!plan) return <Navigate to="/planes" replace />;
 
   const errores = {
@@ -93,8 +97,8 @@ function Contratar() {
       await contratarPlan({ planId: plan.id, metodo });
       toast.success(`Plan ${plan.nombre} contratado`);
       navigate("/planes/historial");
-    } catch {
-      toast.error("No pudimos procesar el pago simulado. Intenta de nuevo.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "La contratación todavía no está disponible.");
     } finally {
       setEnviando(false);
     }
@@ -311,8 +315,8 @@ function Contratar() {
 
         <p className="ct-note">
           {metodo === "tarjeta"
-            ? "Pago simulado. No se hará ninguna transacción"
-            : "(Transacción simulada. No se realizará ningún cobro real)"}
+            ? "Pantalla demostrativa. Contratación todavía no disponible."
+            : "Pantalla demostrativa. No se realizará ningún cobro."}
         </p>
       </form>
     </div>

@@ -9,6 +9,11 @@ const { crearAuthController } = require('./controllers/authController');
 const { crearAuthRoutes } = require('./controllers/authRoutes');
 const { crearRequiereAuth } = require('./controllers/middleware/auth');
 const requiereAuth = crearRequiereAuth(tokens.verificarTokenSesion);
+const { crearCuotasRepositorio } = require('./infrastructure/cuotasRepositorio');
+const { crearCasosCuotas } = require('./usecases/cuotas');
+const { crearPlanesRoutes } = require('./controllers/planesRoutes');
+const almacenamiento = require('./infrastructure/almacenamientoMinio');
+const cuotas = crearCasosCuotas({ repo: crearCuotasRepositorio(require('./infrastructure/db')), almacenamiento });
 const casosAuth = crearCasosAuth({
   repo: require('./infrastructure/usuarioRepositorio'),
   contrasenas: require('./infrastructure/contrasenas'),
@@ -22,7 +27,8 @@ const { crearArchivosRoutes } = require('./controllers/archivosRoutes');
 const { crearCasosArchivos } = require('./usecases/archivos');
 const archivosRoutes = crearArchivosRoutes(crearCasosArchivos({
   repositorio: require('./infrastructure/archivoRepositorio'),
-  almacenamiento: require('./infrastructure/almacenamientoMinio'),
+  almacenamiento,
+  cuotas,
 }), requiereAuth);
 
 const app = express();
@@ -32,5 +38,20 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/archivos', archivosRoutes);
+app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth));
+
+// Recuperación idempotente. El bloqueo en PostgreSQL coordina varias instancias.
+let recuperando = false;
+async function recuperarReservas() {
+  if (recuperando) return;
+  recuperando = true;
+  try {
+    const resultado = await cuotas.recuperarReservas();
+    if (resultado.fallos) console.error('Reservas pendientes de recuperación:', resultado.fallos);
+  } catch (error) { console.error('No se pudieron recuperar reservas:', error.message); }
+  finally { recuperando = false; }
+}
+setInterval(recuperarReservas, 60000).unref();
+recuperarReservas();
 
 app.listen(PORT, () => console.log(`Backend en http://localhost:${PORT}`));

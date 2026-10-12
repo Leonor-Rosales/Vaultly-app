@@ -1,10 +1,12 @@
 
+import { actualizarConsumo } from "./consumo";
 import { getToken } from "./auth";
 
 const API_URL: string =
   import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export interface Archivo {
+  usuario_id?: string;
   id: string;
   nombre_original: string;
   tamanio_bytes: number | string;
@@ -45,6 +47,10 @@ export async function listarArchivos(): Promise<Archivo[]> {
   return solicitud<Archivo[]>("/api/archivos");
 }
 
+export async function listarPublicos(): Promise<Archivo[]> {
+  return solicitud<Archivo[]>("/api/archivos/publicos");
+}
+
 
 export async function subirArchivo(
   file: File,
@@ -55,18 +61,18 @@ export async function subirArchivo(
   formulario.append("archivo", file);
   formulario.append("es_publica", String(esPublica));
 
-  return solicitud<Archivo>("/api/archivos", {
+  try { return await solicitud<Archivo>("/api/archivos", {
     method: "POST",
     body: formulario,
-  });
+  }); } finally { void actualizarConsumo().catch(() => {}); }
 }
 
 
 export async function eliminarArchivo(id: string): Promise<void> {
-  await solicitud<{ mensaje: string }>(
+  try { await solicitud<{ mensaje: string }>(
     `/api/archivos/${encodeURIComponent(id)}`,
     { method: "DELETE" }
-  );
+  ); } finally { void actualizarConsumo().catch(() => {}); }
 }
 
 export async function descargarArchivo(
@@ -79,6 +85,7 @@ export async function descargarArchivo(
     throw new Error("Tu sesión ha expirado. Inicia sesión nuevamente.");
   }
 
+  try {
   const response = await fetch(
     `${API_URL}/api/archivos/${encodeURIComponent(id)}/descargar`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -100,6 +107,7 @@ export async function descargarArchivo(
   enlace.remove();
 
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } finally { void actualizarConsumo().catch(() => {}); }
 }
 
 

@@ -34,8 +34,20 @@ PostgreSQL ejecuta estos archivos en orden:
 
 1. init-db/01_schema.sql
 2. init-db/02_seeds.sql
-Deben aparecer 12 tablas y 4 planes
+3. init-db/03_planes_cuotas.sql
+4. init-db/04_descargas_biblioteca.sql
+Deben aparecer 16 tablas y 4 planes.
 Los scripts no se ejecutan nuevamente al reiniciar
+
+Para una base existente, con el backend detenido y su conexión local ya configurada:
+
+```powershell
+npm --prefix backend run migrate
+```
+
+La migración es idempotente y conserva usuarios, archivos y volúmenes.
+Consulta [planes, cuotas y descargas](docs/planes-cuotas-descargas.md) para las reglas,
+endpoints, pruebas y pasos de ejecución local.
 
 ## Conexión desde DataGrip, pgAdmin o DBeaver
 Host: localhost

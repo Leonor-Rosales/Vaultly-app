@@ -1,3 +1,4 @@
+import { formatoBytes } from "../services/usagePolicy";
 
 import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
@@ -32,15 +33,7 @@ function CargaArchivos({
   const [arrastrando, setArrastrando] = useState(false);
   const [subiendo, setSubiendo] = useState(false);
 
-  const formatoTamano = (valor: number) => {
-    if (valor < 1024) return `${valor} B`;
-    if (valor < 1024 ** 2) return `${(valor / 1024).toFixed(1)} KB`;
-    if (valor < 1024 ** 3) {
-      return `${(valor / 1024 ** 2).toFixed(1)} MB`;
-    }
-
-    return `${(valor / 1024 ** 3).toFixed(1)} GB`;
-  };
+  const formatoTamano = (valor: number | string) => formatoBytes(Number(valor));
 
   const iconoArchivo = (nombre: string) => {
     const extension = nombre.split(".").pop()?.toLowerCase();

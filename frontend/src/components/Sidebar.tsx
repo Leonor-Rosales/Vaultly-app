@@ -2,6 +2,7 @@
 import { Icon } from "@iconify/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { Usuario } from "../services/auth";
+import { useConsumo } from '../services/consumo';
 import "./Sidebar.css";
 
 const ITEMS = [
@@ -44,7 +45,8 @@ function Sidebar() {
   };
 
   const active = obtenerSeccion();
-  const plan = "Free"; // Temporal hasta conectar las suscripciones.
+  const { consumo } = useConsumo();
+  const plan = consumo?.plan.nombre ?? 'Consultando plan…';
 
   return (
     <aside className="sidebar">

@@ -1,3 +1,4 @@
+const { cuotasArchivoDoble } = require('./cuotasArchivoDoble');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { Readable } = require('node:stream');
@@ -18,7 +19,7 @@ function fixture() {
     abrir: async (name) => { calls.push(['abrir', name]); return Readable.from(['contenido']); },
     eliminar: async (name) => { calls.push(['borrarObjeto', name]); },
   };
-  const casos = crearCasosArchivos({ repositorio, almacenamiento, registrarError: (...args) => calls.push(['log', ...args]) });
+  const casos = crearCasosArchivos({ repositorio, almacenamiento, cuotas: cuotasArchivoDoble(repositorio, almacenamiento), registrarError: (...args) => calls.push(['log', ...args]) });
   return { calls, casos, archivo, repositorio, almacenamiento };
 }
 const upload = { nombreOriginal: '../informe.txt', tipoMime: 'text/plain', tamanioBytes: 4, contenido: Buffer.from('hola') };
@@ -53,11 +54,12 @@ test('fallo de limpieza conserva el error original y reporta el pendiente', asyn
   await assert.rejects(casos.subir('propietario', upload, false), /DB falló/);
   assert.equal(calls.at(-1)[0], 'log');
 });
-test('fallo de subida no crea metadatos ni elimina un objeto no confirmado', async () => {
+test('fallo de subida no crea metadatos y compensa el nombre reservado', async () => {
   const { casos, calls, almacenamiento } = fixture();
   almacenamiento.guardar = async () => { throw new Error('MinIO falló'); };
   await assert.rejects(casos.subir('propietario', upload, false), /MinIO falló/);
-  assert.deepEqual(calls, []);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0], 'borrarObjeto');
 });
 for (const operacion of ['descargar', 'eliminar', 'cambiarVisibilidad']) {
   test(`${operacion} rechaza archivo ajeno o inexistente sin tocar objetos`, async () => {

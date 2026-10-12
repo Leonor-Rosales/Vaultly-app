@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 
 const { ErrorApp } = require('../domain/errores');
+const { transmitirDescarga } = require('./transmitirDescarga');
 
 function crearArchivosRoutes(casos, requiereAuth) {
   const router = express.Router();
@@ -18,6 +19,7 @@ function crearArchivosRoutes(casos, requiereAuth) {
       if (!res.headersSent) {
         res.status(error instanceof ErrorApp ? error.estado : 500).json({
           error: error instanceof ErrorApp ? error.message : mensaje,
+          ...(error.codigo ? { codigo: error.codigo } : {}),
         });
       } else {
         res.destroy(error);
@@ -26,6 +28,9 @@ function crearArchivosRoutes(casos, requiereAuth) {
   };
   router.get('/', manejar('No se pudieron listar los archivos', async (req, res) => {
     res.json(await casos.listar(req.usuario.sub));
+  }));
+  router.get('/publicos', manejar('No se pudo cargar la biblioteca pública', async (_req, res) => {
+    res.json(await casos.listarPublicos());
   }));
   router.post('/', upload.single('archivo'), manejar('No se pudo subir el archivo', async (req, res) => {
     const datos = req.file && {
@@ -40,15 +45,7 @@ function crearArchivosRoutes(casos, requiereAuth) {
     res.json(await casos.cambiarVisibilidad(req.params.id, req.usuario.sub, req.body?.es_publica));
   }));
   router.get('/:id/descargar', manejar('No se pudo descargar el archivo', async (req, res) => {
-    const { archivo, stream } = await casos.descargar(req.params.id, req.usuario.sub);
-    res.setHeader('Content-Type', archivo.tipo_mime);
-    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(archivo.nombre_original)}`);
-    stream.on('error', (error) => {
-      console.error('Error al leer archivo:', error);
-      if (!res.headersSent) res.status(500).end();
-      else res.destroy(error);
-    });
-    stream.pipe(res);
+    await transmitirDescarga(await casos.descargar(req.params.id, req.usuario.sub), res);
   }));
   router.delete('/:id', manejar('No se pudo eliminar el archivo', async (req, res) => {
     res.json(await casos.eliminar(req.params.id, req.usuario.sub));

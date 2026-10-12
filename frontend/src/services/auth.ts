@@ -1,3 +1,4 @@
+import { actualizarConsumo, limpiarConsumo } from "./consumo";
 const API_URL: string =
   import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -48,6 +49,7 @@ export const getToken = (): string | null =>
 export const logout = (): void => {
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
+  limpiarConsumo();
 };
 
 async function request<T>(
@@ -121,6 +123,8 @@ export const login = async (
     "usuario",
     JSON.stringify(result.usuario)
   );
+
+  await actualizarConsumo().catch(() => {}); // La sesión sigue siendo válida; dashboard muestra el error del plan.
 
   return result;
 };

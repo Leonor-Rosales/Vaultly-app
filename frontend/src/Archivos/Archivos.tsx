@@ -1,3 +1,4 @@
+import { formatoBytes } from "../services/usagePolicy";
 
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
@@ -11,6 +12,7 @@ import {
   type Archivo,
 } from "../services/archivos";
 import CargaArchivos from "../Archivos/CargaArchivos";
+import DetallesArchivo from "./DetallesArchivo";
 import "./Archivos.css";
 
 function Archivos() {
@@ -51,16 +53,7 @@ function Archivos() {
     };
   }, []);
 
-  const formatoTamano = (valor: number | string) => {
-    const bytes = Number(valor);
-
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 ** 3)
-      return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-
-    return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-  };
+  const formatoTamano = (valor: number | string) => formatoBytes(Number(valor));
 
   const iconoArchivo = (nombre: string) => {
     const extension = nombre.split(".").pop()?.toLowerCase();
@@ -221,14 +214,7 @@ function Archivos() {
                     {archivo.es_publica ? "Público" : "Privado"}
                   </button>
 
-                  <button
-                    type="button"
-                    className="archivo-menu-button"
-                    title="Más opciones"
-                    onClick={() => toast("Más opciones próximamente")}
-                  >
-                    <Icon icon="lucide:more-horizontal" />
-                  </button>
+                  <DetallesArchivo archivo={archivo} />
                 </div>
 
                 <div className="archivo-card-icon">
