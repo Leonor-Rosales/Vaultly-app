@@ -1,4 +1,5 @@
 const pool = require('./db');
+const { ErrorApp } = require('../domain/errores');
 
 async function buscarRolPorNombre(nombre) {
   const { rows } = await pool.query('SELECT id, nombre FROM roles WHERE nombre = $1', [nombre]);
@@ -6,13 +7,18 @@ async function buscarRolPorNombre(nombre) {
 }
 
 async function crearUsuario({ id, rolId, nombreCompleto, correo, passwordHash, estado }) {
-  const { rows } = await pool.query(
-    `INSERT INTO usuarios (id, rol_id, nombre_completo, correo_electronico, password_hash, estado_cuenta)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING id, nombre_completo, correo_electronico`,
-    [id, rolId, nombreCompleto, correo, passwordHash, estado]
-  );
-  return rows[0];
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO usuarios (id, rol_id, nombre_completo, correo_electronico, password_hash, estado_cuenta)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, nombre_completo, correo_electronico`,
+      [id, rolId, nombreCompleto, correo, passwordHash, estado]
+    );
+    return rows[0];
+  } catch (error) {
+    if (error.code === '23505') throw new ErrorApp('Ese correo ya está registrado', 409);
+    throw error;
+  }
 }
 
 async function buscarPorCorreoConRol(correo) {

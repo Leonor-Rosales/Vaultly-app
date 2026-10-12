@@ -6,7 +6,7 @@ function validarPassword(password) {
     throw new ErrorApp('La contraseña es obligatoria', 400);
   }
   if (Buffer.byteLength(password, 'utf8') > policy.maxBytes) {
-    throw new ErrorApp(`La contraseña no puede superar ${policy.maxBytes} bytes UTF-8; los acentos y emojis pueden ocupar varios bytes`, 400);
+    throw new ErrorApp('La contraseña es demasiado larga. Usa una más corta.', 400);
   }
   if ([...password].length < policy.minLength) {
     throw new ErrorApp(`La contraseña debe tener al menos ${policy.minLength} caracteres`, 400);

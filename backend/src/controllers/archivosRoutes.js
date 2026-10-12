@@ -1,9 +1,9 @@
 const express = require('express');
 const multer = require('multer');
-const { requiereAuth } = require('./middleware/auth');
+
 const { ErrorApp } = require('../domain/errores');
 
-function crearArchivosRoutes(casos) {
+function crearArchivosRoutes(casos, requiereAuth) {
   const router = express.Router();
   const upload = multer({
     storage: multer.memoryStorage(),

@@ -1,7 +1,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const path = require('node:path');
-const loadWith = require('./loadWith');
+const { crearRegistrarUsuario } = require('../src/usecases/registrarUsuario');
+const { crearRestablecerPassword } = require('../src/usecases/restablecerPassword');
+const { crearIniciarSesion } = require('../src/usecases/iniciarSesion');
 const { validarPassword } = require('../src/domain/passwordPolicy');
 const { validarRegistro } = require('../src/domain/validaciones');
 const { hashear, comparar } = require('../src/infrastructure/contrasenas');
@@ -33,21 +34,21 @@ test('hash conserva espacios y mayúsculas, sin almacenar texto plano', async ()
 
 function authDoubles({ mailFails = false } = {}) {
   const calls = [];
-  const hash = async (p) => { calls.push(['hash', p]); return 'hash-de-prueba'; };
-  const registro = loadWith(path.resolve(__dirname, '../src/usecases/registrarUsuario.js'), {
-    '../infrastructure/usuarioRepositorio': {
+  const hashear = async (p) => { calls.push(['hash', p]); return 'hash-de-prueba'; };
+  const registrarUsuario = crearRegistrarUsuario({
+    repo: {
       buscarRolPorNombre: async () => { calls.push(['rol']); return { id: 'cliente' }; },
       crearUsuario: async (datos) => { calls.push(['crear', datos]); return { id: 'usuario' }; },
     },
-    '../infrastructure/contrasenas': { hashear: hash },
-    './enviarVerificacion': { enviarVerificacion: async () => { if (mailFails) throw new Error('SMTP de prueba no disponible'); } },
+    hashear,
+    enviarVerificacion: async () => { if (mailFails) throw new Error('SMTP de prueba no disponible'); },
   });
-  const reset = loadWith(path.resolve(__dirname, '../src/usecases/restablecerPassword.js'), {
-    '../infrastructure/contrasenas': { hashear: hash },
-    '../infrastructure/tokens': { verificarTokenRecuperacion: () => { calls.push(['token']); return { sub: 'usuario' }; } },
-    '../infrastructure/db': { query: async (...args) => { calls.push(['query', ...args]); return { rowCount: 1 }; } },
+  const restablecerPassword = crearRestablecerPassword({
+    hashear,
+    verificarTokenRecuperacion: () => { calls.push(['token']); return { sub: 'usuario' }; },
+    repo: { actualizarPassword: async (...args) => { calls.push(['actualizarPassword', ...args]); return { id: 'usuario' }; } },
   });
-  return { ...registro, ...reset, calls };
+  return { registrarUsuario, restablecerPassword, calls };
 }
 test('registro y restablecimiento rechazan entradas inválidas antes del hash o persistencia', async () => {
   const { registrarUsuario, restablecerPassword, calls } = authDoubles();
@@ -73,15 +74,15 @@ test('registro confirma envío y restablecimiento acepta 8 caracteres sin modifi
   assert.equal((await registrarUsuario({ nombre_completo: 'Prueba', correo_electronico: 'prueba@example.org', password: 'Aa1!aaaa' })).correo_enviado, true);
   await restablecerPassword('token-prueba', ' Aa1!aa ');
   assert.deepEqual(calls.filter(([op]) => op === 'hash').at(-1), ['hash', ' Aa1!aa ']);
-  assert.deepEqual(calls.find(([op]) => op === 'query')[2], ['hash-de-prueba', 'usuario']);
+  assert.deepEqual(calls.find(([op]) => op === 'actualizarPassword'), ['actualizarPassword', 'usuario', 'hash-de-prueba']);
 });
 
 test('inicio de sesión mantiene contraseñas existentes sin exigir la nueva política', async () => {
   let comparada;
-  const { iniciarSesion } = loadWith(path.resolve(__dirname, '../src/usecases/iniciarSesion.js'), {
-    '../infrastructure/usuarioRepositorio': { buscarPorCorreoConRol: async () => ({ id: 'usuario', estado_cuenta: 'ACTIVO', password_hash: 'hash-existente', rol: 'CLIENTE' }) },
-    '../infrastructure/contrasenas': { comparar: async (password) => { comparada = password; return true; } },
-    '../infrastructure/tokens': { crearTokenSesion: () => 'token-de-prueba' },
+  const iniciarSesion = crearIniciarSesion({
+    repo: { buscarPorCorreoConRol: async () => ({ id: 'usuario', estado_cuenta: 'ACTIVO', password_hash: 'hash-existente', rol: 'CLIENTE' }) },
+    comparar: async (password) => { comparada = password; return true; },
+    crearTokenSesion: () => 'token-de-prueba',
   });
   assert.equal((await iniciarSesion({ correo_electronico: 'prueba@example.org', password: 'anterior' })).token, 'token-de-prueba');
   assert.equal(comparada, 'anterior');
