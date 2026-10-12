@@ -1,5 +1,17 @@
 
-const pool = require('./db');
+function crearArchivoRepositorio(pool) {
+
+async function listarPublicos() {
+  const { rows } = await pool.query(`SELECT id, usuario_id, nombre_original, tamanio_bytes,
+    tipo_mime, es_publica, created_at FROM archivos WHERE es_publica = TRUE ORDER BY created_at DESC`);
+  return rows;
+}
+
+async function buscarDescargable(id, usuarioId) {
+  const { rows } = await pool.query(`SELECT * FROM archivos
+    WHERE id = $1 AND (usuario_id = $2 OR es_publica = TRUE)`, [id, usuarioId]);
+  return rows[0] || null;
+}
 
 async function listarPorUsuario(usuarioId) {
   const { rows } = await pool.query(
@@ -89,10 +101,15 @@ async function actualizarVisibilidad(id, usuarioId, esPublica) {
 }
 
 
-module.exports = {
+return {
+  listarPublicos,
+  buscarDescargable,
   listarPorUsuario,
   buscarPorIdYUsuario,
   registrar,
   eliminarRegistro,
   actualizarVisibilidad,
 };
+
+}
+module.exports = { ...crearArchivoRepositorio(require('./db')), crearArchivoRepositorio };

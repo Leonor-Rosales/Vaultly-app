@@ -13,52 +13,58 @@ const { ErrorApp } = require('../domain/errores');
  * eliminar(nombreObjeto) es idempotente si el objeto ya no existe.
  * Ningún puerto recibe objetos de Express.
  */
-function crearCasosArchivos({ repositorio, almacenamiento, registrarError = console.error }) {
-  async function buscarPropio(id, usuarioId) {
-    const archivo = await repositorio.buscarPorIdYUsuario(id, usuarioId);
-    if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
-    return archivo;
-  }
+function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarError = console.error }) {
   return {
     listar: (usuarioId) => repositorio.listarPorUsuario(usuarioId),
+    listarPublicos: () => repositorio.listarPublicos(),
     async subir(usuarioId, datos, esPublica) {
       if (!datos) throw new ErrorApp('Debes seleccionar un archivo', 400);
       const nombreOriginal = path.basename(datos.nombreOriginal).slice(0, 255);
       if (!nombreOriginal.trim()) throw new ErrorApp('Nombre de archivo inválido', 400);
       const nombreObjeto = `${usuarioId}/${randomUUID()}`;
       const tipoMime = (datos.tipoMime || 'application/octet-stream').slice(0, 100);
-      const rutaMinio = await almacenamiento.guardar({
-        nombreObjeto, contenido: datos.contenido, tamanioBytes: datos.tamanioBytes, tipoMime,
-      });
+      const reserva = await cuotas.reservarSubida(usuarioId, nombreObjeto, datos.tamanioBytes);
       try {
-        return await repositorio.registrar({
-          usuarioId, nombreOriginal, nombreObjeto, rutaMinio,
-          tamanioBytes: datos.tamanioBytes, tipoMime, esPublica,
+        return await cuotas.ejecutarSubida(usuarioId, reserva, async (repoTx) => {
+          const rutaMinio = await almacenamiento.guardar({
+            nombreObjeto, contenido: datos.contenido, tamanioBytes: datos.tamanioBytes, tipoMime,
+          });
+          return repoTx.registrar({
+            usuarioId, nombreOriginal, nombreObjeto, rutaMinio,
+            tamanioBytes: datos.tamanioBytes, tipoMime, esPublica,
+          });
         });
       } catch (error) {
-        try {
-          await almacenamiento.eliminar(nombreObjeto);
-        } catch (errorLimpieza) {
-          registrarError('No se pudo limpiar el objeto:', errorLimpieza);
-        }
+        try { await cuotas.compensarSubida(usuarioId, reserva); }
+        catch (errorLimpieza) { registrarError('No se pudo limpiar el objeto; reserva pendiente:', errorLimpieza); }
         throw error;
       }
     },
     async descargar(id, usuarioId) {
-      const archivo = await buscarPropio(id, usuarioId);
-      const stream = await almacenamiento.abrir(archivo.nombre_objeto_minio);
-      return { archivo, stream };
+      const reserva = await cuotas.reservarDescarga(usuarioId, id);
+      try {
+        const stream = await almacenamiento.abrir(reserva.archivo.nombre_objeto_minio);
+        return {
+          archivo: reserva.archivo, stream,
+          iniciar: () => cuotas.iniciarDescarga(usuarioId, reserva.id, id),
+          cancelar: () => cuotas.devolverDescarga(usuarioId, reserva.id),
+        };
+      } catch (error) {
+        try { await cuotas.devolverDescarga(usuarioId, reserva.id); }
+        catch (fallo) { registrarError('Descarga pendiente de devolución:', fallo); }
+        throw error;
+      }
     },
-    async eliminar(id, usuarioId) {
-      const archivo = await buscarPropio(id, usuarioId);
-      // No es atómico: si falla PostgreSQL, puede quedar un registro sin objeto.
+    eliminar: (id, usuarioId) => cuotas.eliminar(usuarioId, async (repoTx) => {
+      const archivo = await repoTx.buscarPorIdYUsuario(id, usuarioId);
+      if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
+      // No es atómico con MinIO. Si falla DB, el espacio sigue contando.
       await almacenamiento.eliminar(archivo.nombre_objeto_minio);
-      const eliminado = await repositorio.eliminarRegistro(archivo.id, usuarioId);
-      if (!eliminado) {
+      if (!await repoTx.eliminarRegistro(archivo.id, usuarioId)) {
         throw new ErrorApp('El objeto se eliminó, pero no se pudo eliminar su registro', 500);
       }
       return { mensaje: 'Archivo eliminado correctamente' };
-    },
+    }),
     async cambiarVisibilidad(id, usuarioId, esPublica) {
       if (typeof esPublica !== 'boolean') {
         throw new ErrorApp('La visibilidad debe ser true o false', 400);

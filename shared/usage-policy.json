@@ -1,0 +1,5 @@
+{
+  "bytesPerGB": 1000000000,
+  "warningPercent": 80,
+  "reservationMinutes": 15
+}

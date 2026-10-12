@@ -1,22 +1,26 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import CargaArchivos from "../Archivos/CargaArchivos";
+import "../Archivos/Archivos.css";
+import { useConsumo } from '../services/consumo';
+import { formatoBytes } from '../services/usagePolicy';
 import {
   listarArchivos,
-  subirArchivo,
   type Archivo,
 } from "../services/archivos";
 import "./Dashboard.css";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const inputRef = useRef<HTMLInputElement>(null);
+
   const [archivos, setArchivos] = useState<Archivo[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [subiendo, setSubiendo] = useState(false);
+  const [mostrarCarga, setMostrarCarga] = useState(false);
+  const { consumo, error: errorConsumo } = useConsumo();
 
   useEffect(() => {
     let activo = true;
@@ -36,14 +40,6 @@ function Dashboard() {
       activo = false;
     };
   }, []);
-
-  const formatoTamano = (valor: number | string) => {
-    const bytes = Number(valor);
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-    return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
-  };
 
   const formatoFecha = (fecha: string) =>
     new Date(fecha).toLocaleDateString("es-GT", {
@@ -70,53 +66,7 @@ function Dashboard() {
     return "lucide:file";
   };
 
-  const seleccionarArchivos = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const seleccionados = Array.from(event.target.files ?? []);
-    event.target.value = "";
-    if (!seleccionados.length) return;
-
-    setSubiendo(true);
-    let exitosos = 0;
-
-    try {
-      for (const archivo of seleccionados) {
-        try {
-          const guardado = await subirArchivo(archivo);
-          setArchivos((actuales) => [
-            guardado,
-            ...actuales.filter((item) => item.id !== guardado.id),
-          ]);
-          exitosos++;
-        } catch (error) {
-          toast.error(
-            `${archivo.name}: ${
-              error instanceof Error ? error.message : "Error al subir"
-            }`
-          );
-        }
-      }
-
-      if (exitosos > 0) {
-        toast.success(
-          exitosos === 1
-            ? "Archivo guardado correctamente"
-            : `${exitosos} archivos guardados correctamente`
-        );
-      }
-    } finally {
-      setSubiendo(false);
-    }
-  };
-
-  const espacioUsado = archivos.reduce(
-    (total, archivo) => total + Number(archivo.tamanio_bytes),
-    0
-  );
-
-  const capacidad = 20 * 1024 ** 3;
-  const porcentaje = Math.min((espacioUsado / capacidad) * 100, 100);
+  const porcentaje = Math.min(consumo?.almacenamiento.porcentaje_utilizado ?? 0, 100);
 
   const recientes = [...archivos]
     .sort(
@@ -136,33 +86,24 @@ function Dashboard() {
 
           <button
             className="upload-button"
-            disabled={subiendo}
-            onClick={() => inputRef.current?.click()}
+            onClick={() => setMostrarCarga(true)}
           >
             <Icon icon="lucide:upload" />
-            {subiendo ? "Subiendo..." : "Cargar archivo"}
+            Cargar archivo
           </button>
-
-          <input
-            ref={inputRef}
-            type="file"
-            multiple
-            hidden
-            onChange={seleccionarArchivos}
-          />
         </div>
 
         <section className="stats-grid">
           <div className="stat-card">
             <span className="stat-title">Plan actual</span>
-            <strong>Standard</strong>
-            <small>Tu plan inicial de Vaultly</small>
+            <strong>{consumo?.plan.nombre ?? '—'}</strong>
+            <small>{errorConsumo || 'Tu plan vigente de Vaultly'}</small>
           </div>
 
           <div className="stat-card storage-card">
             <span className="stat-title">Almacenamiento</span>
-            <strong>{formatoTamano(espacioUsado)} de 20 GB</strong>
-            <span className="storage-text">usados</span>
+            <strong>{consumo ? `${formatoBytes(consumo.almacenamiento.usados_bytes)} de ${formatoBytes(consumo.almacenamiento.cuota_bytes)}` : '—'}</strong>
+            <span className="storage-text">{consumo ? `${consumo.almacenamiento.porcentaje_utilizado.toFixed(1)}% usados` : 'Consultando consumo…'}</span>
             <div className="storage-bar">
               <div
                 className="storage-progress"
@@ -178,9 +119,9 @@ function Dashboard() {
           </div>
 
           <div className="stat-card">
-            <span className="stat-title">Archivos públicos compartidos</span>
-            <strong>{archivos.filter((a) => a.es_publica).length} recursos</strong>
-            <small>Visibles en tu biblioteca pública</small>
+            <span className="stat-title">Descargas de la biblioteca</span>
+            <strong>{consumo ? `${consumo.descargas.consumidas} / ${consumo.descargas.ilimitadas ? 'Ilimitadas' : consumo.descargas.limite}` : '—'}</strong>
+            <small>{consumo ? `${consumo.descargas.ilimitadas ? 'Sin límite' : `${consumo.descargas.restantes} disponibles`} · Hasta ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })} (UTC)` : 'Consultando descargas…'}</small>
           </div>
         </section>
 
@@ -206,7 +147,7 @@ function Dashboard() {
               <p>Los archivos que subas aparecerán aquí.</p>
               <button
                 className="upload-button"
-                onClick={() => inputRef.current?.click()}
+                onClick={() => setMostrarCarga(true)}
               >
                 <Icon icon="lucide:upload" />
                 Subir mi primer archivo
@@ -246,6 +187,10 @@ function Dashboard() {
           )}
         </section>
       </main>
+      {mostrarCarga && <CargaArchivos
+        onClose={() => setMostrarCarga(false)}
+        onUploaded={(archivo) => setArchivos(actuales => [archivo, ...actuales.filter(a => a.id !== archivo.id)])}
+      />}
     </div>
   );
 }
