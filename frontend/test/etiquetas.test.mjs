@@ -14,21 +14,26 @@ test('texto pendiente se incluye, normaliza y valida al enviar', () => {
   assert.throws(() => reglas.incluirPendiente([], '😀'.repeat(31)));
 });
 
-// Ejecuta los handlers reales del control sin navegador; useId es el único hook.
+// Ejecuta handlers reales con hooks sustituidos; conserva el estado del editor entre renders.
 const require = createRequire(import.meta.url);
 const code = ts.transpileModule(fs.readFileSync(new URL('../src/components/Etiquetas.tsx', import.meta.url), 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
 const exports = {};
-new Function('require', 'exports', code)(name => name === 'react' ? {useId: () => 'test-id'} : name.endsWith('.css') ? {} : name.endsWith('etiquetas.mjs') ? reglas : require(name), exports);
+let editorAbierto = false;
+const hooks = {useId: () => 'test-id', useRef: () => ({current: null}), useState: () => [editorAbierto, valor => { editorAbierto = valor; }]};
+new Function('require', 'exports', code)(name => name === 'react' ? hooks : name.endsWith('.css') ? {} : name.endsWith('etiquetas.mjs') ? reglas : require(name), exports);
 function nodes(node) {
   if (!node || typeof node !== 'object') return [];
   return [node, ...[node.props?.children].flat(Infinity).flatMap(nodes)];
 }
 test('Enter impide enviar formulario, agrega, deduplica y permite quitar con botón accesible', () => {
-  let etiquetas = ['año'], pendiente = ' AÑO ', error = '', prevented = false;
+  let etiquetas = ['año'], pendiente = '', error = '', prevented = false;
   const render = () => nodes(exports.default({etiquetas, pendiente, error,
     onChange: v => etiquetas = v, onPendiente: v => pendiente = v, onError: v => error = v}));
+  assert.ok(!render().some(n => n.type === 'input'));
+  render().find(n => n.props?.['aria-label'] === 'Añadir etiqueta').props.onClick();
+  render().find(n => n.type === 'input').props.onChange({target:{value:' AÑO '}});
   render().find(n => n.type === 'input').props.onKeyDown({key:'Enter', nativeEvent:{}, preventDefault: () => prevented = true});
   assert.ok(prevented); assert.deepEqual(etiquetas, ['año']); assert.equal(pendiente, '');
   const button = render().find(n => n.type === 'button');

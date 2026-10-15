@@ -10,6 +10,7 @@ import Planes from "./planes/Planes";
 import Contratar from "./planes/Contratar";
 import Historial from "./planes/Historial";
 import Archivos from "./Archivos/Archivos";
+import Biblioteca from "./biblioteca/Biblioteca";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
 
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/archivos" element={<Archivos />} />
+      <Route path="/biblioteca" element={<Biblioteca />} />
       <Route path="/planes" element={<Planes />} />
       <Route path="/planes/contratar" element={<Contratar />} />
       <Route path="/planes/historial" element={<Historial />} />
