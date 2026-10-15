@@ -1,3 +1,5 @@
+import Etiquetas from '../components/Etiquetas';
+import { incluirPendiente } from '../../../shared/etiquetas.mjs';
 import { formatoBytes } from "../services/usagePolicy";
 
 import { useRef, useState } from "react";
@@ -24,6 +26,9 @@ function CargaArchivos({
   onClose,
   onUploaded,
 }: CargaArchivosProps) {
+  const [etiquetas, setEtiquetas] = useState<string[]>([]);
+  const [pendienteEtiqueta, setPendienteEtiqueta] = useState('');
+  const [errorEtiquetas, setErrorEtiquetas] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [pendientes, setPendientes] = useState<ArchivoPendiente[]>([]);
@@ -111,6 +116,11 @@ function CargaArchivos({
       return;
     }
 
+    let etiquetasCarga: string[];
+    try {
+      etiquetasCarga = incluirPendiente(etiquetas, pendienteEtiqueta);
+      setEtiquetas(etiquetasCarga); setPendienteEtiqueta(''); setErrorEtiquetas('');
+    } catch (e) { setErrorEtiquetas((e as Error).message); return; }
     setSubiendo(true);
     let exitosos = 0;
     let fallidos = 0;
@@ -128,7 +138,8 @@ function CargaArchivos({
         try {
           const guardado = await subirArchivo(
             pendiente.file,
-            visibilidad === "publico"
+            visibilidad === "publico",
+            etiquetasCarga
           );
 
           setPendientes((actuales) =>
@@ -285,6 +296,9 @@ function CargaArchivos({
           </div>
         </div>
 
+        <Etiquetas etiquetas={etiquetas} pendiente={pendienteEtiqueta} error={errorEtiquetas}
+          onChange={setEtiquetas} onPendiente={setPendienteEtiqueta} onError={setErrorEtiquetas} disabled={subiendo}
+          ayuda="Se aplican a todos los archivos de esta carga." />
         {pendientes.length > 0 && (
           <div className="carga-lista">
             <div className="carga-lista-titulo">

@@ -6,6 +6,7 @@ const API_URL: string =
   import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export interface Archivo {
+  etiquetas: { id: number; nombre: string }[];
   usuario_id?: string;
   id: string;
   nombre_original: string;
@@ -54,11 +55,13 @@ export async function listarPublicos(): Promise<Archivo[]> {
 
 export async function subirArchivo(
   file: File,
-  esPublica: boolean = false
+  esPublica: boolean = false,
+  etiquetas: string[] = []
 ): Promise<Archivo> {
   const formulario = new FormData();
 
   formulario.append("archivo", file);
+  formulario.append("etiquetas", JSON.stringify(etiquetas));
   formulario.append("es_publica", String(esPublica));
 
   try { return await solicitud<Archivo>("/api/archivos", {
@@ -127,3 +130,9 @@ export async function cambiarVisibilidad(
   );
 }
 
+
+export function editarEtiquetas(id: string, etiquetas: string[]): Promise<Archivo> {
+  return solicitud<Archivo>(`/api/archivos/${encodeURIComponent(id)}/etiquetas`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ etiquetas }),
+  });
+}

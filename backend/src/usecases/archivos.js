@@ -1,5 +1,6 @@
 const { randomUUID } = require('crypto');
 const path = require('path');
+const { normalizarEtiquetas } = require('../domain/etiquetas');
 const { ErrorApp } = require('../domain/errores');
 
 /**
@@ -17,7 +18,8 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
   return {
     listar: (usuarioId) => repositorio.listarPorUsuario(usuarioId),
     listarPublicos: () => repositorio.listarPublicos(),
-    async subir(usuarioId, datos, esPublica) {
+    async subir(usuarioId, datos, esPublica, entradaEtiquetas = []) {
+      const etiquetas = normalizarEtiquetas(entradaEtiquetas);
       if (!datos) throw new ErrorApp('Debes seleccionar un archivo', 400);
       const nombreOriginal = path.basename(datos.nombreOriginal).slice(0, 255);
       if (!nombreOriginal.trim()) throw new ErrorApp('Nombre de archivo inválido', 400);
@@ -31,7 +33,7 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
           });
           return repoTx.registrar({
             usuarioId, nombreOriginal, nombreObjeto, rutaMinio,
-            tamanioBytes: datos.tamanioBytes, tipoMime, esPublica,
+            tamanioBytes: datos.tamanioBytes, tipoMime, esPublica, etiquetas,
           });
         });
       } catch (error) {
@@ -39,6 +41,12 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
         catch (errorLimpieza) { registrarError('No se pudo limpiar el objeto; reserva pendiente:', errorLimpieza); }
         throw error;
       }
+    },
+    async editarEtiquetas(id, usuarioId, entrada) {
+      const etiquetas = normalizarEtiquetas(entrada);
+      const archivo = await repositorio.reemplazarEtiquetas(id, usuarioId, etiquetas);
+      if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
+      return archivo;
     },
     async descargar(id, usuarioId) {
       const reserva = await cuotas.reservarDescarga(usuarioId, id);

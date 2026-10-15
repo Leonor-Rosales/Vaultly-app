@@ -1,0 +1,78 @@
+.etiquetas-control {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 14px 0 0;
+  color: #542818;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-align: left;
+  color-scheme: light;
+}
+.etiquetas-encabezado { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.etiquetas-encabezado label { margin: 0; color: #542818; font-size: 12px; font-weight: 600; }
+.etiquetas-encabezado label span { margin-left: 5px; color: #938276; font-size: 10px; font-weight: 400; }
+.etiquetas-contador { color: #938276; font-size: 10px; }
+.etiquetas-fichas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.etiquetas-fichas > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-height: 26px;
+  box-sizing: border-box;
+  padding: 2px 5px 2px 9px;
+  border: 1px solid #ead0b9;
+  border-radius: 6px;
+  background: #f5e5d8;
+  color: #75452e;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.etiqueta-nombre { min-width: 0; overflow-wrap: anywhere; }
+.etiquetas-fichas button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #a06341;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+}
+.etiquetas-fichas .etiquetas-agregar { width: 28px; height: 28px; border: 1px dashed #dca17b; border-radius: 6px; background: #fffdfb; color: #cf7040; font-size: 20px; }
+.etiquetas-fichas button:hover:not(:disabled) { background: #f0d9c5; color: #542818; }
+.etiquetas-control button:focus-visible, .etiquetas-control input:focus-visible { outline: 2px solid #cf7040; outline-offset: 2px; }
+.etiquetas-control button:disabled { opacity: .5; cursor: not-allowed; }
+.etiquetas-editor { display: grid; gap: 5px; }
+.etiquetas-control input {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  border: 1px solid #ead0b9;
+  border-radius: 6px;
+  background: #fffdfb;
+  color: #542818;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: none;
+}
+.etiquetas-control input::placeholder { color: #a18e80; }
+.etiquetas-control input[aria-invalid=true] { border-color: #bd5145; }
+.etiquetas-control small { margin: 0; color: #938276; font-size: 10px; line-height: 1.5; }
+.etiquetas-control [role=alert] { color: #bd5145; font-size: 11px; line-height: 1.4; }

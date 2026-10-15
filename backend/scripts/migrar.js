@@ -10,6 +10,8 @@ const pool = require('../src/infrastructure/db');
       await pool.query(sql);
       console.log(`Migración ${nombre} aplicada (idempotente).`);
     }
+    await require('../src/infrastructure/migrarEtiquetas').migrarEtiquetas(pool);
+    console.log('Migración de etiquetas aplicada (idempotente).');
   } catch (error) {
     console.error('Migración fallida:', error.message);
     process.exitCode = 1;

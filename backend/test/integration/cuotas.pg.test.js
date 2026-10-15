@@ -53,6 +53,69 @@ test('integración aislada PostgreSQL + MinIO: cuotas, concurrencia y migracione
   const dato = (size = 4) => ({ nombreOriginal: 'test.txt', tipoMime: 'text/plain', tamanioBytes: size, contenido: Buffer.alloc(size, 65) });
   const ocupar = (user, bytes) => archivos.registrar({ usuarioId: user, nombreOriginal: 'fixture', nombreObjeto: `${user}/${randomUUID()}`, rutaMinio: 'fixture', tamanioBytes: bytes, tipoMime: 'text/plain', esPublica: false });
 
+  await t.test('etiquetas: migración consolida relaciones y es idempotente', async () => {
+    const { migrarEtiquetas } = require('../../src/infrastructure/migrarEtiquetas');
+    const u = await usuario();
+    const a = await ocupar(u, 1), b = await ocupar(u, 1);
+    const { rows } = await pool.query("INSERT INTO etiquetas(nombre) VALUES(' Matemáticas '),('matemáticas'),('matemáticas') RETURNING id");
+    await pool.query('INSERT INTO archivo_etiquetas VALUES($1,$2),($3,$4),($1,$5)', [a.id, rows[0].id, b.id, rows[1].id, rows[2].id]);
+    await migrarEtiquetas(pool); await migrarEtiquetas(pool);
+    const lista = await casos.listar(u);
+    assert.equal(lista[0].etiquetas[0].id, lista[1].etiquetas[0].id);
+    assert.equal(lista[0].etiquetas[0].nombre, 'matemáticas');
+    assert.equal((await pool.query('SELECT * FROM archivo_etiquetas WHERE archivo_id=ANY($1::uuid[])', [[a.id,b.id]])).rowCount, 2);
+    await pool.query("INSERT INTO etiquetas(nombre) VALUES('Control' || chr(9))");
+    await assert.rejects(migrarEtiquetas(pool), /control/);
+    assert.equal((await pool.query("SELECT * FROM etiquetas WHERE nombre='Control' || chr(9)")).rowCount, 1);
+    await pool.query("DELETE FROM etiquetas WHERE nombre='Control' || chr(9)");
+  });
+  await t.test('etiquetas: concurrencia, autorización, aislamiento, vaciado y cascada', async () => {
+    const autor = await usuario(), otro = await usuario();
+    const [a,b] = await Promise.all([
+      casos.subir(autor, dato(), false, [' Compartida ', 'año']),
+      casos.subir(otro, dato(), true, ['COMPARTIDA', 'ano']),
+    ]);
+    assert.equal(a.etiquetas.find(e=>e.nombre==='compartida').id, b.etiquetas.find(e=>e.nombre==='compartida').id);
+    assert.equal((await pool.query("SELECT * FROM etiquetas WHERE nombre='compartida'")).rowCount, 1);
+    const publicos = await casos.listarPublicos();
+    assert.ok(!publicos.some(f=>f.id===a.id));
+    assert.deepEqual(publicos.find(f=>f.id===b.id).etiquetas.map(e=>e.nombre), ['ano','compartida']);
+    assert.ok(publicos.every(f=>!('ruta_minio' in f) && !('nombre_objeto_minio' in f)));
+    await assert.rejects(casos.editarEtiquetas(a.id, otro, []), {estado:404});
+    await assert.rejects(casos.editarEtiquetas(randomUUID(), autor, []), {estado:404});
+    const antes = await cuotas.consultar(autor);
+    const objetoAntes = await minio.statObject(bucket, (await archivos.buscarPorIdYUsuario(a.id,autor)).nombre_objeto_minio);
+    const editado = await casos.editarEtiquetas(a.id, autor, ['1','2','3','4','5',' 5 ']);
+    assert.equal(editado.etiquetas.length, 5);
+    assert.deepEqual((await cuotas.consultar(autor)).almacenamiento, antes.almacenamiento);
+    assert.deepEqual((await cuotas.consultar(autor)).descargas, antes.descargas);
+    const objetoDespues = await minio.statObject(bucket, (await archivos.buscarPorIdYUsuario(a.id,autor)).nombre_objeto_minio);
+    assert.equal(objetoAntes.etag, objetoDespues.etag);
+    assert.deepEqual((await casos.editarEtiquetas(a.id, autor, [])).etiquetas, []);
+    assert.equal((await pool.query("SELECT * FROM etiquetas WHERE nombre='compartida'")).rowCount, 1);
+    await casos.eliminar(b.id, otro);
+    assert.equal((await pool.query('SELECT * FROM archivo_etiquetas WHERE archivo_id=$1',[b.id])).rowCount, 0);
+    const sin = await casos.subir(autor, dato(), false);
+    assert.deepEqual(sin.etiquetas, []);
+  });
+  await t.test('etiquetas: fallo de relaciones revierte archivo y reserva, compensa MinIO y conserva edición previa', async () => {
+    const u = await usuario();
+    const a = await casos.subir(u,dato(),false,['anterior']);
+    await pool.query(`CREATE FUNCTION rechazar_etiqueta() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN RAISE EXCEPTION 'fallo de relación simulado'; END $$;
+      CREATE TRIGGER fallo_etiqueta BEFORE INSERT ON archivo_etiquetas FOR EACH ROW EXECUTE FUNCTION rechazar_etiqueta()`);
+    try {
+      await assert.rejects(casos.editarEtiquetas(a.id,u,['nueva']), /fallo de relación/);
+      assert.deepEqual((await casos.listar(u))[0].etiquetas.map(e=>e.nombre), ['anterior']);
+      await assert.rejects(casos.subir(u,dato(),false,['rollback']), /fallo de relación/);
+      assert.equal((await casos.listar(u)).length, 1);
+      assert.equal((await pool.query('SELECT * FROM reservas_subida WHERE usuario_id=$1',[u])).rowCount, 0);
+      assert.equal((await pool.query("SELECT * FROM etiquetas WHERE nombre IN ('nueva','rollback')")).rowCount, 0);
+      const objetos=[]; for await (const obj of minio.listObjectsV2(bucket,u+'/',true)) objetos.push(obj);
+      assert.equal(objetos.length,1);
+    } finally { await pool.query('DROP TRIGGER fallo_etiqueta ON archivo_etiquetas; DROP FUNCTION rechazar_etiqueta()'); }
+  });
+
   await t.test('migración de existentes, Free al registrar, contador previo e idempotencia', async () => {
     assert.equal((await cuotas.consultar(previo)).plan.nombre, 'Free');
     assert.equal((await cuotas.consultar(conPlanPrevio)).descargas.consumidas, 1);

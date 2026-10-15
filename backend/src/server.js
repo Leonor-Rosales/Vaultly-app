@@ -40,6 +40,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/archivos', archivosRoutes);
 app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth));
 
+app.use(require('./controllers/jsonInvalido'));
+
 // Recuperación idempotente. El bloqueo en PostgreSQL coordina varias instancias.
 let recuperando = false;
 async function recuperarReservas() {

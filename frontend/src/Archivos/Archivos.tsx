@@ -214,7 +214,7 @@ function Archivos() {
                     {archivo.es_publica ? "Público" : "Privado"}
                   </button>
 
-                  <DetallesArchivo archivo={archivo} />
+                  <DetallesArchivo archivo={archivo} onUpdated={actualizado => setArchivos(actuales => actuales.map(a => a.id === actualizado.id ? actualizado : a))} />
                 </div>
 
                 <div className="archivo-card-icon">

@@ -1,3 +1,6 @@
+import Etiquetas from '../components/Etiquetas';
+import { incluirPendiente } from '../../../shared/etiquetas.mjs';
+import { editarEtiquetas } from '../services/archivos';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import type { Archivo } from '../services/archivos';
@@ -18,7 +21,24 @@ function tipoArchivo(archivo: Archivo) {
   return tipos[archivo.tipo_mime] || (extension ? `Archivo ${extension.toUpperCase()}` : 'Archivo');
 }
 
-export default function DetallesArchivo({ archivo }: { archivo: Archivo }) {
+export default function DetallesArchivo({ archivo, onUpdated }: { archivo: Archivo; onUpdated?: (archivo: Archivo) => void }) {
+  const [borrador, setBorrador] = useState(archivo.etiquetas?.map(e => e.nombre) ?? []);
+  const [pendiente, setPendiente] = useState('');
+  const [error, setError] = useState('');
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState('');
+  const guardar = async () => {
+    setMensaje(''); setError('');
+    try {
+      const nombres = incluirPendiente(borrador, pendiente);
+      setGuardando(true);
+      const actualizado = await editarEtiquetas(archivo.id, nombres);
+      onUpdated?.(actualizado);
+      setBorrador(actualizado.etiquetas.map(e => e.nombre)); setPendiente('');
+      setMensaje('Etiquetas guardadas');
+    } catch (e) { setError((e as Error).message); }
+    finally { setGuardando(false); }
+  };
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
   const [abierto, setAbierto] = useState(false);
@@ -65,7 +85,18 @@ export default function DetallesArchivo({ archivo }: { archivo: Archivo }) {
         <div><dt>Tamaño</dt><dd>{formatoBytes(Number(archivo.tamanio_bytes))}</dd></div>
         <div><dt>Fecha de subida</dt><dd>{new Date(archivo.created_at).toLocaleString('es-GT', { dateStyle: 'medium', timeStyle: 'short' })}</dd></div>
         <div><dt>Visibilidad</dt><dd>{archivo.es_publica ? 'Público' : 'Privado'}</dd></div>
+        <div><dt>Etiquetas guardadas</dt><dd>{archivo.etiquetas?.map(e => e.nombre).join(', ') || 'Sin etiquetas'}</dd></div>
       </dl>
+      {onUpdated && <div className="archivo-detalles-edicion">
+        <Etiquetas etiquetas={borrador} pendiente={pendiente} error={error} onChange={valor => { setBorrador(valor); setMensaje(''); }}
+          onPendiente={valor => { setPendiente(valor); setMensaje(''); }} onError={setError} disabled={guardando} />
+        <div className="archivo-detalles-guardar">
+        <p role="status">{mensaje}</p>
+        <button type="button" className="archivo-button primary" onClick={guardar} disabled={guardando}>
+          {guardando ? 'Guardando…' : 'Guardar etiquetas'}
+        </button>
+        </div>
+      </div>}
     </div>
   </>;
 }

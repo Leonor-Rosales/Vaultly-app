@@ -105,6 +105,7 @@ CREATE TABLE carpetas (
         REFERENCES carpetas(id, usuario_id)
         ON DELETE RESTRICT,
 
+    CONSTRAINT etiquetas_longitud CHECK (char_length(nombre) BETWEEN 1 AND 30),
     CHECK (btrim(nombre) <> ''),
     CHECK (carpeta_padre_id IS NULL OR carpeta_padre_id <> id)
 );

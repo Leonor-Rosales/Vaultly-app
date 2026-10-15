@@ -39,7 +39,16 @@ function crearArchivosRoutes(casos, requiereAuth) {
       contenido: req.file.buffer,
       tamanioBytes: req.file.size,
     };
-    res.status(201).json(await casos.subir(req.usuario.sub, datos, req.body?.es_publica === 'true'));
+    let etiquetas = [];
+    if (req.body?.etiquetas !== undefined) {
+      if (typeof req.body.etiquetas !== 'string') throw new ErrorApp('etiquetas debe contener un array JSON de textos', 400);
+      try { etiquetas = JSON.parse(req.body.etiquetas); }
+      catch { throw new ErrorApp('El campo etiquetas contiene JSON mal formado', 400); }
+    }
+    res.status(201).json(await casos.subir(req.usuario.sub, datos, req.body?.es_publica === 'true', etiquetas));
+  }));
+  router.patch('/:id/etiquetas', manejar('No se pudieron guardar las etiquetas', async (req, res) => {
+    res.json(await casos.editarEtiquetas(req.params.id, req.usuario.sub, req.body?.etiquetas));
   }));
   router.patch('/:id/visibilidad', manejar('No se pudo cambiar la visibilidad del archivo', async (req, res) => {
     res.json(await casos.cambiarVisibilidad(req.params.id, req.usuario.sub, req.body?.es_publica));
