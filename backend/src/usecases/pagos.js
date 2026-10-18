@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto');
 const { ErrorApp } = require('../domain/errores');
 const { policy, vigente } = require('../domain/cuotas');
 
-const METODOS = { tarjeta: 'TARJETA', transferencia: 'TRANSFERENCIA' };
+const METODOS = { tarjeta: 'TARJETA' }; // solo tarjeta simulada; pagos viejos con transferencia se siguen mostrando
 
 const presentar = (p) => ({
   id: p.id,
@@ -31,7 +31,7 @@ function crearCasosPagos({ repo }) {
     contratar: (usuarioId, { planId, metodo } = {}) => {
       const id = Number(planId);
       if (!Number.isInteger(id) || id <= 0) throw new ErrorApp('Plan inválido.', 400, 'PLAN_INVALIDO');
-      const metodoDb = METODOS[metodo];
+      const metodoDb = Object.hasOwn(METODOS, metodo) ? METODOS[metodo] : undefined;
       if (!metodoDb) throw new ErrorApp('Método de pago inválido.', 400, 'METODO_INVALIDO');
 
       return repo.conUsuario(usuarioId, async (tx) => {

@@ -72,7 +72,7 @@ function ComprobantePago({ pago, onClose }: Props) {
         <header className="cp-head">
           <div className="cp-brand">
             <span className="cp-logo">
-              <Icon icon="lucide:x" />
+              <Icon icon="lucide:vault" />
             </span>
             Vaultly
           </div>

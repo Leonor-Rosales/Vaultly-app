@@ -1,7 +1,10 @@
 import { ApiError, getToken } from "./auth";
 import { actualizarConsumo } from "./consumo";
 
-export type MetodoPago = "tarjeta" | "transferencia";
+// Solo se puede contratar con tarjeta simulada.
+export type MetodoPago = "tarjeta";
+// Pagos antiguos pueden venir con "transferencia"; se siguen mostrando en el historial.
+type MetodoApi = MetodoPago | "transferencia";
 export type EstadoPago = "Completado" | "Pendiente";
 
 export interface Pago {
@@ -31,13 +34,13 @@ interface PagoApi {
   codigo: string;
   plan: string;
   monto: number;
-  metodo: MetodoPago;
+  metodo: MetodoApi;
   estado: EstadoPago;
 }
 
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
-const NOMBRE_METODO: Record<MetodoPago, string> = {
+const NOMBRE_METODO: Record<MetodoApi, string> = {
   tarjeta: "Tarjeta simulada",
   transferencia: "Transferencia simulada",
 };

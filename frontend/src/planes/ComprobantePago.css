@@ -46,16 +46,16 @@
 }
 
 .cp-logo {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
 
   display: grid;
   place-items: center;
 
   background: #cf7040;
-  border-radius: 6px;
+  border-radius: 5px;
   color: #fff;
-  font-size: 15px;
+  font-size: 19px;
 }
 
 .cp-simulado {

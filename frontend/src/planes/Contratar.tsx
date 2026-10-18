@@ -7,14 +7,6 @@ import { formatPrecio, textoDescargas, type Plan } from "./planesData";
 import "./Contratar.css";
 import { obtenerCatalogo } from "../services/consumo";
 
-const BANCOS = [
-  "Banco Industrial",
-  "Banrural",
-  "BAC Credomatic",
-  "G&T Continental",
-  "Bantrab",
-];
-
 const soloDigitos = (valor: string): string => valor.replace(/\D/g, "");
 
 // 1234567890123456 -> "1234 5678 9012 3456"
@@ -41,6 +33,9 @@ const vencimientoValido = (valor: string): boolean => {
   return anio > anioActual || (anio === anioActual && mes >= mesActual);
 };
 
+// Único método disponible: pago simulado con tarjeta.
+const METODO: MetodoPago = "tarjeta";
+
 // Pantalla de contratación SIMULADA: no se cobra nada ni se guardan datos de tarjeta.
 function Contratar() {
   const navigate = useNavigate();
@@ -49,7 +44,6 @@ function Contratar() {
   const plan = planes?.find(p => p.id === searchParams.get("plan"));
   useEffect(() => { obtenerCatalogo().then(setPlanes).catch(e => { toast.error(e.message); setPlanes([]); }); }, []);
 
-  const [metodo, setMetodo] = useState<MetodoPago>("tarjeta");
   const [intentado, setIntentado] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
@@ -60,11 +54,6 @@ function Contratar() {
   const [vencimiento, setVencimiento] = useState("");
   const [cvv, setCvv] = useState("");
 
-  // Transferencia
-  const [banco, setBanco] = useState("");
-  const [referencia, setReferencia] = useState("");
-  const [titularTransferencia, setTitularTransferencia] = useState("");
-
   // Sin un plan válido en la URL no hay nada que contratar.
   if (planes === null) return <p>Cargando plan…</p>;
   if (!plan) return <Navigate to="/planes" replace />;
@@ -74,15 +63,10 @@ function Contratar() {
     titularTarjeta: titularTarjeta.trim().length < 3,
     vencimiento: !vencimientoValido(vencimiento),
     cvv: soloDigitos(cvv).length < 3,
-    banco: banco === "",
-    referencia: referencia.trim().length < 4,
-    titularTransferencia: titularTransferencia.trim().length < 3,
   };
 
   const formularioValido =
-    metodo === "tarjeta"
-      ? !errores.numero && !errores.titularTarjeta && !errores.vencimiento && !errores.cvv
-      : !errores.banco && !errores.referencia && !errores.titularTransferencia;
+    !errores.numero && !errores.titularTarjeta && !errores.vencimiento && !errores.cvv;
 
   const mostrar = (hayError: boolean): boolean => intentado && hayError;
 
@@ -94,11 +78,11 @@ function Contratar() {
     setEnviando(true);
     try {
       // Solo se envían el plan y el método, nunca los datos de la tarjeta.
-      await contratarPlan({ planId: plan.id, metodo });
+      await contratarPlan({ planId: plan.id, metodo: METODO });
       toast.success(`Plan ${plan.nombre} contratado`);
       navigate("/planes/historial");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "La contratación todavía no está disponible.");
+      toast.error(error instanceof Error ? error.message : "No se pudo completar la contratación.");
     } finally {
       setEnviando(false);
     }
@@ -135,22 +119,8 @@ function Contratar() {
             <span className="ct-label">Método de pago</span>
             <div className="ct-box">
               <label className="ct-radio">
-                <input
-                  type="radio"
-                  name="metodo"
-                  checked={metodo === "tarjeta"}
-                  onChange={() => setMetodo("tarjeta")}
-                />
+                <input type="radio" name="metodo" checked onChange={() => undefined} />
                 Tarjeta simulada
-              </label>
-              <label className="ct-radio">
-                <input
-                  type="radio"
-                  name="metodo"
-                  checked={metodo === "transferencia"}
-                  onChange={() => setMetodo("transferencia")}
-                />
-                Transferencia simulada
               </label>
               <div className="ct-total">
                 Total a pagar {formatPrecio(plan.precio).replace("Q", "Q ")}
@@ -159,146 +129,88 @@ function Contratar() {
           </div>
         </div>
 
-        {metodo === "tarjeta" ? (
-          <>
-            <div className="ct-field">
-              <label htmlFor="ct-numero">Número de tarjeta</label>
-              <div className="ct-number">
-                <input
-                  id="ct-numero"
-                  className={`ct-input${mostrar(errores.numero) ? " invalid" : ""}`}
-                  type={mostrarNumero ? "text" : "password"}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  placeholder="0000 0000 0000 0000"
-                  value={numero}
-                  onChange={(e) => setNumero(formatearTarjeta(e.target.value))}
-                />
-                <div className="ct-number-extras">
-                  <button
-                    type="button"
-                    className="ct-eye"
-                    aria-label={mostrarNumero ? "Ocultar número" : "Mostrar número"}
-                    onClick={() => setMostrarNumero(!mostrarNumero)}
-                  >
-                    <Icon icon={mostrarNumero ? "lucide:eye" : "lucide:eye-off"} />
-                  </button>
-                  <span className="ct-badge">VISA</span>
-                  <span className="ct-badge">MC</span>
-                  <span className="ct-badge">AMEX</span>
-                </div>
-              </div>
-              {mostrar(errores.numero) && (
-                <p className="ct-error">Ingresa los 16 dígitos de la tarjeta</p>
-              )}
-            </div>
-
-            <div className="ct-field">
-              <label htmlFor="ct-titular-tarjeta">Nombre de titular</label>
-              <input
-                id="ct-titular-tarjeta"
-                className={`ct-input${mostrar(errores.titularTarjeta) ? " invalid" : ""}`}
-                type="text"
-                autoComplete="off"
-                placeholder="Fernando Pérez"
-                value={titularTarjeta}
-                onChange={(e) => setTitularTarjeta(e.target.value)}
-              />
-              {mostrar(errores.titularTarjeta) && (
-                <p className="ct-error">Ingresa el nombre del titular</p>
-              )}
-            </div>
-
-            <div className="ct-row">
-              <div className="ct-field">
-                <label htmlFor="ct-vencimiento">Fecha de vencimiento</label>
-                <input
-                  id="ct-vencimiento"
-                  className={`ct-input${mostrar(errores.vencimiento) ? " invalid" : ""}`}
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  placeholder="MM / AA"
-                  value={vencimiento}
-                  onChange={(e) => setVencimiento(formatearVencimiento(e.target.value))}
-                />
-                {mostrar(errores.vencimiento) && (
-                  <p className="ct-error">Fecha no válida o vencida</p>
-                )}
-              </div>
-
-              <div className="ct-field">
-                <label htmlFor="ct-cvv">CVV</label>
-                <input
-                  id="ct-cvv"
-                  className={`ct-input${mostrar(errores.cvv) ? " invalid" : ""}`}
-                  type="password"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  placeholder="000"
-                  maxLength={4}
-                  value={cvv}
-                  onChange={(e) => setCvv(soloDigitos(e.target.value))}
-                />
-                {mostrar(errores.cvv) && <p className="ct-error">3 o 4 dígitos</p>}
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="ct-field">
-              <label htmlFor="ct-banco">Banco / Entidad</label>
-              <select
-                id="ct-banco"
-                className={`ct-input${mostrar(errores.banco) ? " invalid" : ""}`}
-                value={banco}
-                onChange={(e) => setBanco(e.target.value)}
+        <div className="ct-field">
+          <label htmlFor="ct-numero">Número de tarjeta</label>
+          <div className="ct-number">
+            <input
+              id="ct-numero"
+              className={`ct-input${mostrar(errores.numero) ? " invalid" : ""}`}
+              type={mostrarNumero ? "text" : "password"}
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="0000 0000 0000 0000"
+              value={numero}
+              onChange={(e) => setNumero(formatearTarjeta(e.target.value))}
+            />
+            <div className="ct-number-extras">
+              <button
+                type="button"
+                className="ct-eye"
+                aria-label={mostrarNumero ? "Ocultar número" : "Mostrar número"}
+                onClick={() => setMostrarNumero(!mostrarNumero)}
               >
-                <option value="">Seleccionar banco</option>
-                {BANCOS.map((nombre) => (
-                  <option key={nombre} value={nombre}>
-                    {nombre}
-                  </option>
-                ))}
-              </select>
-              {mostrar(errores.banco) && (
-                <p className="ct-error">Selecciona un banco</p>
-              )}
+                <Icon icon={mostrarNumero ? "lucide:eye" : "lucide:eye-off"} />
+              </button>
+              <span className="ct-badge">VISA</span>
+              <span className="ct-badge">MC</span>
+              <span className="ct-badge">AMEX</span>
             </div>
+          </div>
+          {mostrar(errores.numero) && (
+            <p className="ct-error">Ingresa los 16 dígitos de la tarjeta</p>
+          )}
+        </div>
 
-            <div className="ct-field">
-              <label htmlFor="ct-referencia">Número de referencia</label>
-              <input
-                id="ct-referencia"
-                className={`ct-input${mostrar(errores.referencia) ? " invalid" : ""}`}
-                type="text"
-                autoComplete="off"
-                placeholder="TRX-00152214"
-                value={referencia}
-                onChange={(e) => setReferencia(e.target.value)}
-              />
-              {mostrar(errores.referencia) && (
-                <p className="ct-error">Ingresa el número de referencia</p>
-              )}
-            </div>
+        <div className="ct-field">
+          <label htmlFor="ct-titular-tarjeta">Nombre de titular</label>
+          <input
+            id="ct-titular-tarjeta"
+            className={`ct-input${mostrar(errores.titularTarjeta) ? " invalid" : ""}`}
+            type="text"
+            autoComplete="off"
+            placeholder="Fernando Pérez"
+            value={titularTarjeta}
+            onChange={(e) => setTitularTarjeta(e.target.value)}
+          />
+          {mostrar(errores.titularTarjeta) && (
+            <p className="ct-error">Ingresa el nombre del titular</p>
+          )}
+        </div>
 
-            <div className="ct-field">
-              <label htmlFor="ct-titular-transferencia">Nombre de titular</label>
-              <input
-                id="ct-titular-transferencia"
-                className={`ct-input${mostrar(errores.titularTransferencia) ? " invalid" : ""}`}
-                type="text"
-                autoComplete="off"
-                placeholder="Fernando Pérez"
-                value={titularTransferencia}
-                onChange={(e) => setTitularTransferencia(e.target.value)}
-              />
-              {mostrar(errores.titularTransferencia) && (
-                <p className="ct-error">Ingresa el nombre del titular</p>
-              )}
-            </div>
-          </>
-        )}
+        <div className="ct-row">
+          <div className="ct-field">
+            <label htmlFor="ct-vencimiento">Fecha de vencimiento</label>
+            <input
+              id="ct-vencimiento"
+              className={`ct-input${mostrar(errores.vencimiento) ? " invalid" : ""}`}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="MM / AA"
+              value={vencimiento}
+              onChange={(e) => setVencimiento(formatearVencimiento(e.target.value))}
+            />
+            {mostrar(errores.vencimiento) && (
+              <p className="ct-error">Fecha no válida o vencida</p>
+            )}
+          </div>
+
+          <div className="ct-field">
+            <label htmlFor="ct-cvv">CVV</label>
+            <input
+              id="ct-cvv"
+              className={`ct-input${mostrar(errores.cvv) ? " invalid" : ""}`}
+              type="password"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="000"
+              maxLength={4}
+              value={cvv}
+              onChange={(e) => setCvv(soloDigitos(e.target.value))}
+            />
+            {mostrar(errores.cvv) && <p className="ct-error">3 o 4 dígitos</p>}
+          </div>
+        </div>
 
         <div className="ct-actions">
           <button type="submit" className="ct-primary" disabled={enviando}>
@@ -314,9 +226,7 @@ function Contratar() {
         </div>
 
         <p className="ct-note">
-          {metodo === "tarjeta"
-            ? "Pantalla demostrativa. Contratación todavía no disponible."
-            : "Pantalla demostrativa. No se realizará ningún cobro."}
+          Pago simulado. No se realizará ningún cobro real ni se guardan los datos de la tarjeta.
         </p>
       </form>
     </div>
