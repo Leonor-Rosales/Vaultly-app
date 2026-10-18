@@ -53,9 +53,11 @@ async function listarArchivos({ q, tipo, etiquetaIds, autorId, orden, pagina }) 
   // Una sola sentencia = una sola instantánea: total e items son coherentes.
   const sql = `
     WITH filtrados AS (
-      SELECT a.id, a.nombre_original, a.tamanio_bytes, a.tipo_mime, a.created_at,
-             a.usuario_id AS autor_id, u.nombre_completo AS autor_nombre,
-             unaccent(lower(a.nombre_original)) AS nombre_norm
+      SELECT a.id, a.nombre_original, a.tamanio_bytes, a.tipo_mime,
+       a.created_at, a.descargas,
+       a.usuario_id AS autor_id,
+       u.nombre_completo AS autor_nombre,
+       unaccent(lower(a.nombre_original)) AS nombre_norm
       FROM archivos a
       JOIN usuarios u ON u.id = a.usuario_id
       WHERE ${filtros.join('\n        AND ')}
@@ -67,8 +69,9 @@ async function listarArchivos({ q, tipo, etiquetaIds, autorId, orden, pagina }) 
       ORDER BY rn
       LIMIT ${POR_PAGINA} OFFSET ${offset}
     )
+      
     SELECT t.n AS total, p.id, p.nombre_original, p.tamanio_bytes, p.tipo_mime,
-           p.created_at, p.autor_id, p.autor_nombre,
+           p.created_at, p.autor_id, p.autor_nombre,p.descargas,
            (SELECT COALESCE(json_agg(json_build_object('id', e.id, 'nombre', e.nombre)
                     ORDER BY unaccent(lower(e.nombre)), e.id), '[]'::json)
             FROM archivo_etiquetas ae JOIN etiquetas e ON e.id = ae.etiqueta_id
@@ -76,6 +79,7 @@ async function listarArchivos({ q, tipo, etiquetaIds, autorId, orden, pagina }) 
     FROM total t
     LEFT JOIN pagina p ON TRUE
     ORDER BY p.rn`;
+    
 
   const { rows } = await pool.query(sql, params);
   const items = rows
@@ -86,6 +90,7 @@ async function listarArchivos({ q, tipo, etiquetaIds, autorId, orden, pagina }) 
       tamanio_bytes: String(r.tamanio_bytes), // BIGINT como string decimal
       tipo_mime: r.tipo_mime,
       created_at: r.created_at,
+      descargas: Number(r.descargas ?? 0),
       autor: { id: r.autor_id, nombre_completo: r.autor_nombre },
       etiquetas: r.etiquetas,
     }));

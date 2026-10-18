@@ -2,7 +2,7 @@
 import { Icon } from "@iconify/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { Usuario } from "../services/auth";
-import { useConsumo } from '../services/consumo';
+import { useConsumo } from "../services/consumo";
 import "./Sidebar.css";
 
 const ITEMS = [
@@ -11,6 +11,7 @@ const ITEMS = [
   { key: "biblioteca", label: "Biblioteca Pública", icon: "lucide:globe", to: "/biblioteca" },
   { key: "planes", label: "Planes y Facturación", icon: "lucide:credit-card", to: "/planes" },
   { key: "configuracion", label: "Configuración", icon: "lucide:settings", to: "/configuracion" },
+  {key: "cerrarSesion", label: "Cerrar Sesión", icon: "lucide:log-out", to: "/login"}
 ] as const;
 
 function Sidebar() {
@@ -44,9 +45,20 @@ function Sidebar() {
     return "dashboard";
   };
 
+  const cerrarSesion = () => {
+    localStorage.removeItem("usuario");
+
+    // Limpiar también el token si la aplicación lo guarda aquí.
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("usuario");
+    sessionStorage.removeItem("token");
+
+    navigate("/login", { replace: true });
+  };
+
   const active = obtenerSeccion();
   const { consumo } = useConsumo();
-  const plan = consumo?.plan.nombre ?? 'Consultando plan…';
+  const plan = consumo?.plan.nombre ?? "Consultando plan…";
 
   return (
     <aside className="sidebar">
@@ -85,6 +97,8 @@ function Sidebar() {
           <span className="user-plan">{plan}</span>
         </div>
       </div>
+
+      
     </aside>
   );
 }

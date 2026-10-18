@@ -48,13 +48,28 @@ async function reemplazarEtiquetas(id, usuarioId, nombres) {
 
 async function listarPublicos() {
   const { rows } = await pool.query(`SELECT id, usuario_id, nombre_original, tamanio_bytes,
-    tipo_mime, es_publica, created_at FROM archivos WHERE es_publica = TRUE ORDER BY created_at DESC`);
+    tipo_mime, es_publica, created_at, descargas
+    FROM archivos
+    WHERE es_publica = TRUE
+    ORDER BY created_at DESC`);
+
   return conEtiquetas(rows);
 }
 
 async function buscarDescargable(id, usuarioId) {
   const { rows } = await pool.query(`SELECT * FROM archivos
     WHERE id = $1 AND (usuario_id = $2 OR es_publica = TRUE)`, [id, usuarioId]);
+  return rows[0] || null;
+}
+async function incrementarDescargas(id) {
+  const { rows } = await pool.query(
+    `UPDATE archivos
+     SET descargas = descargas + 1
+     WHERE id = $1
+     RETURNING descargas`,
+    [id]
+  );
+
   return rows[0] || null;
 }
 
@@ -158,6 +173,7 @@ return {
   registrar,
   eliminarRegistro,
   actualizarVisibilidad,
+  incrementarDescargas,
 };
 
 }

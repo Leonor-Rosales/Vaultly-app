@@ -29,11 +29,21 @@ export default function TarjetaArchivo({archivo, demo}: {archivo: ArchivoPublico
     <p className="biblioteca-autor"><span aria-hidden="true">{iniciales}</span>{archivo.autor.nombre_completo}</p>
     <div className="biblioteca-etiquetas">{archivo.etiquetas.map(e => <span key={e.id}>{e.nombre}</span>)}</div>
     <div className="biblioteca-tarjeta-pie">
-      <span>{demo ? 'Requiere integración' : tipo.nombre}</span>
-      <button type="button" disabled={demo || descargando} onClick={descargar} aria-label={`Descargar ${archivo.nombre_original}`}>
-        <Icon icon={descargando ? 'lucide:loader-circle' : 'lucide:download'} />{descargando ? 'Descargando…' : 'Descargar'}
-      </button>
-    </div>
+  <span className="biblioteca-contador-descargas">
+    <Icon icon="lucide:download" />
+    {Number(archivo.descargas ?? 0).toLocaleString()} descargas
+  </span>
+
+  <button
+    type="button"
+    disabled={demo || descargando}
+    onClick={descargar}
+    aria-label={`Descargar ${archivo.nombre_original}`}
+  >
+    <Icon icon={descargando ? 'lucide:loader-circle' : 'lucide:download'} />
+    {descargando ? 'Descargando…' : 'Descargar'}
+  </button>
+</div>
     {error && <p className="biblioteca-error-descarga" role="alert">{error}</p>}
   </article>;
 }

@@ -333,3 +333,27 @@
   stroke-width: 2.2;
 }
 
+/* Efecto hover para las tarjetas de Mis archivos */
+.archivo-card {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.archivo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 22px rgba(84, 40, 24, 0.10);
+  border-color: #dca783;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archivo-card {
+    transition: none;
+  }
+
+  .archivo-card:hover {
+    transform: none;
+  }
+}
+

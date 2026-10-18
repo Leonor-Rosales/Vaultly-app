@@ -56,6 +56,7 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
           archivo: reserva.archivo, stream,
           iniciar: () => cuotas.iniciarDescarga(usuarioId, reserva.id, id),
           cancelar: () => cuotas.devolverDescarga(usuarioId, reserva.id),
+          registrarDescarga: () => repositorio.incrementarDescargas(id, usuarioId),
         };
       } catch (error) {
         try { await cuotas.devolverDescarga(usuarioId, reserva.id); }
