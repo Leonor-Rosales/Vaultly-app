@@ -43,6 +43,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/archivos', archivosRoutes);
 app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth, pagos));
 
+const { crearBibliotecaRoutes } = require('./controllers/bibliotecaController');
+const casosBiblioteca = require('./usecases/biblioteca');
+
+app.use('/api/biblioteca', crearBibliotecaRoutes(casosBiblioteca, requiereAuth));
+
 app.use(require('./controllers/jsonInvalido'));
 
 // Recuperación idempotente. El bloqueo en PostgreSQL coordina varias instancias.

@@ -1,25 +1,46 @@
+
 const { Router } = require('express');
-const { ErrorApp } = require('../domain/errores');
+const { ErrorPublico } = require('../usecases/biblioteca');
 
 function crearBibliotecaRoutes(casos, requiereAuth) {
   const router = Router();
+
   router.use(requiereAuth);
 
   const manejar = (mensaje, handler) => async (req, res) => {
     try {
-      await handler(req, res);
+      const resultado = await handler(req);
+      res.json(resultado);
     } catch (error) {
-      if (!(error instanceof ErrorApp)) console.error(mensaje, error);
-      res.status(error instanceof ErrorApp ? error.estado : 500).json({
-        error: error instanceof ErrorApp ? error.message : mensaje,
+      console.error(mensaje, error);
+
+      res.status(error instanceof ErrorPublico ? error.status : 500).json({
+        error: error.message || mensaje,
         ...(error.codigo ? { codigo: error.codigo } : {}),
       });
     }
   };
 
-  router.get('/archivos', requireAuth, manejar(listarArchivosBiblioteca));
-  router.get('/etiquetas', requireAuth, manejar(listarEtiquetasBiblioteca));
-  router.get('/autores', requireAuth, manejar(listarAutoresBiblioteca));
+  router.get(
+    '/archivos',
+    manejar('No se pudieron listar los archivos públicos', (req) =>
+      casos.listarArchivosBiblioteca(req.query)
+    )
+  );
+
+  router.get(
+    '/etiquetas',
+    manejar('No se pudieron listar las etiquetas públicas', (req) =>
+      casos.listarEtiquetasBiblioteca(req.query)
+    )
+  );
+
+  router.get(
+    '/autores',
+    manejar('No se pudieron listar los autores públicos', (req) =>
+      casos.listarAutoresBiblioteca(req.query)
+    )
+  );
 
   return router;
 }
