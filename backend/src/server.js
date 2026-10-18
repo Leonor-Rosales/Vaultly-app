@@ -14,6 +14,9 @@ const { crearCasosCuotas } = require('./usecases/cuotas');
 const { crearPlanesRoutes } = require('./controllers/planesRoutes');
 const almacenamiento = require('./infrastructure/almacenamientoMinio');
 const cuotas = crearCasosCuotas({ repo: crearCuotasRepositorio(require('./infrastructure/db')), almacenamiento });
+const { crearPagosRepositorio } = require('./infrastructure/pagosRepositorio');
+const { crearCasosPagos } = require('./usecases/pagos');
+const pagos = crearCasosPagos({ repo: crearPagosRepositorio(require('./infrastructure/db')) });
 const casosAuth = crearCasosAuth({
   repo: require('./infrastructure/usuarioRepositorio'),
   contrasenas: require('./infrastructure/contrasenas'),
@@ -38,7 +41,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/archivos', archivosRoutes);
-app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth));
+app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth, pagos));
 
 app.use(require('./controllers/jsonInvalido'));
 
