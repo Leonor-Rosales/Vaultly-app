@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
+import ComprobantePago from "./ComprobantePago";
 import { obtenerHistorial, type Pago } from "../services/pagos";
 import { formatPrecio } from "./planesData";
 import "../dashboard/Dashboard.css";
@@ -27,6 +27,7 @@ function Historial() {
   const navigate = useNavigate();
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [orden, setOrden] = useState<Orden>("fecha");
+  const [seleccionado, setSeleccionado] = useState<Pago | null>(null);
 
   useEffect(() => {
     obtenerHistorial().then(setPagos);
@@ -100,7 +101,7 @@ function Historial() {
                   type="button"
                   className="pago-descargar"
                   aria-label={`Descargar comprobante ${pago.codigo}`}
-                  onClick={() => toast("Comprobante próximamente")}
+                  onClick={() => setSeleccionado(pago)}
                 >
                   <Icon icon="lucide:download" />
                 </button>
@@ -108,6 +109,13 @@ function Historial() {
             ))}
           </div>
         </div>
+
+        {seleccionado && (
+          <ComprobantePago
+            pago={seleccionado}
+            onClose={() => setSeleccionado(null)}
+          />
+        )}
       </main>
     </div>
   );
