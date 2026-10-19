@@ -24,15 +24,15 @@ export interface ServicioBiblioteca {
 export const tipos: { valor: Tipo; nombre: string; icono: string }[] = [
   { valor: '', nombre: 'Todos los tipos', icono: 'lucide:files' },
   { valor: 'documentos', nombre: 'Documentos', icono: 'lucide:file-text' },
-  { valor: 'imagenes', nombre: 'ImÃ¡genes', icono: 'lucide:image' },
+  { valor: 'imagenes', nombre: 'Imágenes', icono: 'lucide:image' },
   { valor: 'videos', nombre: 'Videos', icono: 'lucide:video' },
   { valor: 'audio', nombre: 'Audio', icono: 'lucide:music' },
   { valor: 'comprimidos', nombre: 'Comprimidos', icono: 'lucide:archive' },
   { valor: 'otros', nombre: 'Otros', icono: 'lucide:file' },
 ];
 export const ordenes: { valor: Orden; nombre: string }[] = [
-  { valor: 'recientes', nombre: 'MÃ¡s recientes' }, { valor: 'antiguos', nombre: 'MÃ¡s antiguos' },
-  { valor: 'nombre_asc', nombre: 'Nombre Aâ€“Z' }, { valor: 'tamanio_desc', nombre: 'Mayor tamaÃ±o' },
-  { valor: 'tamanio_asc', nombre: 'Menor tamaÃ±o' },
+  { valor: 'recientes', nombre: 'Más recientes' }, { valor: 'antiguos', nombre: 'Más antiguos' },
+  { valor: 'nombre_asc', nombre: 'Nombre A–Z' }, { valor: 'tamanio_desc', nombre: 'Mayor tamaño' },
+  { valor: 'tamanio_asc', nombre: 'Menor tamaño' },
 ];
 
