@@ -72,12 +72,15 @@ test('la barra crece tras subir y disminuye tras eliminar; cancelar no borra', a
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
   await expect.poll(async () => page.locator('.uso-relleno').evaluate(el => el.getBoundingClientRect().width / el.parentElement!.getBoundingClientRect().width)).toBeCloseTo(.4, 1);
   await page.getByRole('link', { name: 'Mis Archivos', exact: true }).click();
+  await expect(page.getByRole('progressbar')).toHaveCount(0);
   await page.getByTitle('Eliminar archivo', { exact: true }).first().click();
   await expect(page.getByRole('dialog', { name: '¿Eliminar archivo?' })).toBeVisible();
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   expect(estado.eliminaciones).toBe(0);
   await page.getByTitle('Eliminar archivo', { exact: true }).first().click();
   await page.getByRole('dialog').getByRole('button', { name: 'Eliminar archivo', exact: true }).click();
+  await expect.poll(() => estado.eliminaciones).toBe(1);
+  await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20');
   expect(estado.eliminaciones).toBe(1);
 });
@@ -123,7 +126,7 @@ test('rechazo de cuota conserva el archivo pendiente y permite reintentarlo', as
   estado.falloCarga = '';
   await page.getByRole('button', { name: 'Cargar archivos', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
+  await expect(page.getByRole('heading', { name: 'Almacenamiento lleno' })).toBeVisible();
   expect(estado.cargas).toEqual(['nuevo.pdf', 'nuevo.pdf']);
 });
 
@@ -201,7 +204,7 @@ test('las reservas se distinguen del espacio usado y no bloquean las descargas p
   const estado = await preparar(page, 80000000); estado.reservados = 20000000; estado.restantes = 0;
   await page.goto('/archivos');
   await expect(page.getByRole('heading', { name: 'Espacio reservado por cargas en curso' })).toBeVisible();
-  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '80');
+  await expect(page.getByRole('progressbar')).toHaveCount(0);
   const descarga = page.waitForEvent('download');
   await page.getByTitle('Descargar archivo', { exact: true }).click();
   expect((await descarga).suggestedFilename()).toBe('informe.pdf');

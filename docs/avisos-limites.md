@@ -6,7 +6,7 @@ corresponde, accesos a administrar archivos o ver planes. Las confirmaciones y l
 de éxito usan el mismo estilo. Los iconos de los avisos están incluidos localmente.
 
 - Dashboard: consumo y alertas de ambos recursos.
-- Mis Archivos: barra de almacenamiento, proximidad/límite y reservas en curso.
+- Mis Archivos: avisos de proximidad/límite y reservas en curso, sin barra permanente.
 - Biblioteca: descargas próximas a agotarse o agotadas, fecha de renovación y acceso a planes.
 - Operaciones: errores de carga, descarga, eliminación, visibilidad, etiquetas y contratación.
 - Carga parcial: resumen de los fallidos y reintento únicamente de los pendientes.

@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
 import Icon from './IconoAviso';
 import { actualizarConsumo, useConsumo } from '../services/consumo';
-import BarraAlmacenamiento from './BarraAlmacenamiento';
 import './Avisos.css';
 
-export default function AvisosLimites({ almacenamiento = false, descargas = false, mostrarUso = false }: { almacenamiento?: boolean; descargas?: boolean; mostrarUso?: boolean }) {
+export default function AvisosLimites({ almacenamiento = false, descargas = false }: { almacenamiento?: boolean; descargas?: boolean }) {
   const { consumo, error } = useConsumo();
   return <div className="avisos-limites">
     {error && <section className="aviso-banner" role="status">
@@ -18,7 +17,6 @@ export default function AvisosLimites({ almacenamiento = false, descargas = fals
           <p>{consumo.almacenamiento.reservados_bytes > 0 ? 'Parte de tu espacio está reservado para cargas en curso. Espera a que terminen o libera espacio.' : 'Libera espacio eliminando archivos que ya no necesites o cambia a un plan superior.'}</p>
         </div><Link className="aviso-enlace" to="/planes">Ver planes</Link>
       </section>}
-      {mostrarUso && <div className="uso-panel"><BarraAlmacenamiento almacenamiento={consumo.almacenamiento} /></div>}
     </>}
     {consumo && descargas && !consumo.descargas.ilimitadas && consumo.alertas.descargas && <section className="aviso-banner" role="status">
       <Icon icon="lucide:download" /><div>

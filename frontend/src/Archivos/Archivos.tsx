@@ -161,7 +161,7 @@ function Archivos() {
             Cargar archivo
           </button>
         </header>
-        <AvisosLimites almacenamiento mostrarUso />
+        <AvisosLimites almacenamiento />
 
         {cargando ? (
           <section className="archivos-vacio">

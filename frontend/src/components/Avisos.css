@@ -12,7 +12,6 @@
 .uso-barra { width: 100%; height: 9px; border-radius: 8px; overflow: hidden; background: #eaded2; }
 .uso-relleno { height: 100%; background: #cf7040; border-radius: inherit; transition: width .35s ease; }
 .uso-almacenamiento > small { display: block; margin-top: 7px; }
-.uso-panel { padding: 16px 18px; border: 1px solid #ead8c7; border-radius: 7px; background: #f9f4ee; }
 .aviso-dialogo { position: fixed; width: min(430px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 28px; box-sizing: border-box; border: 1px solid #ead0b9; border-radius: 9px; background: #faf5ef; color: #542818; box-shadow: 0 12px 40px #54281824; font: 14px/1.55 Arial,sans-serif; text-align: left; color-scheme: light; overflow-y: auto; }
 .aviso-dialogo::backdrop { background: #39271e40; }
 .aviso-dialogo h2 { margin: 14px 0 8px; font: 700 22px/1.25 Arial,sans-serif; color: #542818; letter-spacing: -.3px; }
