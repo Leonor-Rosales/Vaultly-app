@@ -11,6 +11,7 @@ import Contratar from "./planes/Contratar";
 import Historial from "./planes/Historial";
 import Archivos from "./Archivos/Archivos";
 import Biblioteca from "./biblioteca/Biblioteca";
+import RutaProtegida from "./components/RutaProtegida";
 
 function App() {
   return (
@@ -24,12 +25,14 @@ function App() {
       <Route path="/recuperar/enviado" element={<AvisoRecuperar />} />
       <Route path="/restablecer" element={<NuevaPassword />} />
 
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/archivos" element={<Archivos />} />
-      <Route path="/biblioteca" element={<Biblioteca />} />
-      <Route path="/planes" element={<Planes />} />
-      <Route path="/planes/contratar" element={<Contratar />} />
-      <Route path="/planes/historial" element={<Historial />} />
+      <Route element={<RutaProtegida />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/archivos" element={<Archivos />} />
+        <Route path="/biblioteca" element={<Biblioteca />} />
+        <Route path="/planes" element={<Planes />} />
+        <Route path="/planes/contratar" element={<Contratar />} />
+        <Route path="/planes/historial" element={<Historial />} />
+      </Route>
     </Routes>
   );
 }

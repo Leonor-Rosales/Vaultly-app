@@ -2,6 +2,7 @@
 import { Icon } from "@iconify/react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { Usuario } from "../services/auth";
+import { logout } from "../services/auth";
 import { useConsumo } from "../services/consumo";
 import "./Sidebar.css";
 
@@ -46,13 +47,7 @@ function Sidebar() {
   };
 
   const cerrarSesion = () => {
-    localStorage.removeItem("usuario");
-
-    // Limpiar también el token si la aplicación lo guarda aquí.
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("usuario");
-    sessionStorage.removeItem("token");
-
+    logout();
     navigate("/login", { replace: true });
   };
 
@@ -74,13 +69,14 @@ function Sidebar() {
           <div
             key={item.key}
             className={`menu-item${item.key === active ? " active" : ""}`}
-            role="link"
+            role={item.key === "cerrarSesion" ? "button" : "link"}
             tabIndex={0}
-            onClick={() => navigate(item.to)}
+            onClick={() => item.key === "cerrarSesion" ? cerrarSesion() : navigate(item.to)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                navigate(item.to);
+                if (item.key === "cerrarSesion") cerrarSesion();
+                else navigate(item.to);
               }
             }}
           >

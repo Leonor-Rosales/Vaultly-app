@@ -149,7 +149,8 @@ CREATE TABLE etiquetas (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(50) UNIQUE NOT NULL,
 
-    CHECK (btrim(nombre) <> '')
+    CHECK (btrim(nombre) <> ''),
+    CONSTRAINT etiquetas_longitud CHECK (char_length(nombre) BETWEEN 1 AND 30)
 );
 
 -- 10. Relación entre archivos y etiquetas
@@ -158,9 +159,6 @@ CREATE TABLE archivo_etiquetas (
         REFERENCES archivos(id) ON DELETE CASCADE,
     etiqueta_id INT NOT NULL
         REFERENCES etiquetas(id) ON DELETE CASCADE,
-
-     CONSTRAINT etiquetas_longitud
-        CHECK (char_length(nombre) BETWEEN 1 AND 30),
 
     PRIMARY KEY (archivo_id, etiqueta_id)
 );
