@@ -1,6 +1,6 @@
 
 import { actualizarConsumo } from "./consumo";
-import { getToken } from "./auth";
+import { ApiError, getToken } from "./auth";
 
 const API_URL: string =
   import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -38,7 +38,7 @@ async function solicitud<T>(
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.error ?? "No se pudo completar la operación.");
+    throw new ApiError(data.error ?? "No se pudo completar la operación.", response.status, data.codigo);
   }
 
   return data as T;
@@ -58,6 +58,9 @@ export async function subirArchivo(
   esPublica: boolean = false,
   etiquetas: string[] = []
 ): Promise<Archivo> {
+  if (file.size > 50 * 1024 * 1024) {
+    throw new ApiError('El archivo supera el tamaño máximo de 50 MB. Selecciona uno más pequeño.', 413, 'ARCHIVO_DEMASIADO_GRANDE');
+  }
   const formulario = new FormData();
 
   formulario.append("archivo", file);
@@ -67,7 +70,7 @@ export async function subirArchivo(
   try { return await solicitud<Archivo>("/api/archivos", {
     method: "POST",
     body: formulario,
-  }); } finally { void actualizarConsumo().catch(() => {}); }
+  }); } finally { await actualizarConsumo().catch(() => {}); }
 }
 
 
@@ -75,7 +78,7 @@ export async function eliminarArchivo(id: string): Promise<void> {
   try { await solicitud<{ mensaje: string }>(
     `/api/archivos/${encodeURIComponent(id)}`,
     { method: "DELETE" }
-  ); } finally { void actualizarConsumo().catch(() => {}); }
+  ); } finally { await actualizarConsumo().catch(() => {}); }
 }
 
 export async function descargarArchivo(
@@ -96,7 +99,7 @@ export async function descargarArchivo(
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
-    throw new Error(data.error ?? "No se pudo descargar el archivo.");
+    throw new ApiError(data.error ?? "No se pudo descargar el archivo.", response.status, data.codigo);
   }
 
   const blob = await response.blob();
@@ -110,7 +113,7 @@ export async function descargarArchivo(
   enlace.remove();
 
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } finally { void actualizarConsumo().catch(() => {}); }
+  } finally { await actualizarConsumo().catch(() => {}); }
 }
 
 

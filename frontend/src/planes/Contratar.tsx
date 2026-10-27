@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Icon } from "@iconify/react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useAvisos } from '../components/contextoAvisos';
 import { contratarPlan, type MetodoPago } from "../services/pagos";
 import { formatPrecio, textoDescargas, type Plan } from "./planesData";
 import "./Contratar.css";
@@ -38,11 +39,12 @@ const METODO: MetodoPago = "tarjeta";
 
 // Pantalla de contratación SIMULADA: no se cobra nada ni se guardan datos de tarjeta.
 function Contratar() {
+  const { avisarError } = useAvisos();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [planes, setPlanes] = useState<Plan[] | null>(null);
   const plan = planes?.find(p => p.id === searchParams.get("plan"));
-  useEffect(() => { obtenerCatalogo().then(setPlanes).catch(e => { toast.error(e.message); setPlanes([]); }); }, []);
+  useEffect(() => { obtenerCatalogo().then(setPlanes).catch(e => { avisarError(e, 'No se pudieron cargar los planes'); setPlanes([]); }); }, [avisarError]);
 
   const [intentado, setIntentado] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -82,7 +84,7 @@ function Contratar() {
       toast.success(`Plan ${plan.nombre} contratado`);
       navigate("/planes/historial");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "No se pudo completar la contratación.");
+      avisarError(error, 'No se pudo contratar el plan');
     } finally {
       setEnviando(false);
     }

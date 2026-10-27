@@ -1,13 +1,15 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
-import toast from "react-hot-toast";
+import { useAvisos } from '../components/contextoAvisos';
+import AvisosLimites from '../components/AvisosLimites';
+import BarraAlmacenamiento from '../components/BarraAlmacenamiento';
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import CargaArchivos from "../Archivos/CargaArchivos";
 import "../Archivos/Archivos.css";
-import { useConsumo } from '../services/consumo';
-import { formatoBytes } from '../services/usagePolicy';
+import { useConsumo, obtenerConsumoActual } from '../services/consumo';
+import { ApiError } from '../services/auth';
 import {
   listarArchivos,
   type Archivo,
@@ -15,12 +17,19 @@ import {
 import "./Dashboard.css";
 
 function Dashboard() {
+  const { avisarError } = useAvisos();
   const navigate = useNavigate();
 
   const [archivos, setArchivos] = useState<Archivo[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarCarga, setMostrarCarga] = useState(false);
   const { consumo, error: errorConsumo } = useConsumo();
+  const abrirCarga = () => {
+    const uso = obtenerConsumoActual()?.almacenamiento;
+    if (uso && uso.usados_bytes >= uso.cuota_bytes) {
+      avisarError(new ApiError('Has alcanzado el límite de almacenamiento de tu plan.', 409, 'CUOTA_ALMACENAMIENTO'), 'Almacenamiento lleno');
+    } else setMostrarCarga(true);
+  };
 
   useEffect(() => {
     let activo = true;
@@ -30,7 +39,7 @@ function Dashboard() {
         if (activo) setArchivos(resultado);
       })
       .catch((error: Error) => {
-        if (activo) toast.error(error.message);
+        if (activo) avisarError(error, 'No se pudieron cargar tus archivos');
       })
       .finally(() => {
         if (activo) setCargando(false);
@@ -39,7 +48,7 @@ function Dashboard() {
     return () => {
       activo = false;
     };
-  }, []);
+  }, [avisarError]);
 
   const formatoFecha = (fecha: string) =>
     new Date(fecha).toLocaleDateString("es-GT", {
@@ -66,8 +75,6 @@ function Dashboard() {
     return "lucide:file";
   };
 
-  const porcentaje = Math.min(consumo?.almacenamiento.porcentaje_utilizado ?? 0, 100);
-
   const recientes = [...archivos]
     .sort(
       (a, b) =>
@@ -86,13 +93,14 @@ function Dashboard() {
 
           <button
             className="upload-button"
-            onClick={() => setMostrarCarga(true)}
+            onClick={abrirCarga}
           >
             <Icon icon="lucide:upload" />
             Cargar archivo
           </button>
         </div>
 
+        <AvisosLimites almacenamiento descargas />
         <section className="stats-grid">
           <div className="stat-card">
             <span className="stat-title">Plan actual</span>
@@ -102,14 +110,7 @@ function Dashboard() {
 
           <div className="stat-card storage-card">
             <span className="stat-title">Almacenamiento</span>
-            <strong>{consumo ? `${formatoBytes(consumo.almacenamiento.usados_bytes)} de ${formatoBytes(consumo.almacenamiento.cuota_bytes)}` : '—'}</strong>
-            <span className="storage-text">{consumo ? `${consumo.almacenamiento.porcentaje_utilizado.toFixed(1)}% usados` : 'Consultando consumo…'}</span>
-            <div className="storage-bar">
-              <div
-                className="storage-progress"
-                style={{ width: `${porcentaje}%` }}
-              />
-            </div>
+            {consumo ? <BarraAlmacenamiento almacenamiento={consumo.almacenamiento} /> : <span className="storage-text">Consultando consumo…</span>}
           </div>
 
           <div className="stat-card">
@@ -147,7 +148,7 @@ function Dashboard() {
               <p>Los archivos que subas aparecerán aquí.</p>
               <button
                 className="upload-button"
-                onClick={() => setMostrarCarga(true)}
+                onClick={abrirCarga}
               >
                 <Icon icon="lucide:upload" />
                 Subir mi primer archivo

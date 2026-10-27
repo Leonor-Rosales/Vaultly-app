@@ -1,6 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatoBytes, mensajesAlertas, avisosNuevos } from '../src/services/usagePolicy.ts';
+import { formatoBytes, mensajesAlertas, avisosNuevos, porcentajeAlmacenamiento, textoPorcentaje } from '../src/services/usagePolicy.ts';
+
+test('almacenamiento refleja bytes reales, archivos pequeños y sobrecuota sin redondear a lleno', () => {
+  assert.equal(porcentajeAlmacenamiento(0, 5000000000), 0);
+  assert.equal(porcentajeAlmacenamiento(2500000000, 5000000000), 50);
+  assert.equal(porcentajeAlmacenamiento(6000000000, 5000000000), 120);
+  assert.equal(porcentajeAlmacenamiento(4, 0), 0);
+  assert.equal(textoPorcentaje(porcentajeAlmacenamiento(4000, 5000000000)), '< 0.1%');
+  assert.equal(textoPorcentaje(99.99), '99.9%');
+});
 test('unidades decimales coherentes con la cuota de GB', () => {
   assert.equal(formatoBytes(1000000000), '1.00 GB');
   assert.equal(formatoBytes(1000000), '1.0 MB');

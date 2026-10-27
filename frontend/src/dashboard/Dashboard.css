@@ -132,21 +132,6 @@
   font-weight: 600;
 }
 
-.storage-bar {
-  width: 100%;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 10px;
-  background: #eee2d5;
-}
-
-.storage-progress {
-  width: 62%;
-  height: 100%;
-  border-radius: inherit;
-  background: #cf7040;
-}
-
 /* =========================
    ARCHIVOS RECIENTES
 ========================= */

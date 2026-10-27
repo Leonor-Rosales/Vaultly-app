@@ -16,6 +16,7 @@
 }
 
 /* Modal */
+.carga-error-archivo { margin: 6px 0; color: #a44d2b; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
 
 .carga-modal {
   width: 100%;

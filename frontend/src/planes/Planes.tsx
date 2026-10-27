@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { useAvisos } from '../components/contextoAvisos';
 import { obtenerCatalogo } from "../services/consumo";
 import Sidebar from "../components/Sidebar";
 import { obtenerPlanActual, type PlanActual } from "../services/pagos";
@@ -10,14 +10,15 @@ import "../dashboard/Dashboard.css";
 import "./Planes.css";
 
 function Planes() {
+  const { avisarError } = useAvisos();
   const navigate = useNavigate();
   const [actual, setActual] = useState<PlanActual | null>(null);
 
   const [planes, setPlanes] = useState<Plan[]>([]);
   useEffect(() => {
-    obtenerPlanActual().then(setActual).catch(e => toast.error(e.message));
-    obtenerCatalogo().then(setPlanes).catch(e => toast.error(e.message));
-  }, []);
+    obtenerPlanActual().then(setActual).catch(e => avisarError(e, 'No se pudo consultar tu plan'));
+    obtenerCatalogo().then(setPlanes).catch(e => avisarError(e, 'No se pudieron cargar los planes'));
+  }, [avisarError]);
 
   return (
     <div className="dashboard-page">

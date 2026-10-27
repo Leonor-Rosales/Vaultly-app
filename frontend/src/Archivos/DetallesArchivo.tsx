@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import type { Archivo } from '../services/archivos';
 import { formatoBytes } from '../services/usagePolicy';
+import { useAvisos } from '../components/contextoAvisos';
 
 function tipoArchivo(archivo: Archivo) {
   const tipos: Record<string, string> = {
@@ -22,6 +23,7 @@ function tipoArchivo(archivo: Archivo) {
 }
 
 export default function DetallesArchivo({ archivo, onUpdated }: { archivo: Archivo; onUpdated?: (archivo: Archivo) => void }) {
+  const { avisarError } = useAvisos();
   const [borrador, setBorrador] = useState(archivo.etiquetas?.map(e => e.nombre) ?? []);
   const [pendiente, setPendiente] = useState('');
   const [error, setError] = useState('');
@@ -36,7 +38,7 @@ export default function DetallesArchivo({ archivo, onUpdated }: { archivo: Archi
       onUpdated?.(actualizado);
       setBorrador(actualizado.etiquetas.map(e => e.nombre)); setPendiente('');
       setMensaje('Etiquetas guardadas');
-    } catch (e) { setError((e as Error).message); }
+    } catch (e) { setError((e as Error).message); avisarError(e, 'No se pudieron guardar las etiquetas', archivo.nombre_original); }
     finally { setGuardando(false); }
   };
   const id = useId();

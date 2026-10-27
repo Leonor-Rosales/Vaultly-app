@@ -1,5 +1,16 @@
 import policy from '../../../shared/usage-policy.json' with { type: 'json' };
 
+export function porcentajeAlmacenamiento(usados: number, cuota: number): number {
+  if (!Number.isFinite(usados) || !Number.isFinite(cuota) || cuota <= 0) return 0;
+  return Math.max(0, usados / cuota * 100);
+}
+
+export function textoPorcentaje(porcentaje: number): string {
+  if (porcentaje > 0 && porcentaje < 0.1) return '< 0.1%';
+  // No anunciar 100% mientras todavía queda espacio.
+  return `${(Math.floor(porcentaje * 10) / 10).toLocaleString('es-GT', { maximumFractionDigits: 1 })}%`;
+}
+
 export function formatoBytes(bytes: number) {
   if (bytes >= policy.bytesPerGB) return `${(bytes / policy.bytesPerGB).toFixed(2)} GB`;
   if (bytes >= 1000000) return `${(bytes / 1000000).toFixed(1)} MB`;

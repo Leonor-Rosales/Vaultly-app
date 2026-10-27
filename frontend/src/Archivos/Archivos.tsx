@@ -1,8 +1,13 @@
 import { formatoBytes } from "../services/usagePolicy";
 
 import { useEffect, useState } from "react";
+import { useLocation } from 'react-router-dom';
 import { Icon } from "@iconify/react";
 import toast from "react-hot-toast";
+import { useAvisos } from '../components/contextoAvisos';
+import AvisosLimites from '../components/AvisosLimites';
+import { obtenerConsumoActual } from '../services/consumo';
+import { ApiError } from '../services/auth';
 import Sidebar from "../components/Sidebar";
 import {
   listarArchivos,
@@ -16,22 +21,20 @@ import DetallesArchivo from "./DetallesArchivo";
 import "./Archivos.css";
 
 function Archivos() {
+  const location = useLocation();
+  const { avisar, avisarError, confirmar } = useAvisos();
   const [archivos, setArchivos] = useState<Archivo[]>([]);
   const [cargando, setCargando] = useState(true);
   const [eliminando, setEliminando] = useState<string | null>(null);
-  const [mostrarCarga, setMostrarCarga] = useState(false);
+  const [rutaCarga, setRutaCarga] = useState<string | null>(null);
+  // La carga pertenece a esta visita; «Administrar archivos» vuelve a una lista despejada.
+  const mostrarCarga = rutaCarga === location.key;
 
-  const actualizarArchivos = async () => {
-    try {
-      const resultado = await listarArchivos();
-      setArchivos(resultado);
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudieron cargar los archivos"
-      );
-    }
+  const abrirCarga = () => {
+    const uso = obtenerConsumoActual()?.almacenamiento;
+    if (uso && uso.usados_bytes >= uso.cuota_bytes) {
+      avisarError(new ApiError('Has alcanzado el límite de almacenamiento de tu plan.', 409, 'CUOTA_ALMACENAMIENTO'), 'Almacenamiento lleno');
+    } else setRutaCarga(location.key);
   };
 
   useEffect(() => {
@@ -42,7 +45,7 @@ function Archivos() {
         if (activo) setArchivos(resultado);
       })
       .catch((error: Error) => {
-        if (activo) toast.error(error.message);
+        if (activo) avisarError(error, 'No se pudieron cargar tus archivos');
       })
       .finally(() => {
         if (activo) setCargando(false);
@@ -51,7 +54,7 @@ function Archivos() {
     return () => {
       activo = false;
     };
-  }, []);
+  }, [avisarError]);
 
   const formatoTamano = (valor: number | string) => formatoBytes(Number(valor));
 
@@ -104,20 +107,12 @@ function Archivos() {
           : "Archivo cambiado a privado"
       );
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo cambiar la visibilidad"
-      );
+      avisarError(error, 'No se pudo cambiar la visibilidad', archivo.nombre_original);
     }
   };
 
   const borrarArchivo = async (archivo: Archivo) => {
-    if (
-      !window.confirm(
-        `¿Seguro que quieres eliminar "${archivo.nombre_original}"?`
-      )
-    ) {
+    if (!await confirmar('¿Eliminar archivo?', `Se eliminará «${archivo.nombre_original}» de tu cuenta. Esta acción no se puede deshacer.`)) {
       return;
     }
 
@@ -132,11 +127,7 @@ function Archivos() {
 
       toast.success("Archivo eliminado correctamente");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo eliminar"
-      );
+      avisarError(error, 'No se pudo eliminar el archivo', archivo.nombre_original);
     } finally {
       setEliminando(null);
     }
@@ -146,11 +137,7 @@ function Archivos() {
     try {
       await descargarArchivo(archivo.id, archivo.nombre_original);
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo descargar"
-      );
+      avisarError(error, 'No se pudo descargar el archivo', archivo.nombre_original);
     }
   };
 
@@ -168,12 +155,13 @@ function Archivos() {
 
           <button
             className="archivo-button primary"
-            onClick={() => setMostrarCarga(true)}
+            onClick={abrirCarga}
           >
             <Icon icon="lucide:upload" />
             Cargar archivo
           </button>
         </header>
+        <AvisosLimites almacenamiento mostrarUso />
 
         {cargando ? (
           <section className="archivos-vacio">
@@ -192,7 +180,7 @@ function Archivos() {
 
             <button
               className="archivo-button primary"
-              onClick={() => setMostrarCarga(true)}
+              onClick={abrirCarga}
             >
               <Icon icon="lucide:upload" />
               Añadir primer archivo
@@ -232,7 +220,7 @@ function Archivos() {
                   <button
                     type="button"
                     title="Editar nombre"
-                    onClick={() => toast("Edición de nombre próximamente")}
+                    onClick={() => avisar({ titulo: 'Edición de nombre', mensaje: 'Esta función todavía no está disponible. Por ahora, puedes cambiar el nombre antes de subir el archivo.' })}
                   >
                     <Icon icon="lucide:pencil" />
                   </button>
@@ -240,7 +228,7 @@ function Archivos() {
                   <button
                     type="button"
                     title="Mover archivo"
-                    onClick={() => toast("Mover archivos próximamente")}
+                    onClick={() => avisar({ titulo: 'Mover archivos', mensaje: 'Esta función todavía no está disponible. Tus archivos permanecen en su ubicación actual.' })}
                   >
                     <Icon icon="lucide:arrow-left-right" />
                   </button>
@@ -257,7 +245,7 @@ function Archivos() {
                   <button
                     type="button"
                     title="Vista previa"
-                    onClick={() => toast("Vista previa próximamente")}
+                    onClick={() => avisar({ titulo: 'Vista previa', mensaje: 'Esta función todavía no está disponible. Puedes descargar el archivo para abrirlo en tu dispositivo.' })}
                   >
                     <Icon icon="lucide:eye" />
                   </button>
@@ -278,10 +266,8 @@ function Archivos() {
 
       {mostrarCarga && (
         <CargaArchivos
-          onClose={() => setMostrarCarga(false)}
-          onUploaded={async () => {
-            await actualizarArchivos();
-          }}
+          onClose={() => setRutaCarga(null)}
+          onUploaded={archivo => setArchivos(actuales => [archivo, ...actuales.filter(a => a.id !== archivo.id)])}
         />
       )}
     </div>
