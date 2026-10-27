@@ -1,15 +1,15 @@
 const express = require('express');
-const multer = require('multer');
+const fs = require('node:fs');
+const { Readable } = require('node:stream');
+const { finished } = require('node:stream/promises');
+const { crearRecepcionArchivo } = require('./recibirArchivo');
 
 const { ErrorApp } = require('../domain/errores');
 const { transmitirDescarga } = require('./transmitirDescarga');
 
-function crearArchivosRoutes(casos, requiereAuth) {
+function crearArchivosRoutes(casos, requiereAuth, opcionesSubida = {}) {
   const router = express.Router();
-  const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 },
-  });
+  const recibirArchivo = crearRecepcionArchivo(opcionesSubida);
   router.use(requiereAuth);
   const manejar = (mensaje, handler) => async (req, res) => {
     try {
@@ -32,20 +32,39 @@ function crearArchivosRoutes(casos, requiereAuth) {
   router.get('/publicos', manejar('No se pudo cargar la biblioteca pública', async (_req, res) => {
     res.json(await casos.listarPublicos());
   }));
-  router.post('/', upload.single('archivo'), manejar('No se pudo subir el archivo', async (req, res) => {
-    const datos = req.file && {
-      nombreOriginal: req.file.originalname,
-      tipoMime: req.file.mimetype,
-      contenido: req.file.buffer,
-      tamanioBytes: req.file.size,
-    };
-    let etiquetas = [];
-    if (req.body?.etiquetas !== undefined) {
-      if (typeof req.body.etiquetas !== 'string') throw new ErrorApp('etiquetas debe contener un array JSON de textos', 400);
-      try { etiquetas = JSON.parse(req.body.etiquetas); }
-      catch { throw new ErrorApp('El campo etiquetas contiene JSON mal formado', 400); }
+  router.post('/', manejar('No se pudo subir el archivo', async (req, res) => {
+    let contenido;
+    try {
+      await recibirArchivo(req, res);
+      if (req.aborted || res.destroyed) throw new ErrorApp('Carga cancelada.', 400);
+      let etiquetas = [];
+      if (req.body?.etiquetas !== undefined) {
+        if (typeof req.body.etiquetas !== 'string') throw new ErrorApp('etiquetas debe contener un array JSON de textos', 400);
+        try { etiquetas = JSON.parse(req.body.etiquetas); }
+        catch { throw new ErrorApp('El campo etiquetas contiene JSON mal formado', 400); }
+      }
+      // Abrir el archivo solo cuando el almacenamiento lo consuma, después de validar la cuota.
+      // El generador propaga errores de lectura sin abrir un stream huérfano si se rechaza la cuota.
+      if (req.file) contenido = Readable.from((async function* () {
+        yield* fs.createReadStream(req.file.path);
+      })());
+      const datos = req.file && {
+        nombreOriginal: req.file.originalname, tipoMime: req.file.mimetype,
+        contenido, tamanioBytes: req.file.size,
+      };
+      const archivo = await casos.subir(req.usuario.sub, datos, req.body?.es_publica === 'true', etiquetas);
+      res.status(201).json(archivo);
+    } finally {
+      if (contenido) {
+        const cerrado = finished(contenido).catch(() => {});
+        contenido.destroy();
+        await cerrado;
+      }
+      // Multer limpia las recepciones truncadas; aquí se limpian también éxito y rechazos de negocio.
+      if (req.file?.path) await fs.promises.unlink(req.file.path).catch(error => {
+        if (error.code !== 'ENOENT') console.error('No se pudo retirar el temporal de subida:', error);
+      });
     }
-    res.status(201).json(await casos.subir(req.usuario.sub, datos, req.body?.es_publica === 'true', etiquetas));
   }));
   router.patch('/:id/etiquetas', manejar('No se pudieron guardar las etiquetas', async (req, res) => {
     res.json(await casos.editarEtiquetas(req.params.id, req.usuario.sub, req.body?.etiquetas));

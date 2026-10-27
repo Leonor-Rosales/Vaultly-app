@@ -33,7 +33,12 @@ test('HTTP conserva autenticación, endpoints, respuestas, multipart y descarga 
       eliminarRegistro: async () => { metadata = undefined; return { id: 'id' }; },
     },
     almacenamiento: {
-      guardar: async ({ contenido }) => { bytes = contenido; return 'bucket/objeto'; },
+      guardar: async ({ contenido }) => {
+        const chunks = [];
+        for await (const chunk of contenido) chunks.push(chunk);
+        bytes = Buffer.concat(chunks);
+        return 'bucket/objeto';
+      },
       abrir: async () => failRead ? new Readable({ read() { this.destroy(new Error('lectura fallida de prueba')); } }) : Readable.from([bytes]),
       eliminar: async () => { bytes = undefined; },
     },

@@ -1,6 +1,7 @@
 
 import { actualizarConsumo } from "./consumo";
 import { ApiError, getToken } from "./auth";
+import { MAX_ARCHIVO_BYTES, LIMITE_ARCHIVO } from './uploadPolicy';
 
 const API_URL: string =
   import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -58,8 +59,8 @@ export async function subirArchivo(
   esPublica: boolean = false,
   etiquetas: string[] = []
 ): Promise<Archivo> {
-  if (file.size > 50 * 1024 * 1024) {
-    throw new ApiError('El archivo supera el tamaño máximo de 50 MB. Selecciona uno más pequeño.', 413, 'ARCHIVO_DEMASIADO_GRANDE');
+  if (file.size > MAX_ARCHIVO_BYTES) {
+    throw new ApiError(`El archivo supera el tamaño máximo de ${LIMITE_ARCHIVO}. Selecciona uno más pequeño.`, 413, 'ARCHIVO_DEMASIADO_GRANDE');
   }
   const formulario = new FormData();
 

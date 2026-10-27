@@ -64,4 +64,6 @@ async function recuperarReservas() {
 setInterval(recuperarReservas, 60000).unref();
 recuperarReservas();
 
-app.listen(PORT, () => console.log(`Backend en http://localhost:${PORT}`));
+const servidor = app.listen(PORT, () => console.log(`Backend en http://localhost:${PORT}`));
+// Dar margen a cargas de 1 GiB en conexiones lentas, manteniendo un tiempo finito.
+servidor.requestTimeout = 30 * 60 * 1000;

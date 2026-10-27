@@ -1,6 +1,7 @@
 import Etiquetas from '../components/Etiquetas';
 import { incluirPendiente } from '../../../shared/etiquetas.mjs';
 import { formatoBytes } from "../services/usagePolicy";
+import { LIMITE_ARCHIVO, MAX_ARCHIVO_BYTES } from '../services/uploadPolicy';
 
 import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
@@ -269,8 +270,8 @@ function CargaArchivos({
             }}
           />
 
-          <span className="carga-limite">
-            Tamaño máximo: 50 MB por archivo
+          <span className="carga-limite" title={`${MAX_ARCHIVO_BYTES.toLocaleString('es-GT')} bytes (1 GiB)`}>
+            Tamaño máximo: {LIMITE_ARCHIVO} por archivo
           </span>
         </div>
 

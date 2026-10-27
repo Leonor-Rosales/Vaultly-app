@@ -77,7 +77,8 @@ Los casos de uso de archivos siguen coordinando repositorio y almacenamiento
 inyectados. Solo se adaptó la recepción del middleware en las rutas y su prueba HTTP.
 Se mantienen los filtros por propietario, 404 para archivos ajenos, endpoints y
 formatos de respuesta, descarga por streaming, limpieza al fallar metadatos, bucket
-privado y límite técnico de 50 MiB en memoria. La visibilidad sigue siendo metadato:
+privado y límite técnico de 50 MiB en memoria en aquella revisión (sustituido después
+por 1 GiB con recepción en disco; véase `avisos-limites.md`). La visibilidad sigue siendo metadato:
 no concede acceso anónimo al bucket.
 
 ## Pruebas y resultados reales

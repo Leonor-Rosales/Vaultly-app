@@ -2,6 +2,7 @@ const { randomUUID } = require('crypto');
 const path = require('path');
 const { normalizarEtiquetas } = require('../domain/etiquetas');
 const { ErrorApp } = require('../domain/errores');
+const { maxFileBytes, maxFileLabel } = require('../../../shared/upload-policy.json');
 
 /**
  * Contratos de puertos; todos los métodos son asíncronos.
@@ -10,7 +11,8 @@ const { ErrorApp } = require('../domain/errores');
  * actualizarVisibilidad(id, usuarioId, esPublica).
  * Las búsquedas/mutaciones filtran por propietario y devuelven null si no existe.
  * Almacenamiento: guardar({nombreObjeto, contenido, tamanioBytes, tipoMime})
- * devuelve la ruta persistible; abrir(nombreObjeto) devuelve un stream;
+ * acepta contenido Buffer o Readable y devuelve la ruta persistible;
+ * abrir(nombreObjeto) devuelve un stream;
  * eliminar(nombreObjeto) es idempotente si el objeto ya no existe.
  * Ningún puerto recibe objetos de Express.
  */
@@ -21,6 +23,7 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
     async subir(usuarioId, datos, esPublica, entradaEtiquetas = []) {
       const etiquetas = normalizarEtiquetas(entradaEtiquetas);
       if (!datos) throw new ErrorApp('Debes seleccionar un archivo', 400);
+      if (datos.tamanioBytes > maxFileBytes) throw new ErrorApp(`El archivo supera el tamaño máximo de ${maxFileLabel}.`, 413, 'ARCHIVO_DEMASIADO_GRANDE');
       const nombreOriginal = path.basename(datos.nombreOriginal).slice(0, 255);
       if (!nombreOriginal.trim()) throw new ErrorApp('Nombre de archivo inválido', 400);
       const nombreObjeto = `${usuarioId}/${randomUUID()}`;

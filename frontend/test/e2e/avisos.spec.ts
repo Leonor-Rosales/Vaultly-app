@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { MAX_ARCHIVO_BYTES } from '../../src/services/uploadPolicy';
 
 function archivo(id = 'propio', nombre = 'informe.pdf', bytes = 20000000) {
   return { id, nombre_original: nombre, tamanio_bytes: bytes, tipo_mime: 'application/pdf', es_publica: false,
@@ -185,18 +186,20 @@ test('un fallo al consultar consumo conserva la barra y permite reintentar', asy
   await expect(page.getByRole('heading', { name: 'No pudimos actualizar tu consumo' })).toHaveCount(0);
 });
 
-test('un archivo mayor de 50 MB informa el motivo sin enviarlo al servidor', async ({ page }) => {
+test('un archivo mayor de 1 GiB informa el motivo sin enviarlo al servidor', async ({ page }) => {
   const estado = await preparar(page);
   await page.goto('/archivos');
   await page.getByRole('button', { name: 'Cargar archivo', exact: true }).click();
-  await page.locator('input[type=file]').evaluate(input => {
+  await page.locator('input[type=file]').evaluate((input, limite) => {
     const transferencia = new DataTransfer();
-    transferencia.items.add(new File([new ArrayBuffer(50 * 1024 * 1024 + 1)], 'grande.pdf', { type: 'application/pdf' }));
+    // Solo se simula el tamaño para validar la UI, sin reservar 1 GiB de RAM en el navegador.
+    Object.defineProperty(File.prototype, 'size', { configurable: true, get: () => limite + 1 });
+    transferencia.items.add(new File(['prueba'], 'grande.pdf', { type: 'application/pdf' }));
     (input as HTMLInputElement).files = transferencia.files;
     input.dispatchEvent(new Event('change', { bubbles: true }));
-  });
+  }, MAX_ARCHIVO_BYTES);
   await page.getByRole('button', { name: 'Cargar archivos', exact: true }).click();
-  await expect(page.getByRole('dialog', { name: 'No se pudo subir el archivo' })).toContainText('50 MB');
+  await expect(page.getByRole('dialog', { name: 'No se pudo subir el archivo' })).toContainText('1 GB');
   expect(estado.cargas).toEqual([]);
 });
 

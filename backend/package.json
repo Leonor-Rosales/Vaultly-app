@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrar.js",
     "test:integration": "node --test test/integration/*.test.js",
     "test": "node --test test/*.test.js",
+    "test:upload-large": "node --test test/upload-limit.large.js",
     "dev": "node --watch src/server.js",
     "start": "node src/server.js"
   },
