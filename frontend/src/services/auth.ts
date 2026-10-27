@@ -46,10 +46,29 @@ export class ApiError extends Error {
 export const getToken = (): string | null =>
   localStorage.getItem("token");
 
+const SESION_CAMBIADA = 'vaultly:sesion';
+export function suscribirSesion(actualizar: () => void): () => void {
+  const sincronizar = () => {
+    if (!getToken()) limpiarConsumo();
+    actualizar();
+  };
+  window.addEventListener(SESION_CAMBIADA, sincronizar);
+  window.addEventListener('storage', sincronizar);
+  window.addEventListener('pageshow', sincronizar);
+  return () => {
+    window.removeEventListener(SESION_CAMBIADA, sincronizar);
+    window.removeEventListener('storage', sincronizar);
+    window.removeEventListener('pageshow', sincronizar);
+  };
+}
+
 export const logout = (): void => {
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
+  sessionStorage.removeItem("token");
+  sessionStorage.removeItem("usuario");
   limpiarConsumo();
+  window.dispatchEvent(new Event(SESION_CAMBIADA));
 };
 
 async function request<T>(
@@ -123,6 +142,7 @@ export const login = async (
     "usuario",
     JSON.stringify(result.usuario)
   );
+  window.dispatchEvent(new Event(SESION_CAMBIADA));
 
   await actualizarConsumo().catch(() => {}); // La sesión sigue siendo válida; dashboard muestra el error del plan.
 

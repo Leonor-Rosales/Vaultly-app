@@ -28,6 +28,7 @@ export const archivosDemo: ArchivoPublico[] = semillas.map(([nombre_original, ti
   id: `10000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`, nombre_original, tipo_mime, tamanio_bytes,
   created_at: new Date(Date.UTC(2026, 9, 14 - i, 12)).toISOString(), autor: autores[autor],
   etiquetas: tags.map(id => etiquetas.find(e => e.id === id)!),
+  descargas: 0,
 }));
 export function crearBibliotecaDemo(archivos: ArchivoPublico[] = archivosDemo): ServicioBiblioteca {
   const contiene = (texto: string, q: string) => normalizarBusqueda(texto).includes(normalizarBusqueda(q.trim()));

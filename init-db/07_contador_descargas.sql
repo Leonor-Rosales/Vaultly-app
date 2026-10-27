@@ -1,4 +1,5 @@
 BEGIN;
+SELECT pg_advisory_xact_lock(7102026);
 
 ALTER TABLE archivos
 ADD COLUMN IF NOT EXISTS descargas BIGINT NOT NULL DEFAULT 0;
@@ -17,4 +18,5 @@ BEGIN
     END IF;
 END $$;
 
+INSERT INTO migraciones_vaultly(nombre) VALUES ('07_contador_descargas') ON CONFLICT DO NOTHING;
 COMMIT;
