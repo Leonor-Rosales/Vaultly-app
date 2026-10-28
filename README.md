@@ -1,6 +1,9 @@
 # Vaultly-app
 Plataforma de almacenamiento en la nube
 
+La administración de planes y usuarios está documentada en [Administración](docs/administracion.md),
+incluidas las reglas de suscripciones existentes y las pruebas del panel.
+
 ## Entorno local
 Esta configuración inicia PostgreSQL y MinIO
 

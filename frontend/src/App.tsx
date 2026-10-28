@@ -1,4 +1,9 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import AdminLayout from './admin/AdminLayout';
+import PlanesAdmin from './admin/PlanesAdmin';
+import PlanForm from './admin/PlanForm';
+import Administradores from './admin/Administradores';
+import Configuracion from './admin/Configuracion';
 import Login from "./login/Login";
 import Registro from "./registro/Registro";
 
@@ -26,6 +31,15 @@ function App() {
       <Route path="/restablecer" element={<NuevaPassword />} />
 
       <Route element={<RutaProtegida />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="planes" replace />} />
+          <Route path="planes" element={<PlanesAdmin key="listado" />} />
+          <Route path="planes/nuevo" element={<PlanForm />} />
+          <Route path="planes/:id/editar" element={<PlanesAdmin key="editar" editar />} />
+          <Route path="administradores" element={<Administradores />} />
+          <Route path="configuracion" element={<Configuracion />} />
+          <Route path="*" element={<Navigate to="/admin/planes" replace />} />
+        </Route>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/archivos" element={<Archivos />} />
         <Route path="/biblioteca" element={<Biblioteca />} />
