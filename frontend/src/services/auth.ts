@@ -71,7 +71,7 @@ export const logout = (): void => {
   window.dispatchEvent(new Event(SESION_CAMBIADA));
 };
 
-async function request<T>(
+export async function request<T>(
   path: string,
   options: {
     method?: string;
@@ -109,6 +109,7 @@ async function request<T>(
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    if (options.auth && response.status === 401) logout();
     throw new ApiError(
       data.error ?? "Ocurrió un error inesperado",
       response.status,
@@ -144,7 +145,7 @@ export const login = async (
   );
   window.dispatchEvent(new Event(SESION_CAMBIADA));
 
-  await actualizarConsumo().catch(() => {}); // La sesión sigue siendo válida; dashboard muestra el error del plan.
+  if (result.usuario.rol === 'CLIENTE') await actualizarConsumo().catch(() => {});
 
   return result;
 };

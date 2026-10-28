@@ -48,12 +48,12 @@ function App() {
             e.preventDefault();
 
             try {
-              await login({
+              const sesion = await login({
                 email,
                 password,
               });
 
-              navigate("/dashboard");
+              navigate(sesion.usuario.rol === 'ADMIN' ? '/admin/planes' : '/dashboard', { replace: true });
 
             } catch (error) {
   console.error(error);
