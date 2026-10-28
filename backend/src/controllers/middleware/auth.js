@@ -1,16 +1,23 @@
-function crearRequiereAuth(verificarTokenSesion) {
+function crearRequiereAuth(verificarTokenSesion, buscarUsuario) {
 
   // Protege rutas: exige un header  Authorization: Bearer <token>
-  function requiereAuth(req, res, next) {
+  async function requiereAuth(req, res, next) {
     const cabecera = req.headers.authorization || '';
     const token = cabecera.startsWith('Bearer ') ? cabecera.slice(7) : null;
     if (!token) return res.status(401).json({ error: 'No autenticado' });
     try {
       req.usuario = verificarTokenSesion(token);
-      next();
     } catch {
-      res.status(401).json({ error: 'Sesión inválida o expirada' });
+      return res.status(401).json({ error: 'Sesión inválida o expirada' });
     }
+    if (buscarUsuario) {
+      try {
+        const actual = await buscarUsuario(req.usuario.sub);
+        if (!actual || actual.estado_cuenta !== 'ACTIVO') return res.status(401).json({ error: 'Tu cuenta no está activa' });
+        req.usuario.rol = actual.rol;
+      } catch { return res.status(503).json({ error: 'No se pudo verificar la sesión' }); }
+    }
+    next();
   }
 
   return requiereAuth;

@@ -35,7 +35,7 @@ async function buscarPorCorreoConRol(correo) {
 
 async function buscarPorIdConRol(id) {
   const { rows } = await pool.query(
-    `SELECT u.id, u.nombre_completo, u.correo_electronico, r.nombre AS rol
+    `SELECT u.id, u.nombre_completo, u.correo_electronico, u.estado_cuenta, r.nombre AS rol
      FROM usuarios u JOIN roles r ON r.id = u.rol_id
      WHERE u.id = $1`,
     [id]

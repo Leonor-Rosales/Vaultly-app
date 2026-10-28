@@ -6,6 +6,7 @@
   "scripts": {
     "migrate:check": "node scripts/validar-migraciones.js",
     "test:migrations": "node --test test/integration/migraciones.pg.js",
+    "test:admin": "node --test test/integration/admin.pg.js",
     "migrate": "node scripts/migrar.js",
     "test:integration": "node --test test/integration/*.test.js",
     "test": "node --test test/*.test.js",

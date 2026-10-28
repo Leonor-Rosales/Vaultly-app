@@ -8,7 +8,7 @@ const { crearCasosAuth } = require('./usecases/auth');
 const { crearAuthController } = require('./controllers/authController');
 const { crearAuthRoutes } = require('./controllers/authRoutes');
 const { crearRequiereAuth } = require('./controllers/middleware/auth');
-const requiereAuth = crearRequiereAuth(tokens.verificarTokenSesion);
+const requiereAuth = crearRequiereAuth(tokens.verificarTokenSesion, require('./infrastructure/usuarioRepositorio').buscarPorIdConRol);
 const { crearCuotasRepositorio } = require('./infrastructure/cuotasRepositorio');
 const { crearCasosCuotas } = require('./usecases/cuotas');
 const { crearPlanesRoutes } = require('./controllers/planesRoutes');
@@ -40,6 +40,13 @@ app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+const { crearAdminRoutes } = require('./controllers/adminRoutes');
+const { crearCasosAdministracion } = require('./usecases/administracion');
+const { crearAdminRepositorio } = require('./infrastructure/adminRepositorio');
+app.use('/api/admin', crearAdminRoutes(crearCasosAdministracion({
+  repo: crearAdminRepositorio(require('./infrastructure/db')),
+  hashear: require('./infrastructure/contrasenas').hashear,
+}), requiereAuth));
 app.use('/api/archivos', archivosRoutes);
 app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth, pagos));
 
