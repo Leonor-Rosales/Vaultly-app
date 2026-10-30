@@ -40,6 +40,14 @@ app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+const { crearCambioCorreoRoutes } = require('./controllers/cambioCorreoRoutes');
+const { crearCasosCambioCorreo } = require('./usecases/cambioCorreo');
+app.use('/api/admin/cambio-correo', crearCambioCorreoRoutes(crearCasosCambioCorreo({
+  repo: require('./infrastructure/cambioCorreoRepositorio').crearCambioCorreoRepositorio(require('./infrastructure/db')),
+  contrasenas: require('./infrastructure/contrasenas'),
+  codigos: require('./infrastructure/codigosCorreo'),
+  correo: require('./infrastructure/correoCambio').crearCorreoCambio(require('./infrastructure/mailer').enviarMensaje),
+}), requiereAuth));
 const { crearAdminRoutes } = require('./controllers/adminRoutes');
 const { crearCasosAdministracion } = require('./usecases/administracion');
 const { crearAdminRepositorio } = require('./infrastructure/adminRepositorio');

@@ -28,6 +28,7 @@ function crearCasosAdministracion({ repo, hashear }) {
         if (id) {
           const anterior = await tx.administrador(id);
           if (!anterior) throw new ErrorApp('Administrador no encontrado', 404);
+          if (d.correo_electronico !== anterior.correo_electronico.trim().toLowerCase()) throw new ErrorApp('El titular debe verificar el nuevo correo desde Configuración', 409);
           if (anterior.estado_cuenta === 'ACTIVO') protegerAcceso(actor, id, datos.activo, await tx.activos());
         }
         return tx.guardarAdministrador(id, d, hash);

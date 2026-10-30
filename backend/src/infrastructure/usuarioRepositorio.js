@@ -67,13 +67,15 @@ async function buscarPendientePorCorreo(correo, estadoPendiente) {
   );
   return rows[0] || null;
 }
-async function actualizarPassword(id, passwordHash) {
+async function actualizarPassword(id, passwordHash, correo) {
   const { rows } = await pool.query(
     `UPDATE usuarios
      SET password_hash = $2
      WHERE id = $1
+       AND (($3::text IS NOT NULL AND correo_electronico=$3)
+         OR ($3::text IS NULL AND correo_actualizado_en IS NULL))
      RETURNING id`,
-    [id, passwordHash]
+    [id, passwordHash, correo ?? null]
   );
 
   return rows[0] || null;

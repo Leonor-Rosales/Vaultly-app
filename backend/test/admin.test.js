@@ -5,6 +5,17 @@ const { crearAdminRoutes } = require('../src/controllers/adminRoutes');
 const { crearRequiereAuth } = require('../src/controllers/middleware/auth');
 const { validarPlan, validarAdministrador, protegerAcceso, protegerPlan } = require('../src/domain/administracion');
 const plan = { nombre: 'Premium', precio_mensual: 25.5, cuota_storage_gb: 20, limite_descargas: null, permite_carpetas_publicas: true, activo: true };
+test('editar administradores no permite saltarse la verificación del correo', async () => {
+  const { crearCasosAdministracion } = require('../src/usecases/administracion');
+  let guardado = false;
+  const casos = crearCasosAdministracion({ repo: { transaccion: async (_tipo, fn) => fn({
+    actor: async () => ({ rol: 'ADMIN', estado_cuenta: 'ACTIVO' }),
+    administrador: async () => ({ correo_electronico: 'antes@example.test', estado_cuenta: 'ACTIVO' }),
+    guardarAdministrador: async () => { guardado = true; },
+  }) } });
+  await assert.rejects(casos.guardarAdministrador('actor', 'otro', { nombre_completo: 'Ana', correo_electronico: 'nuevo@example.test', activo: true }), /verificar/);
+  assert.equal(guardado, false);
+});
 test('planes validan unidades, ilimitados, decimales y booleanos independientes', () => {
   assert.deepEqual(validarPlan(plan), plan);
   for (const cambio of [{ precio_mensual: -1 }, { precio_mensual: 1.234 }, { precio_mensual: '20' }, { cuota_storage_gb: 0 }, { cuota_storage_gb: 1.5 }, { limite_descargas: -1 }, { activo: 'true' }, { permite_carpetas_publicas: 1 }, { nombre: ' ' }]) assert.throws(() => validarPlan({ ...plan, ...cambio }));

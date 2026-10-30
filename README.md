@@ -4,6 +4,10 @@ Plataforma de almacenamiento en la nube
 La administración de planes y usuarios está documentada en [Administración](docs/administracion.md),
 incluidas las reglas de suscripciones existentes y las pruebas del panel.
 
+Para la configuración, los temas y el cambio de correo verificado, consulta
+[Configuración y seguridad](docs/admin-configuracion-seguridad.md). Esta versión
+requiere aplicar `08_cambio_correo.sql` mediante el migrador antes de iniciar el backend.
+
 ## Entorno local
 Esta configuración inicia PostgreSQL y MinIO
 
@@ -43,6 +47,7 @@ PostgreSQL ejecuta estos archivos en orden:
 5. init-db/05_pagos.sql
 6. init-db/06_biblioteca.sql
 7. init-db/07_contador_descargas.sql
+8. init-db/08_cambio_correo.sql
 
 La ruta es `init-db` (con guion). `00_validar_migraciones.sh` rechaza prefijos SQL
 duplicados antes de inicializar Docker. El migrador de Node aplica la misma validación.

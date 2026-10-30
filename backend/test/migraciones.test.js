@@ -9,6 +9,7 @@ test('secuencia SQL completa y prefijos únicos', () => {
   assert.deepEqual(listarMigraciones().map(m => m.nombre), [
     '01_schema.sql', '02_seeds.sql', '03_planes_cuotas.sql',
     '04_descargas_biblioteca.sql', '05_pagos.sql', '06_biblioteca.sql', '07_contador_descargas.sql',
+    '08_cambio_correo.sql',
   ]);
 });
 
