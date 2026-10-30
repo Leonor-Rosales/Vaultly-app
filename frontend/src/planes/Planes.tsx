@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
+import { avisosCliente as toast } from '../cuenta/avisos';
 import { obtenerCatalogo } from "../services/consumo";
 import Sidebar from "../components/Sidebar";
 import { obtenerPlanActual, type PlanActual } from "../services/pagos";

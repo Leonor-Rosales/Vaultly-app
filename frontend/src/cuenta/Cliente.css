@@ -1,0 +1,33 @@
+/* Paleta del mockup del cliente; la paleta administrativa permanece independiente. */
+.cliente-app[data-tema=claro], .cliente-colores[data-tema=claro] {
+  --cuenta-bg:#fcfaf8; --cuenta-surface:#faf5ef; --cuenta-text:#542818;
+  --cuenta-muted:#8d796c; --cuenta-border:#edc5a5; --cuenta-soft:#f4e8da;
+  --cuenta-accent:#cc7040; --cuenta-link:#b9572c; --cuenta-on-accent:#fff;
+  --cuenta-secondary:#f4e8da; --cuenta-disabled:#eee4da;
+}
+.cliente-app, .cliente-colores {
+  --cliente-bg:var(--cuenta-bg); --cliente-surface:var(--cuenta-surface); --cliente-text:var(--cuenta-text);
+  --cliente-muted:var(--cuenta-muted); --cliente-border:var(--cuenta-border); --cliente-soft:var(--cuenta-soft);
+  --cliente-accent:var(--cuenta-accent); --cliente-link:var(--cuenta-link); --cliente-on-accent:var(--cuenta-on-accent);
+  --cliente-disabled:var(--cuenta-disabled);
+}
+.cliente-app {
+  min-height:100dvh; background:var(--cliente-bg); color:var(--cliente-text); text-align:left;
+}
+.cliente-app h1,.cliente-app h2,.cliente-app h3 { color:var(--cliente-text); }
+.cliente-app input,.cliente-app select,.cliente-app textarea { color-scheme:var(--cuenta-scheme); }
+.cliente-app :focus-visible { outline:3px solid var(--cuenta-focus); outline-offset:3px; }
+.cliente-app .cliente-menu { display:none; }
+.cliente-config-page { display:flex; min-height:100dvh; }
+.cliente-config-content { flex:1; min-width:0; padding:32px 30px; }
+.cliente-app .cliente-menu-panel { display:none; }
+@media(max-width:650px) {
+  .cliente-app .cliente-menu { display:block; margin:12px 16px; padding:10px 16px; border:1px solid var(--cliente-border); border-radius:8px; background:var(--cliente-surface); color:var(--cliente-text); }
+  .cliente-app .cliente-menu-panel { display:block; }
+  .cliente-app .cliente-menu-panel .sidebar { display:flex; min-height:auto; width:100%; border-bottom:1px solid var(--cliente-border); }
+  .cliente-app .cliente-menu-panel .sidebar-user { padding:16px; }
+  .cliente-config-content { padding:20px 16px; }
+  .cliente-config-page { min-height:0; }
+}
+
+.cliente-app .menu-item.active, .cliente-app .user-plan { background:var(--cliente-soft); color:var(--cliente-link); }

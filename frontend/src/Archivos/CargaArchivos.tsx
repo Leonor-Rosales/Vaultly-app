@@ -4,7 +4,7 @@ import { formatoBytes } from "../services/usagePolicy";
 
 import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
-import toast from "react-hot-toast";
+import { avisosCliente as toast } from '../cuenta/avisos';
 import "./CargaArchivos.css";
 import {
   subirArchivo,

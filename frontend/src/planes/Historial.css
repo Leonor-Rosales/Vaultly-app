@@ -11,7 +11,7 @@
 .pagos-toolbar h2 {
   margin: 0;
   font-size: 15px;
-  color: #542818;
+  color: var(--cliente-text, #542818);
 }
 
 .pagos-orden {
@@ -21,16 +21,16 @@
 
   padding: 6px 10px;
 
-  background: #fffdfb;
-  border: 1px solid #ead8c7;
+  background: var(--cliente-bg, #fffdfb);
+  border: 1px solid var(--cliente-border, #ead8c7);
   border-radius: 6px;
 
-  color: #542818;
+  color: var(--cliente-text, #542818);
   font-size: 10px;
 }
 
 .pagos-orden svg {
-  color: #88796e;
+  color: var(--cliente-muted, #88796e);
   font-size: 13px;
 }
 
@@ -39,7 +39,7 @@
   border: none;
   outline: none;
 
-  color: #542818;
+  color: var(--cliente-text, #542818);
   font-size: 10px;
   cursor: pointer;
 }
@@ -53,8 +53,8 @@
 .pagos-table {
   min-width: 720px;
 
-  background: #faf5ef;
-  border: 1px solid #ead8c7;
+  background: var(--cliente-surface, #faf5ef);
+  border: 1px solid var(--cliente-border, #ead8c7);
   border-radius: 7px;
   overflow: hidden;
 }
@@ -68,7 +68,7 @@
   align-items: center;
   text-align: center;
 
-  border-bottom: 1px solid #ead8c7;
+  border-bottom: 1px solid var(--cliente-border, #ead8c7);
   font-size: 10px;
 }
 
@@ -79,20 +79,20 @@
 .pago-header {
   min-height: 30px;
 
-  background: #f4e7d9;
-  color: #88796e;
+  background: var(--cliente-surface, #f4e7d9);
+  color: var(--cliente-muted, #88796e);
   font-size: 9px;
 }
 
 .pago-fecha,
 .pago-plan {
-  color: #542818;
+  color: var(--cliente-text, #542818);
   font-weight: 600;
 }
 
 .pago-codigo,
 .pago-muted {
-  color: #8e8076;
+  color: var(--cliente-muted, #8e8076);
 }
 
 /* ESTADO */
@@ -109,13 +109,13 @@
 }
 
 .pago-estado.completado {
-  background: #ecd2b8;
-  color: #8a4b25;
+  background: var(--cliente-soft, #ecd2b8);
+  color: var(--cliente-text, #8a4b25);
 }
 
 .pago-estado.pendiente {
-  background: #f3e7da;
-  color: #8c6b56;
+  background: var(--cliente-surface, #f3e7da);
+  color: var(--cliente-muted, #8c6b56);
 }
 
 /* DESCARGAR */
@@ -125,7 +125,7 @@
 
   background: transparent;
   border: none;
-  color: #cf7040;
+  color: var(--cliente-link, #cf7040);
 
   font-size: 14px;
   line-height: 1;

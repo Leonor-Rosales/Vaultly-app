@@ -1,7 +1,7 @@
 
 import { Icon } from "@iconify/react";
 import { useLocation, useNavigate } from "react-router-dom";
-import type { Usuario } from "../services/auth";
+import { useCuenta } from '../cuenta/contexto';
 import { logout } from "../services/auth";
 import { useConsumo } from "../services/consumo";
 import "./Sidebar.css";
@@ -19,16 +19,8 @@ function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  let usuario: Usuario | null = null;
-
-  try {
-    const guardado = localStorage.getItem("usuario");
-    usuario = guardado ? JSON.parse(guardado) : null;
-  } catch {
-    usuario = null;
-  }
-
-  const nombre = usuario?.nombre_completo || "Usuario";
+  const { usuario } = useCuenta();
+  const nombre = usuario.nombre_completo;
 
   const iniciales = nombre
     .trim()

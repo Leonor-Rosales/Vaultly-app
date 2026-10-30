@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Icon } from "@iconify/react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import toast from "react-hot-toast";
+import { avisosCliente as toast } from '../cuenta/avisos';
 import { contratarPlan, type MetodoPago } from "../services/pagos";
 import { formatPrecio, textoDescargas, type Plan } from "./planesData";
 import "./Contratar.css";

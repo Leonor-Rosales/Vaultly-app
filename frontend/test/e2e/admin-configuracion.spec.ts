@@ -22,19 +22,19 @@ async function preparar(page: Page) {
   let solicitud: null | { id: string; correo: string; estado: string; vence_en: string; reenviar_desde: string; intentos_restantes: number } = null;
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname, method = route.request().method();
-    const d = method === 'POST' || method === 'PUT' ? route.request().postDataJSON() : {};
+    const d = method === 'POST' || method === 'PUT' || method === 'PATCH' ? route.request().postDataJSON() : {};
     if (path === '/api/auth/login') return route.fulfill({ json: { token: 'prueba', usuario } });
     if (path === '/api/auth/me') return route.fulfill({ json: { usuario } });
     if (path === '/api/admin/planes') return route.fulfill({ json: [{ id: 1, nombre: 'Equipo', precio_mensual: 50, cuota_storage_gb: 20, limite_descargas: null, activo: true, permite_carpetas_publicas: false }] });
-    if (path === '/api/admin/administradores/admin-config' && method === 'PUT') { usuario.nombre_completo = d.nombre_completo; return route.fulfill({ json: usuario }); }
+    if (path === '/api/cuenta/perfil' && method === 'PATCH') { usuario.nombre_completo = d.nombre_completo; return route.fulfill({ json: { usuario } }); }
     if (path === '/api/admin/administradores') return route.fulfill({ json: [{ ...usuario, estado_cuenta: 'ACTIVO', created_at: '2026-01-01' }] });
     if (path === '/api/auth/recuperar') return route.fulfill({ json: { mensaje: `Enlace enviado a ${d.email}` } });
-    if (path === '/api/admin/cambio-correo/confirmar') {
+    if (path === '/api/cuenta/cambio-correo/confirmar') {
       if (d.codigo !== '123456') { if (solicitud) solicitud.intentos_restantes--; return route.fulfill({ status: 400, json: { error: 'El código no es correcto', codigo: 'CODIGO_INVALIDO' } }); }
       usuario.correo_electronico = solicitud!.correo; solicitud = null;
       return route.fulfill({ json: { usuario, notificado: true, mensaje: 'Correo actualizado y aviso enviado a tu dirección anterior.' } });
     }
-    if (path === '/api/admin/cambio-correo') {
+    if (path === '/api/cuenta/cambio-correo') {
       if (method === 'GET') return route.fulfill({ json: { solicitud } });
       if (method === 'DELETE') { solicitud = null; return route.fulfill({ json: { mensaje: 'Solicitud cancelada. Tu correo actual no cambió.' } }); }
       if (d.password !== 'Actual123!') return route.fulfill({ status: 400, json: { error: 'La contraseña actual no es correcta', codigo: 'PASSWORD_INVALIDA' } });
@@ -106,7 +106,7 @@ test('verifica correo, conserva pendiente al recargar y actualiza perfil y recup
   await page.getByLabel('Contraseña actual', { exact: true }).fill('Actual123!');
   await page.getByRole('button', { name: 'Enviar código', exact: true }).click();
   await expect(page.getByRole('button', { name: /Reenviar en/ })).toBeDisabled();
-  await expect(page.locator('.admin-perfil-datos')).toContainText('ana@example.test');
+  await expect(page.locator('.cuenta-perfil-datos')).toContainText('ana@example.test');
   await page.reload();
   await page.getByLabel('Código de verificación').fill('999999');
   await page.getByRole('button', { name: 'Confirmar nuevo correo' }).click();
@@ -114,7 +114,7 @@ test('verifica correo, conserva pendiente al recargar y actualiza perfil y recup
   await expect(page.getByLabel('Código de verificación')).toHaveValue('999999');
   await page.getByLabel('Código de verificación').fill('123456');
   await page.getByRole('button', { name: 'Confirmar nuevo correo' }).click();
-  await expect(page.locator('.admin-perfil-datos')).toContainText('nuevo@example.test');
+  await expect(page.locator('.cuenta-perfil-datos')).toContainText('nuevo@example.test');
   await expect(page.getByLabel('Código de verificación')).toHaveCount(0);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('usuario')!).correo_electronico)).toBe('nuevo@example.test');
   await page.getByRole('button', { name: 'Solicitar cambio de contraseña' }).click();
@@ -127,8 +127,8 @@ test('cancelar descarta la solicitud y el fallo SMTP conserva formulario y corre
   await page.getByRole('button', { name: 'Enviar código', exact: true }).click();
   await page.getByRole('button', { name: 'Cancelar solicitud' }).click();
   await expect(page.getByLabel('Código de verificación')).toHaveCount(0);
-  await expect(page.locator('.admin-perfil-datos')).toContainText('ana@example.test');
-  await page.route('**/api/admin/cambio-correo', async route => {
+  await expect(page.locator('.cuenta-perfil-datos')).toContainText('ana@example.test');
+  await page.route('**/api/cuenta/cambio-correo', async route => {
     if (route.request().method() === 'POST') return route.fulfill({ status: 503, json: { error: 'No pudimos enviar el código. Tu correo actual no cambió.', codigo: 'ENVIO_FALLIDO' } });
     return route.fallback();
   });
@@ -144,8 +144,8 @@ test('edita el nombre y lo conserva al recargar', async ({ page }) => {
   await page.getByRole('button', { name: 'Editar nombre' }).click();
   await page.getByLabel('Nombre completo', { exact: true }).fill('Ana María López');
   await page.getByRole('button', { name: 'Guardar nombre' }).click();
-  await expect(page.locator('.admin-perfil-resumen')).toContainText('Ana María López');
+  await expect(page.locator('.cuenta-perfil-resumen')).toContainText('Ana María López');
   await expect(page.locator('.admin-identidad')).toContainText('Ana María López');
   await page.reload();
-  await expect(page.locator('.admin-perfil-resumen')).toContainText('Ana María López');
+  await expect(page.locator('.cuenta-perfil-resumen')).toContainText('Ana María López');
 });

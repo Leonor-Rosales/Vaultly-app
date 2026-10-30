@@ -12,6 +12,7 @@ test.beforeEach(async ({ context }) => {
     const ruta = new URL(route.request().url()).pathname;
     const json = ruta === '/api/auth/login'
       ? { token: 'sesion-de-prueba', usuario: { id: 'prueba', nombre_completo: 'Usuario de prueba', correo_electronico: 'prueba@example.test', rol: 'CLIENTE' } }
+      : ruta === '/api/auth/me' ? { usuario: { id: 'prueba', nombre_completo: 'Usuario de prueba', correo_electronico: 'prueba@example.test', rol: 'CLIENTE' } }
       : ruta === '/api/planes/mi-consumo' ? consumo
       : ruta.startsWith('/api/biblioteca/') ? { items: [], total: 0, pagina: 1, por_pagina: 12 }
       : [];

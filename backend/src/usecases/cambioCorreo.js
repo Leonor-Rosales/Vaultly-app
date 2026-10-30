@@ -68,7 +68,7 @@ function crearCasosCambioCorreo({ repo, contrasenas, codigos, correo }) {
         const usuario = await tx.cambiarCorreo(s.correo_nuevo);
         s.estado = 'CONSUMIDO'; s.codigo_hash = null;
         await tx.guardar(s);
-        return { usuario: { ...usuario, rol: 'ADMIN' }, anterior: s.correo_anterior };
+        return { usuario: { ...usuario, rol: tx.usuario.rol }, anterior: s.correo_anterior };
       }));
       let notificado = true;
       try { await correo.notificarCambio({ para: result.anterior, nombre: result.usuario.nombre_completo }); }

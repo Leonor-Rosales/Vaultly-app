@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
-import toast from "react-hot-toast";
+import { avisosCliente as toast } from '../cuenta/avisos';
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import CargaArchivos from "../Archivos/CargaArchivos";
@@ -97,13 +97,12 @@ function Dashboard() {
           <div className="stat-card">
             <span className="stat-title">Plan actual</span>
             <strong>{consumo?.plan.nombre ?? '—'}</strong>
-            <small>{errorConsumo || 'Tu plan vigente de Vaultly'}</small>
+            <small>{errorConsumo || (consumo ? `Fin del ciclo: ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })}` : 'Consultando tu plan…')}</small>
           </div>
 
           <div className="stat-card storage-card">
             <span className="stat-title">Almacenamiento</span>
-            <strong>{consumo ? `${formatoBytes(consumo.almacenamiento.usados_bytes)} de ${formatoBytes(consumo.almacenamiento.cuota_bytes)}` : '—'}</strong>
-            <span className="storage-text">{consumo ? `${consumo.almacenamiento.porcentaje_utilizado.toFixed(1)}% usados` : 'Consultando consumo…'}</span>
+            <strong>{consumo ? `${formatoBytes(consumo.almacenamiento.usados_bytes)} de ${formatoBytes(consumo.almacenamiento.cuota_bytes)} usados` : '—'}</strong>
             <div className="storage-bar">
               <div
                 className="storage-progress"
@@ -113,15 +112,15 @@ function Dashboard() {
           </div>
 
           <div className="stat-card">
-            <span className="stat-title">Archivos guardados</span>
-            <strong>{archivos.length}</strong>
-            <small>Archivos en tu cuenta</small>
+            <span className="stat-title">Descargas del mes</span>
+            <strong className="download-number"><Icon icon="lucide:download" />{consumo ? consumo.descargas.ilimitadas ? 'Ilimitadas' : `${consumo.descargas.restantes} de ${consumo.descargas.limite}` : '—'}</strong>
+            <small>{consumo?.descargas.ilimitadas ? 'Descargas sin límite' : 'descargas restantes'}</small>
           </div>
 
           <div className="stat-card">
-            <span className="stat-title">Descargas de la biblioteca</span>
-            <strong>{consumo ? `${consumo.descargas.consumidas} / ${consumo.descargas.ilimitadas ? 'Ilimitadas' : consumo.descargas.limite}` : '—'}</strong>
-            <small>{consumo ? `${consumo.descargas.ilimitadas ? 'Sin límite' : `${consumo.descargas.restantes} disponibles`} · Hasta ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })} (UTC)` : 'Consultando descargas…'}</small>
+            <span className="stat-title">Total de archivos</span>
+            <strong>{cargando ? '—' : `${archivos.length} ${archivos.length === 1 ? 'archivo' : 'archivos'}`}</strong>
+            <small>Públicos y privados en tu cuenta</small>
           </div>
         </section>
 

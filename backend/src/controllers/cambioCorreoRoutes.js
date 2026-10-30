@@ -1,9 +1,9 @@
 const express = require('express');
 const { ErrorApp } = require('../domain/errores');
 const { requiereRol } = require('./middleware/auth');
-function crearCambioCorreoRoutes(casos, auth) {
+function crearCambioCorreoRoutes(casos, auth, roles = ['ADMIN']) {
   const r = express.Router();
-  r.use(auth, requiereRol('ADMIN'));
+  r.use(auth, requiereRol(...roles));
   r.use((_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
   const responder = fn => async (req, res) => {
     try { res.json(await fn(req)); }

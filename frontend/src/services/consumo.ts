@@ -1,5 +1,5 @@
 import { useEffect, useSyncExternalStore } from 'react';
-import toast from 'react-hot-toast';
+import { avisosCliente as toast } from '../cuenta/avisos';
 import { ApiError, getToken } from './auth';
 import type { Plan } from '../planes/planesData';
 import { avisosNuevos } from './usagePolicy';
@@ -54,7 +54,7 @@ export async function actualizarConsumo(): Promise<Consumo | null> {
         guardado = sessionStorage.getItem(aviso.key) === '1';
         sessionStorage.setItem(aviso.key, '1');
       } catch { /* El conjunto en memoria evita repeticiones si el navegador bloquea storage. */ }
-      if (!guardado) toast(aviso.mensaje, { id: `cuota-${aviso.tipo}` });
+      if (!guardado) toast.warning(aviso.mensaje);
     }
     return consumo;
   } catch (error) {

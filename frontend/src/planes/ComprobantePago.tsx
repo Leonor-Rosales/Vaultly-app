@@ -1,3 +1,5 @@
+import { useCuenta } from '../cuenta/contexto';
+import { useTema } from '../cuenta/tema';
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
@@ -10,25 +12,10 @@ interface Props {
   onClose: () => void;
 }
 
-// Datos del cliente guardados al iniciar sesión (si existen). Solo se muestran textos.
-const datosCliente = (): { nombre: string; correo: string } => {
-  try {
-    const u = JSON.parse(localStorage.getItem("usuario") ?? "{}");
-    const texto = (...claves: string[]): string => {
-      for (const c of claves) if (typeof u?.[c] === "string" && u[c].trim()) return u[c].trim();
-      return "";
-    };
-    return {
-      nombre: texto("nombre", "nombres", "nombre_completo", "name"),
-      correo: texto("correo", "email"),
-    };
-  } catch {
-    return { nombre: "", correo: "" };
-  }
-};
-
 function ComprobantePago({ pago, onClose }: Props) {
-  const cliente = datosCliente();
+  const { usuario } = useCuenta();
+  const cliente = { nombre: usuario.nombre_completo, correo: usuario.correo_electronico };
+  const tema = useTema('cliente');
 
   useEffect(() => {
     const alTeclear = (e: KeyboardEvent) => {
@@ -61,7 +48,7 @@ function ComprobantePago({ pago, onClose }: Props) {
   ];
 
   return createPortal(
-    <div className="cp-overlay" onClick={onClose}>
+    <div className="cp-overlay cuenta-theme cliente-colores" data-tema={tema} onClick={onClose}>
       <div
         className="cp-sheet"
         role="dialog"

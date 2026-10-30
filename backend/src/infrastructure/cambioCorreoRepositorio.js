@@ -8,7 +8,7 @@ function crearCambioCorreoRepositorio(pool) {
         await c.query("SET LOCAL lock_timeout='10s'");
         const one = async (sql, values = []) => (await c.query(sql, values)).rows[0];
         const usuario = await one(`SELECT u.*, r.nombre AS rol FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE u.id=$1 FOR UPDATE OF u`, [id]);
-        if (!usuario || usuario.rol !== 'ADMIN' || usuario.estado_cuenta !== 'ACTIVO') throw new ErrorApp('No tienes permiso para esta acción', 403);
+        if (!usuario || !['ADMIN', 'CLIENTE'].includes(usuario.rol) || usuario.estado_cuenta !== 'ACTIVO') throw new ErrorApp('No tienes permiso para esta acción', 403);
         await c.query('INSERT INTO cambios_correo(usuario_id) VALUES($1) ON CONFLICT DO NOTHING', [id]);
         const solicitud = await one('SELECT * FROM cambios_correo WHERE usuario_id=$1 FOR UPDATE', [id]);
         const { ahora } = await one('SELECT clock_timestamp() AS ahora');

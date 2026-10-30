@@ -1,0 +1,65 @@
+.cuenta-configuracion { color:var(--cuenta-text); font:14px/1.5 system-ui,sans-serif; text-align:left; letter-spacing:0; }
+.cuenta-configuracion * { box-sizing:border-box; }
+.cuenta-configuracion h1,.cuenta-configuracion h2 { color:var(--cuenta-text); font-family:inherit; font-weight:700; letter-spacing:-.4px; }
+.cuenta-configuracion h1 { font-size:30px; margin:0; line-height:1.25; }
+.cuenta-configuracion h2 { font-size:19px; margin:0 0 14px; }
+.cuenta-heading { margin-bottom:24px; }
+.cuenta-intro { color:var(--cuenta-muted); font-size:13px; }
+.cuenta-card { padding:28px; border:1px solid var(--cuenta-border); border-radius:12px; background:var(--cuenta-surface); }
+.cuenta-configuracion button { display:inline-flex; align-items:center; justify-content:center; gap:10px; border:0; border-radius:8px; padding:14px 22px; background:var(--cuenta-accent); color:var(--cuenta-on-accent); font:600 13px/1.5 system-ui,sans-serif; cursor:pointer; }
+.cuenta-configuracion button:disabled { background:var(--cuenta-disabled); color:var(--cuenta-muted); cursor:not-allowed; }
+.cuenta-configuracion :focus-visible { outline:3px solid var(--cuenta-focus); outline-offset:3px; }
+.cuenta-configuracion fieldset { border:0; margin:0; padding:0; min-width:0; }
+.cuenta-configuracion label { display:block; font-size:13px; margin:16px 0 0; }
+.cuenta-configuracion input:not([type=radio]) { display:block; width:100%; height:41px; margin-top:5px; padding:10px 12px; background:var(--cuenta-bg); border:1px solid var(--cuenta-border); border-radius:7px; color:var(--cuenta-text); font:inherit; }
+.cuenta-configuracion input[readonly] { background:var(--cuenta-disabled); }
+.cuenta-configuracion input[aria-invalid=true] { border-color:var(--cuenta-error); }
+.cuenta-configuracion .cuenta-secondary { background:var(--cuenta-secondary); color:var(--cuenta-text); }
+.cuenta-avatar { display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--cuenta-accent); color:var(--cuenta-on-accent); flex-shrink:0; }
+.cuenta-badge { display:inline-block; border-radius:20px; padding:2px 12px; background:var(--cuenta-soft); color:var(--cuenta-text); font-size:11px; font-weight:600; }
+@media(max-width:480px) { .cuenta-card { padding:22px 18px; } .cuenta-configuracion h1 { font-size:26px; } }
+.cuenta-configuracion { max-width:1100px; margin:0 auto; }
+.cuenta-configuracion .cuenta-intro { margin:10px 0 0; }
+.cuenta-config-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.cuenta-config-grid>.cuenta-card { width:auto; min-width:0; }
+.cuenta-seccion-numero { display:block; color:var(--cuenta-link); font-size:10px; letter-spacing:1.3px; font-weight:700; margin-bottom:12px; }
+.cuenta-configuracion .cuenta-ayuda { font-size:13px; color:var(--cuenta-muted); margin:8px 0 16px; }
+.cuenta-perfil-datos { margin:22px 0 0; }
+.cuenta-perfil-datos dt { color:var(--cuenta-muted); font-size:12px; }
+.cuenta-perfil-datos dd { margin:4px 0 18px; overflow-wrap:anywhere; }
+.cuenta-perfil-datos dd:last-child { margin-bottom:0; }
+.cuenta-configuracion .cuenta-temas { display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
+.cuenta-temas legend { font-size:12px; color:var(--cuenta-muted); margin-bottom:4px; }
+.cuenta-configuracion .cuenta-tema-opcion { flex:1; min-width:120px; border:1px solid var(--cuenta-border); border-radius:10px; padding:12px; display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:center; cursor:pointer; }
+.cuenta-tema-opcion:has(input:checked) { outline:2px solid var(--cuenta-accent); outline-offset:1px; }
+.cuenta-tema-opcion input { accent-color:var(--cuenta-accent); margin:0; }
+.cuenta-tema-muestra { grid-column:1/-1; grid-row:1; display:flex; height:60px; border-radius:5px; padding:8px; gap:8px; }
+.muestra-claro { background:#f5e8d9; }
+.muestra-oscuro { background:#1f1916; }
+.cuenta-tema-muestra span:first-child { width:22%; background:#bc683c; border-radius:3px; }
+.cuenta-tema-muestra span:last-child { width:65%; background:#fffaf5; border-radius:3px; }
+.muestra-oscuro span:last-child { background:#4c3b31; }
+.cuenta-seguridad { grid-column:1/-1; }
+.cuenta-seguridad-bloque { max-width:600px; padding-top:10px; }
+.cuenta-seguridad-bloque+.cuenta-seguridad-bloque { border-top:1px solid var(--cuenta-border); margin-top:30px; padding-top:24px; }
+.cuenta-seguridad h3 { margin:10px 0; font-size:16px; color:var(--cuenta-text); }
+.cuenta-acciones { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+.cuenta-verificacion { margin-top:24px; }
+@media(max-width:900px) { .cuenta-config-grid { grid-template-columns:1fr; gap:18px; } }
+@media(max-width:480px) { .cuenta-acciones { flex-direction:column; } .cuenta-acciones button { width:100%; } .cuenta-configuracion .vaultly-aviso { padding:12px; font-size:13px; } }
+.cuenta-config-grid { grid-template-columns:minmax(0, 1.65fr) minmax(260px, 1fr); align-items:start; }
+.cuenta-editar-perfil { grid-row:span 2; }
+.cuenta-configuracion .cuenta-seguridad { grid-column:auto; }
+.cuenta-perfil-resumen { display:flex; align-items:center; gap:16px; padding:20px; background:var(--cuenta-bg); border-radius:12px; margin:24px 0 8px; }
+.cuenta-perfil-resumen .cuenta-avatar { width:58px; height:58px; font-size:20px; }
+.cuenta-perfil-resumen strong { display:block; overflow-wrap:anywhere; margin-bottom:5px; font-size:16px; }
+.cuenta-perfil-fila { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:22px 0; border-bottom:1px solid var(--cuenta-border); }
+.cuenta-perfil-fila>div { min-width:0; }
+.cuenta-perfil-fila h3 { font-size:13px; margin:0 0 5px; }
+.cuenta-perfil-fila p { margin:0; color:var(--cuenta-muted); overflow-wrap:anywhere; }
+.cuenta-configuracion .cuenta-editar { background:transparent; color:var(--cuenta-link); padding:8px 0 8px 8px; flex-shrink:0; }
+.cuenta-perfil-editor { padding:4px 18px 22px; margin:12px 0; background:var(--cuenta-bg); border:1px solid var(--cuenta-border); border-radius:12px; }
+.cuenta-perfil-editor h3 { font-size:15px; margin:18px 0 8px; }
+.cuenta-perfil-editor .cuenta-acciones { gap:8px; }
+@media(max-width:900px) { .cuenta-config-grid { grid-template-columns:1fr; } .cuenta-editar-perfil { grid-row:auto; } }
+@media(max-width:480px) { .cuenta-perfil-fila { gap:10px; } .cuenta-perfil-resumen { padding:16px; } .cuenta-perfil-editor { padding:4px 12px 18px; } }

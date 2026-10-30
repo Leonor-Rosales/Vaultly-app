@@ -10,8 +10,8 @@
   flex-direction: column;
   align-items: center;
 
-  background: #fcfaf7;
-  color: #542818;
+  background: var(--cliente-bg, #fcfaf7);
+  color: var(--cliente-text, #542818);
   
 }
 
@@ -27,8 +27,8 @@
 .ct-logo-icon {
   width: 40px;
   height: 40px;
-  background: #cf7040;
-  color: white;
+  background: var(--cliente-accent, #cf7040);
+  color: var(--cliente-on-accent, white);
   border-radius: 6px;
 
   display: flex;
@@ -51,8 +51,8 @@
   box-sizing: border-box;
   padding: 22px 24px 24px;
 
-  background: #faf5ef;
-  border: 1px solid #ecd5c1;
+  background: var(--cliente-surface, #faf5ef);
+  border: 1px solid var(--cliente-border, #ecd5c1);
   border-radius: 7px;
 
   text-align: left;
@@ -60,7 +60,7 @@
 
 .ct-card h1 {
   margin: 0 0 14px;
-  color: #542818;
+  color: var(--cliente-text, #542818);
   font-size: 19px;
   font-weight: 700;
 }
@@ -77,7 +77,7 @@
 .ct-label {
   display: block;
   margin-bottom: 5px;
-  color: #88796e;
+  color: var(--cliente-muted, #88796e);
   font-size: 10px;
 }
 
@@ -86,8 +86,8 @@
   box-sizing: border-box;
   padding: 9px 10px;
 
-  background: #fffdfb;
-  border: 1px solid #ecd5c1;
+  background: var(--cliente-bg, #fffdfb);
+  border: 1px solid var(--cliente-border, #ecd5c1);
   border-radius: 6px;
 
   font-size: 10px;
@@ -97,12 +97,12 @@
 .ct-box-title {
   margin-bottom: 6px;
   padding-bottom: 5px;
-  border-bottom: 1px solid #ecd5c1;
-  color: #88796e;
+  border-bottom: 1px solid var(--cliente-border, #ecd5c1);
+  color: var(--cliente-muted, #88796e);
 }
 
 .ct-box-detail {
-  color: #cf7040;
+  color: var(--cliente-link, #cf7040);
 }
 
 .ct-radio {
@@ -111,20 +111,20 @@
   gap: 6px;
   padding: 2px 0;
 
-  color: #8e8076;
+  color: var(--cliente-muted, #8e8076);
   cursor: pointer;
 }
 
 .ct-radio input {
   margin: 0;
-  accent-color: #cf7040;
+  accent-color: var(--cliente-accent, #cf7040);
 }
 
 .ct-total {
   margin-top: 5px;
   padding-top: 5px;
-  border-top: 1px solid #ecd5c1;
-  color: #542818;
+  border-top: 1px solid var(--cliente-border, #ecd5c1);
+  color: var(--cliente-text, #542818);
 }
 
 /* CAMPOS */
@@ -146,25 +146,25 @@
   box-sizing: border-box;
   padding: 0 10px;
 
-  background: #fffdfb;
-  border: 1px solid #e8cdb7;
+  background: var(--cliente-bg, #fffdfb);
+  border: 1px solid var(--cliente-border, #e8cdb7);
   border-radius: 6px;
   outline: none;
 
-  color: #542818;
+  color: var(--cliente-text, #542818);
   font-size: 12px;
 }
 
 .ct-input::placeholder {
-  color: #d6a98e;
+  color: var(--cliente-muted, #d6a98e);
 }
 
 .ct-input:focus {
-  border-color: #cf7040;
+  border-color: var(--cliente-accent, #cf7040);
 }
 
 .ct-input.invalid {
-  border-color: #d64545;
+  border-color: var(--cliente-accent, #d64545);
 }
 
 .ct-row {
@@ -175,7 +175,7 @@
 
 .ct-error {
   margin: 4px 0 0;
-  color: #d64545;
+  color: var(--cliente-link, #d64545);
   font-size: 10px;
 }
 
@@ -206,7 +206,7 @@
 
   background: transparent;
   border: none;
-  color: #d58a62;
+  color: var(--cliente-link, #d58a62);
 
   font-size: 15px;
   line-height: 1;
@@ -216,9 +216,9 @@
 .ct-badge {
   padding: 3px 6px;
 
-  background: #efe5da;
+  background: var(--cliente-surface, #efe5da);
   border-radius: 3px;
-  color: #a99487;
+  color: var(--cliente-muted, #a99487);
 
   font-size: 7px;
   font-weight: 700;
@@ -244,13 +244,13 @@
 }
 
 .ct-primary {
-  background: #cf7040;
+  background: var(--cliente-accent, #cf7040);
   border: none;
-  color: white;
+  color: var(--cliente-on-accent, white);
 }
 
 .ct-primary:hover:not(:disabled) {
-  background: #bd6032;
+  background: var(--cliente-accent, #bd6032);
 }
 
 .ct-primary:disabled {
@@ -260,17 +260,17 @@
 
 .ct-secondary {
   background: transparent;
-  border: 1px solid #cf7040;
-  color: #cf7040;
+  border: 1px solid var(--cliente-accent, #cf7040);
+  color: var(--cliente-link, #cf7040);
 }
 
 .ct-secondary:hover {
-  background: #f5e9dd;
+  background: var(--cliente-surface, #f5e9dd);
 }
 
 .ct-note {
   margin: 16px 0 0;
-  color: #88796e;
+  color: var(--cliente-muted, #88796e);
   font-size: 10px;
   text-align: center;
 }

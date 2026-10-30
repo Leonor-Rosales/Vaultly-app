@@ -35,9 +35,10 @@ export default function Filtros({consulta, cambiar, limpiar}: {
   const activo = !!(consulta.q || consulta.tipo || consulta.autor || consulta.etiquetas.length);
   return <>
     <div className="biblioteca-filtros" aria-label="Filtros de biblioteca">
+      <button type="button" className="biblioteca-todos" aria-pressed={!activo} onClick={limpiar}>Todos</button>
       <label className="biblioteca-select"><span className="biblioteca-sr">Tipo de archivo</span>
         <select value={consulta.tipo} onChange={e => cambiar({tipo: e.target.value as Consulta['tipo']})}>
-          {tipos.map(t => <option key={t.valor} value={t.valor}>{t.valor ? t.nombre : 'Todos los tipos'}</option>)}
+          {tipos.map(t => <option key={t.valor} value={t.valor}>{t.valor ? t.nombre : 'Tipo de archivo'}</option>)}
         </select><Icon icon="lucide:chevron-down" />
       </label>
       <Desplegable titulo={`Etiquetas${consulta.etiquetas.length ? ` (${consulta.etiquetas.length})` : ''}`}>

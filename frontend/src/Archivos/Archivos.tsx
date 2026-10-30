@@ -2,7 +2,7 @@ import { formatoBytes } from "../services/usagePolicy";
 
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
-import toast from "react-hot-toast";
+import { avisosCliente as toast } from '../cuenta/avisos';
 import Sidebar from "../components/Sidebar";
 import {
   listarArchivos,
@@ -232,7 +232,7 @@ function Archivos() {
                   <button
                     type="button"
                     title="Editar nombre"
-                    onClick={() => toast("Edición de nombre próximamente")}
+                    onClick={() => toast.info("Edición de nombre próximamente")}
                   >
                     <Icon icon="lucide:pencil" />
                   </button>
@@ -240,7 +240,7 @@ function Archivos() {
                   <button
                     type="button"
                     title="Mover archivo"
-                    onClick={() => toast("Mover archivos próximamente")}
+                    onClick={() => toast.info("Mover archivos próximamente")}
                   >
                     <Icon icon="lucide:arrow-left-right" />
                   </button>
@@ -257,7 +257,7 @@ function Archivos() {
                   <button
                     type="button"
                     title="Vista previa"
-                    onClick={() => toast("Vista previa próximamente")}
+                    onClick={() => toast.info("Vista previa próximamente")}
                   >
                     <Icon icon="lucide:eye" />
                   </button>
