@@ -74,7 +74,7 @@ test('registro confirma envío y restablecimiento acepta 8 caracteres sin modifi
   assert.equal((await registrarUsuario({ nombre_completo: 'Prueba', correo_electronico: 'prueba@example.org', password: 'Aa1!aaaa' })).correo_enviado, true);
   await restablecerPassword('token-prueba', ' Aa1!aa ');
   assert.deepEqual(calls.filter(([op]) => op === 'hash').at(-1), ['hash', ' Aa1!aa ']);
-  assert.deepEqual(calls.find(([op]) => op === 'actualizarPassword'), ['actualizarPassword', 'usuario', 'hash-de-prueba']);
+  assert.deepEqual(calls.find(([op]) => op === 'actualizarPassword'), ['actualizarPassword', 'usuario', 'hash-de-prueba', undefined]);
 });
 
 test('inicio de sesión mantiene contraseñas existentes sin exigir la nueva política', async () => {

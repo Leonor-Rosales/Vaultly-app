@@ -15,6 +15,7 @@ function crearRequiereAuth(verificarTokenSesion, buscarUsuario) {
         const actual = await buscarUsuario(req.usuario.sub);
         if (!actual || actual.estado_cuenta !== 'ACTIVO') return res.status(401).json({ error: 'Tu cuenta no está activa' });
         req.usuario.rol = actual.rol;
+        req.usuario.correo = actual.correo_electronico;
       } catch { return res.status(503).json({ error: 'No se pudo verificar la sesión' }); }
     }
     next();

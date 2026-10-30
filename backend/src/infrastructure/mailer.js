@@ -13,6 +13,9 @@ if (
 }
 
 const transporter = nodemailer.createTransport({
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
   host,
   port,
   secure: port === 465,
@@ -126,6 +129,7 @@ async function enviarCorreoRecuperacion({
 }
 
 module.exports = {
+  enviarMensaje: mensaje => transporter.sendMail({ ...mensaje, from: process.env.MAIL_FROM || `Vaultly <${process.env.MAIL_USER}>` }),
   enviarCorreoVerificacion,
   enviarCorreoRecuperacion,
 };

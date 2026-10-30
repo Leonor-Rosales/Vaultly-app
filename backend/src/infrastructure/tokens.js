@@ -39,9 +39,9 @@ function crearTokenVerificacion(idUsuario) {
 const verificarTokenVerificacion = (token) =>
   jwt.verify(token, SECRET_VERIFICACION);
 
-function crearTokenRecuperacion(idUsuario) {
+function crearTokenRecuperacion(idUsuario, correo) {
   return jwt.sign(
-    { sub: idUsuario },
+    { sub: idUsuario, correo },
     SECRET_RECUPERACION,
     { expiresIn: '1h' }
   );

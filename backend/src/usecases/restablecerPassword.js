@@ -22,9 +22,10 @@ function crearRestablecerPassword({ repo, hashear, verificarTokenRecuperacion })
 
     const passwordHash = await hashear(nuevaPassword);
 
-    const resultado = await repo.actualizarPassword(payload.sub, passwordHash);
+    const resultado = await repo.actualizarPassword(payload.sub, passwordHash, payload.correo);
 
     if (!resultado) {
+      if (payload.correo) throw new ErrorApp('El enlace ya no es válido. Solicita uno nuevo con tu correo actual.', 400);
       throw new ErrorApp('Usuario no encontrado', 404);
     }
 

@@ -2,8 +2,9 @@
 
 ## Ejecución y rutas
 
-No se añaden migraciones ni dependencias. Se usan las tablas existentes `usuarios`,
-`roles`, `planes` y `suscripciones`, con las migraciones 01–07 del repositorio.
+El panel original usa `usuarios`, `roles`, `planes` y `suscripciones`. La extensión
+de configuración y correo requiere la migración 08; consulta
+[Configuración y seguridad](admin-configuracion-seguridad.md) antes de ejecutar esta versión.
 En instalaciones anteriores, ejecutar primero el migrador documentado en el README.
 Reiniciar el backend y reconstruir el frontend:
 
@@ -19,10 +20,11 @@ por defecto ni se habilita la elección de rol en el registro público.
 
 - `/admin/planes`: catálogo completo, creación, edición y cambio de estado.
 - `/admin/administradores`: búsqueda local por nombre/correo, alta, edición y estado.
-- `/admin/configuracion`: perfil de sesión y solicitud real de recuperación de contraseña.
+- `/admin/configuracion`: perfil, tema claro/oscuro, cambio de correo verificado y recuperación de contraseña.
 
 La configuración SMTP existente es necesaria para recibir el correo de recuperación.
-La UI no anuncia envío si la API falla. Los datos de perfil se editan en Administradores.
+La UI no anuncia envío si la API falla. El nombre se edita en Administradores;
+el correo debe verificarse desde Configuración por el titular.
 
 ## Capas y contratos
 

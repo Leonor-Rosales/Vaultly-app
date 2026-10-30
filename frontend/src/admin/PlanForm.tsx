@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { guardarPlan, type PlanAdmin } from '../services/admin';
 import { Marca } from './AdminLayout';
-import toast from 'react-hot-toast';
+import { avisos as toast } from './avisos';
+import Aviso from '../components/Aviso';
+import { useConfirmar } from './confirmacionContexto';
 export default function PlanForm({ plan }: { plan?: PlanAdmin }) {
+  const confirmar = useConfirmar();
   const navigate = useNavigate();
   const [nombre, setNombre] = useState(plan?.nombre ?? '');
   const [precio, setPrecio] = useState(String(plan?.precio_mensual ?? ''));
@@ -17,7 +20,7 @@ export default function PlanForm({ plan }: { plan?: PlanAdmin }) {
   return <section className="admin-form-page"><Marca /><form className="admin-card" onSubmit={async e => {
     e.preventDefault(); setError('');
     if (!nombre.trim()) { setError('Escribe un nombre para el plan'); return; }
-    if (plan && activo !== plan.activo && !window.confirm(`¿${activo ? 'Activar' : 'Desactivar'} este plan? Las suscripciones existentes se conservarán.`)) return;
+    if (plan && activo !== plan.activo && !(await confirmar(`¿${activo ? 'Activar' : 'Desactivar'} este plan? Las suscripciones existentes se conservarán.`))) return;
     setGuardando(true);
     try {
       await guardarPlan({ nombre: nombre.trim(), precio_mensual: Number(precio), cuota_storage_gb: Number(gb), limite_descargas: ilimitadas ? null : Number(limite), permite_carpetas_publicas: publicas, activo }, plan?.id);
@@ -34,7 +37,7 @@ export default function PlanForm({ plan }: { plan?: PlanAdmin }) {
       <label className="admin-check"><input type="checkbox" checked={ilimitadas} onChange={e => setIlimitadas(e.target.checked)} />Descargas ilimitadas</label>
       <label className="admin-check"><input type="checkbox" checked={publicas} onChange={e => setPublicas(e.target.checked)} />Permitir carpetas públicas</label>
       <label className="admin-check"><input type="checkbox" checked={activo} onChange={e => setActivo(e.target.checked)} />Estado activo</label>
-      {error && <p className="admin-error" role="alert">{error}</p>}
+      {error && <Aviso variante="error">{error}</Aviso>}
       <div className="admin-form-actions"><button type="button" className="admin-secondary" onClick={() => navigate('/admin/planes')}>Cancelar</button><button type="submit">{guardando ? 'Guardando…' : plan ? 'Guardar cambios' : 'Crear plan'}</button></div>
     </fieldset>
   </form></section>;

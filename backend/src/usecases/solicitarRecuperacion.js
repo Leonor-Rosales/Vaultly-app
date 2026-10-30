@@ -19,7 +19,7 @@ function crearSolicitarRecuperacion({ repo, crearTokenRecuperacion, enviarCorreo
       };
     }
 
-    const token = crearTokenRecuperacion(usuario.id);
+    const token = crearTokenRecuperacion(usuario.id, usuario.correo_electronico);
 
     await enviarCorreoRecuperacion({
       para: usuario.correo_electronico,

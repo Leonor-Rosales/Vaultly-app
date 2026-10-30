@@ -54,8 +54,8 @@ for (const ancho of [1366, 390]) {
     await page.getByLabel('Precio mensual').fill('65');
     await page.getByRole('button', { name: 'Guardar cambios' }).click();
     await expect(page.getByRole('row').filter({ hasText: 'Equipo' })).toContainText('Q65.00');
-    page.on('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: 'Desactivar Equipo' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirmar', exact: true }).click();
     await expect(page.getByRole('row').filter({ hasText: 'Equipo' })).toContainText('Inactivo');
     if (ancho < 760) await page.getByRole('button', { name: 'Menú de administrador' }).click();
     await page.getByRole('link', { name: 'Administradores', exact: true }).click();
@@ -71,6 +71,7 @@ for (const ancho of [1366, 390]) {
     await page.getByLabel('Nombre completo').fill('Luis Actualizado');
     await page.getByRole('button', { name: 'Guardar administrador' }).click();
     await page.getByRole('button', { name: 'Desactivar Luis Actualizado' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirmar', exact: true }).click();
     await expect(page.getByRole('row').filter({ hasText: 'Luis Actualizado' })).toContainText('Inactivo');
     if (ancho < 760) await page.getByRole('button', { name: 'Menú de administrador' }).click();
     await page.getByRole('link', { name: 'Configuración' }).click();

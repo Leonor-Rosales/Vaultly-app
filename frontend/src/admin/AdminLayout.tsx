@@ -3,11 +3,16 @@ import { Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import Icon from './AdminIcon';
 import { ApiError, getProfile, logout, type Usuario } from '../services/auth';
 import './Admin.css';
+import { Toaster } from 'react-hot-toast';
+import Aviso from '../components/Aviso';
+import { useTema } from './tema';
+import Confirmacion from './Confirmacion';
 
 export function Marca() {
   return <div className="admin-marca"><span><Icon icon="lucide:vault" /></span>Vaultly</div>;
 }
 export default function AdminLayout() {
+  const tema = useTema();
   const [usuario, setUsuario] = useState<Usuario>();
   const [error, setError] = useState('');
   const [intento, setIntento] = useState(0);
@@ -15,17 +20,21 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   useEffect(() => {
     let vigente = true;
-    getProfile().then(({ usuario }) => { if (vigente) setUsuario(usuario); }).catch(e => {
+    getProfile().then(({ usuario }) => { if (vigente) {
+      setUsuario(usuario);
+      try { localStorage.setItem('usuario', JSON.stringify(usuario)); } catch { /* El perfil sigue disponible en memoria. */ }
+    } }).catch(e => {
       if (!vigente) return;
       if (e instanceof ApiError && e.status === 401) logout();
       setError(e.message);
     });
     return () => { vigente = false; };
   }, [intento]);
-  if (error) return <div className="admin-app admin-loading" role="alert">{error}<button onClick={() => { setError(''); setIntento(intento + 1); }}>Reintentar</button></div>;
-  if (!usuario) return <div className="admin-app admin-loading" role="status">Verificando acceso…</div>;
+  if (error) return <div className="admin-app admin-loading" data-tema={tema}><Aviso variante="error">{error}<button onClick={() => { setError(''); setIntento(intento + 1); }}>Reintentar</button></Aviso></div>;
+  if (!usuario) return <div className="admin-app admin-loading" data-tema={tema} role="status">Verificando acceso…</div>;
   if (usuario.rol !== 'ADMIN') return <Navigate to="/dashboard" replace />;
-  return <div className="admin-app">
+  return <div className="admin-app" data-tema={tema}><Confirmacion>
+    <Toaster toasterId="admin" position="top-right" />
     <button className="admin-menu" aria-expanded={menu} aria-controls="admin-navegacion" onClick={() => setMenu(!menu)}><Icon icon="lucide:menu" /> Menú de administrador</button>
     <aside className={`admin-sidebar ${menu ? 'abierto' : ''}`}>
       <Marca />
@@ -40,5 +49,5 @@ export default function AdminLayout() {
       <div className="admin-identidad"><span className="admin-avatar">{usuario.nombre_completo.split(/\s+/).slice(0, 2).map(p => p[0]).join('')}</span><div>{usuario.nombre_completo}<small>Administrador</small></div></div>
     </aside>
     <main className="admin-main"><Outlet context={{ usuario, actualizar: () => setIntento(i => i + 1) }} /></main>
-  </div>;
+  </Confirmacion></div>;
 }

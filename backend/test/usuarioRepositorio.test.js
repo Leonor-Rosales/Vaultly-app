@@ -14,7 +14,7 @@ test('actualizarPassword enlaza id y hash correctamente y devuelve fila o null',
     return { rows: [{ id: 'usuario' }] };
   });
   assert.deepEqual(await repo.actualizarPassword('usuario', 'hash'), { id: 'usuario' });
-  assert.deepEqual(params, ['usuario', 'hash']);
+  assert.deepEqual(params, ['usuario', 'hash', null]);
   assert.equal(await cargar(async () => ({ rows: [] })).actualizarPassword('ausente', 'hash'), null);
 });
 
