@@ -3,6 +3,7 @@ import { Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import Icon from './AdminIcon';
 import { ApiError, getProfile, logout, type Usuario } from '../services/auth';
 import './Admin.css';
+import '../cuenta/Tema.css';
 import { Toaster } from 'react-hot-toast';
 import Aviso from '../components/Aviso';
 import { useTema } from './tema';
@@ -30,10 +31,10 @@ export default function AdminLayout() {
     });
     return () => { vigente = false; };
   }, [intento]);
-  if (error) return <div className="admin-app admin-loading" data-tema={tema}><Aviso variante="error">{error}<button onClick={() => { setError(''); setIntento(intento + 1); }}>Reintentar</button></Aviso></div>;
-  if (!usuario) return <div className="admin-app admin-loading" data-tema={tema} role="status">Verificando acceso…</div>;
+  if (error) return <div className="cuenta-theme admin-app admin-loading" data-tema={tema}><Aviso variante="error">{error}<button onClick={() => { setError(''); setIntento(intento + 1); }}>Reintentar</button></Aviso></div>;
+  if (!usuario) return <div className="cuenta-theme admin-app admin-loading" data-tema={tema} role="status">Verificando acceso…</div>;
   if (usuario.rol !== 'ADMIN') return <Navigate to="/dashboard" replace />;
-  return <div className="admin-app" data-tema={tema}><Confirmacion>
+  return <div className="cuenta-theme admin-app" data-tema={tema}><Confirmacion>
     <Toaster toasterId="admin" position="top-right" />
     <button className="admin-menu" aria-expanded={menu} aria-controls="admin-navegacion" onClick={() => setMenu(!menu)}><Icon icon="lucide:menu" /> Menú de administrador</button>
     <aside className={`admin-sidebar ${menu ? 'abierto' : ''}`}>
@@ -48,6 +49,6 @@ export default function AdminLayout() {
       </nav>
       <div className="admin-identidad"><span className="admin-avatar">{usuario.nombre_completo.split(/\s+/).slice(0, 2).map(p => p[0]).join('')}</span><div>{usuario.nombre_completo}<small>Administrador</small></div></div>
     </aside>
-    <main className="admin-main"><Outlet context={{ usuario, actualizar: () => setIntento(i => i + 1) }} /></main>
+    <main className="admin-main"><Outlet context={{ usuario, actualizar: (perfil?: Usuario) => { if (perfil) { setUsuario(perfil); try { localStorage.setItem('usuario', JSON.stringify(perfil)); } catch { /* Perfil disponible en memoria. */ } } else setIntento(i => i + 1); } }} /></main>
   </Confirmacion></div>;
 }

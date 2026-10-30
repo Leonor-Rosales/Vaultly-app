@@ -42,11 +42,18 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 const { crearCambioCorreoRoutes } = require('./controllers/cambioCorreoRoutes');
 const { crearCasosCambioCorreo } = require('./usecases/cambioCorreo');
-app.use('/api/admin/cambio-correo', crearCambioCorreoRoutes(crearCasosCambioCorreo({
+const cambioCorreo = crearCasosCambioCorreo({
   repo: require('./infrastructure/cambioCorreoRepositorio').crearCambioCorreoRepositorio(require('./infrastructure/db')),
   contrasenas: require('./infrastructure/contrasenas'),
   codigos: require('./infrastructure/codigosCorreo'),
   correo: require('./infrastructure/correoCambio').crearCorreoCambio(require('./infrastructure/mailer').enviarMensaje),
+});
+app.use('/api/admin/cambio-correo', crearCambioCorreoRoutes(cambioCorreo, requiereAuth));
+app.use('/api/cuenta/cambio-correo', crearCambioCorreoRoutes(cambioCorreo, requiereAuth, ['ADMIN', 'CLIENTE']));
+const { crearCuentaRoutes } = require('./controllers/cuentaRoutes');
+const { crearCasosCuenta } = require('./usecases/cuenta');
+app.use('/api/cuenta', crearCuentaRoutes(crearCasosCuenta({
+  repo: require('./infrastructure/cuentaRepositorio').crearCuentaRepositorio(require('./infrastructure/db')),
 }), requiereAuth));
 const { crearAdminRoutes } = require('./controllers/adminRoutes');
 const { crearCasosAdministracion } = require('./usecases/administracion');

@@ -1,20 +1,29 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
-import toast from "react-hot-toast";
+import { avisosCliente as toast } from '../cuenta/avisos';
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import CargaArchivos from "../Archivos/CargaArchivos";
 import "../Archivos/Archivos.css";
-import { useConsumo } from '../services/consumo';
-import { formatoBytes } from '../services/usagePolicy';
+import { useConsumo, obtenerConsumoActual } from '../services/consumo';
+import { formatoBytes, porcentajeAlmacenamiento, textoPorcentaje } from '../services/usagePolicy';
 import {
   listarArchivos,
   type Archivo,
 } from "../services/archivos";
 import "./Dashboard.css";
 
+import { useAvisos } from '../components/contextoAvisos';
+import AvisosLimites from '../components/AvisosLimites';
+import { ApiError } from '../services/auth';
 function Dashboard() {
+  const { avisarError } = useAvisos();
+  const abrirCarga = () => {
+    const uso = obtenerConsumoActual()?.almacenamiento;
+    if (uso && uso.usados_bytes >= uso.cuota_bytes) avisarError(new ApiError('Has alcanzado el límite de almacenamiento de tu plan.',409,'CUOTA_ALMACENAMIENTO'),'Almacenamiento lleno');
+    else setMostrarCarga(true);
+  };
   const navigate = useNavigate();
 
   const [archivos, setArchivos] = useState<Archivo[]>([]);
@@ -66,7 +75,7 @@ function Dashboard() {
     return "lucide:file";
   };
 
-  const porcentaje = Math.min(consumo?.almacenamiento.porcentaje_utilizado ?? 0, 100);
+  const porcentaje = consumo ? porcentajeAlmacenamiento(consumo.almacenamiento.usados_bytes, consumo.almacenamiento.cuota_bytes) : 0;
 
   const recientes = [...archivos]
     .sort(
@@ -86,42 +95,42 @@ function Dashboard() {
 
           <button
             className="upload-button"
-            onClick={() => setMostrarCarga(true)}
+            onClick={abrirCarga}
           >
             <Icon icon="lucide:upload" />
             Cargar archivo
           </button>
         </div>
 
+        <AvisosLimites almacenamiento descargas />
         <section className="stats-grid">
           <div className="stat-card">
             <span className="stat-title">Plan actual</span>
             <strong>{consumo?.plan.nombre ?? '—'}</strong>
-            <small>{errorConsumo || 'Tu plan vigente de Vaultly'}</small>
+            <small>{errorConsumo || (consumo ? `Fin del ciclo: ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })}` : 'Consultando tu plan…')}</small>
           </div>
 
           <div className="stat-card storage-card">
             <span className="stat-title">Almacenamiento</span>
-            <strong>{consumo ? `${formatoBytes(consumo.almacenamiento.usados_bytes)} de ${formatoBytes(consumo.almacenamiento.cuota_bytes)}` : '—'}</strong>
-            <span className="storage-text">{consumo ? `${consumo.almacenamiento.porcentaje_utilizado.toFixed(1)}% usados` : 'Consultando consumo…'}</span>
-            <div className="storage-bar">
+            <strong>{consumo ? `${formatoBytes(consumo.almacenamiento.usados_bytes)} de ${formatoBytes(consumo.almacenamiento.cuota_bytes)} usados` : '—'}</strong>
+            <div className="storage-bar" role="progressbar" aria-label="Almacenamiento utilizado" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(porcentaje, 100)} aria-valuetext={`${textoPorcentaje(porcentaje)} utilizados`}>
               <div
-                className="storage-progress"
-                style={{ width: `${porcentaje}%` }}
+                className="storage-progress uso-relleno"
+                style={{ width: `${Math.min(porcentaje, 100)}%`, minWidth: porcentaje > 0 ? '4px' : 0 }}
               />
             </div>
           </div>
 
           <div className="stat-card">
-            <span className="stat-title">Archivos guardados</span>
-            <strong>{archivos.length}</strong>
-            <small>Archivos en tu cuenta</small>
+            <span className="stat-title">Descargas</span>
+            <strong className="download-number"><Icon icon="lucide:download" />{consumo ? `${consumo.descargas.consumidas}/${consumo.descargas.ilimitadas ? '∞' : consumo.descargas.limite}` : '—'}</strong>
+            <small>{consumo ? `${consumo.descargas.ilimitadas ? 'Sin límite · ' : ''}Se renuevan el ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })}` : 'Consultando renovación…'}</small>
           </div>
 
           <div className="stat-card">
-            <span className="stat-title">Descargas de la biblioteca</span>
-            <strong>{consumo ? `${consumo.descargas.consumidas} / ${consumo.descargas.ilimitadas ? 'Ilimitadas' : consumo.descargas.limite}` : '—'}</strong>
-            <small>{consumo ? `${consumo.descargas.ilimitadas ? 'Sin límite' : `${consumo.descargas.restantes} disponibles`} · Hasta ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })} (UTC)` : 'Consultando descargas…'}</small>
+            <span className="stat-title">Total de archivos</span>
+            <strong>{cargando ? '—' : `${archivos.length} ${archivos.length === 1 ? 'archivo' : 'archivos'}`}</strong>
+            <small>Públicos y privados en tu cuenta</small>
           </div>
         </section>
 
@@ -147,7 +156,7 @@ function Dashboard() {
               <p>Los archivos que subas aparecerán aquí.</p>
               <button
                 className="upload-button"
-                onClick={() => setMostrarCarga(true)}
+                onClick={abrirCarga}
               >
                 <Icon icon="lucide:upload" />
                 Subir mi primer archivo

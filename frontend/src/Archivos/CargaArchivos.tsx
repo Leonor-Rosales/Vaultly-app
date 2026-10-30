@@ -4,7 +4,8 @@ import { formatoBytes } from "../services/usagePolicy";
 
 import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
-import toast from "react-hot-toast";
+import { avisosCliente as toast } from '../cuenta/avisos';
+import { useAvisos } from '../components/contextoAvisos';
 import "./CargaArchivos.css";
 import {
   subirArchivo,
@@ -15,6 +16,7 @@ type ArchivoPendiente = {
   id: string;
   file: File;
   estado: "pendiente" | "subiendo" | "completado" | "error";
+  error?: string;
 };
 
 type CargaArchivosProps = {
@@ -26,6 +28,7 @@ function CargaArchivos({
   onClose,
   onUploaded,
 }: CargaArchivosProps) {
+  const { avisar, avisarError } = useAvisos();
   const [etiquetas, setEtiquetas] = useState<string[]>([]);
   const [pendienteEtiqueta, setPendienteEtiqueta] = useState('');
   const [errorEtiquetas, setErrorEtiquetas] = useState('');
@@ -112,7 +115,7 @@ function CargaArchivos({
     );
 
     if (porSubir.length === 0) {
-      toast.error("Selecciona al menos un archivo para cargar");
+      avisar({ titulo: 'Selecciona tus archivos', mensaje: 'Añade al menos un archivo para comenzar la carga.' });
       return;
     }
 
@@ -123,14 +126,15 @@ function CargaArchivos({
     } catch (e) { setErrorEtiquetas((e as Error).message); return; }
     setSubiendo(true);
     let exitosos = 0;
-    let fallidos = 0;
+    const fallidos: { nombre: string; error: unknown }[] = [];
+    let falloActualizacion = false;
 
     try {
       for (const pendiente of porSubir) {
         setPendientes((actuales) =>
           actuales.map((item) =>
             item.id === pendiente.id
-              ? { ...item, estado: "subiendo" }
+              ? { ...item, estado: "subiendo", error: undefined }
               : item
           )
         );
@@ -150,30 +154,25 @@ function CargaArchivos({
             )
           );
 
-          await onUploaded(guardado);
           exitosos++;
+          // El archivo ya está guardado: un fallo al refrescar la vista no debe permitir subirlo otra vez.
+          try { await onUploaded(guardado); } catch { falloActualizacion = true; }
         } catch (error) {
-          fallidos++;
+          fallidos.push({ nombre: pendiente.file.name, error });
+          const mensaje = error instanceof TypeError ? 'No se pudo conectar con el servidor.' : error instanceof Error ? error.message : 'No se pudo subir el archivo.';
 
           setPendientes((actuales) =>
             actuales.map((item) =>
               item.id === pendiente.id
-                ? { ...item, estado: "error" }
+                ? { ...item, estado: "error", error: mensaje }
                 : item
             )
           );
 
-          toast.error(
-            `${pendiente.file.name}: ${
-              error instanceof Error
-                ? error.message
-                : "No se pudo subir"
-            }`
-          );
         }
       }
 
-      if (exitosos > 0) {
+      if (exitosos > 0 && fallidos.length === 0 && !falloActualizacion) {
         toast.success(
           exitosos === 1
             ? "Archivo guardado correctamente"
@@ -181,7 +180,15 @@ function CargaArchivos({
         );
       }
 
-      if (fallidos === 0) {
+      if (fallidos.length > 0) {
+        const detalle = [exitosos ? `${exitosos} archivo(s) guardados. Solo se volverán a intentar los pendientes.` : '',
+          ...fallidos.map(f => `${f.nombre}: ${f.error instanceof TypeError ? 'No se pudo conectar con el servidor.' : f.error instanceof Error ? f.error.message : 'No se pudo subir.'}`)].filter(Boolean).join('\n');
+        avisarError(fallidos[0].error, fallidos.length === 1 ? 'No se pudo subir el archivo' : 'No se pudieron subir algunos archivos', detalle);
+      } else if (falloActualizacion) {
+        avisar({ titulo: 'Archivos guardados', mensaje: 'La carga terminó, pero no pudimos actualizar la lista. Recarga la página para verlos; no necesitas volver a subirlos.' });
+      }
+
+      if (fallidos.length === 0) {
         onClose();
       }
     } finally {
@@ -324,6 +331,7 @@ function CargaArchivos({
                     {item.estado === "completado" && "Completado"}
                     {item.estado === "error" && "Error al subir"}
                   </span>
+                  {item.error && <p className="carga-error-archivo">{item.error}</p>}
 
                   <div className="carga-progreso">
                     <div

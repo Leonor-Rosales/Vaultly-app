@@ -55,3 +55,30 @@ test('migración 08 preserva datos, es repetible; correo atómico y recuperació
   assert.equal(finales.find(x => x.status === 'rejected').reason.codigo, 'CORREO_OCUPADO');
   assert.equal((await pool.query("SELECT count(*) n FROM usuarios WHERE correo_electronico='compartido@example.test'")).rows[0].n, '1');
 });
+
+// El mismo repositorio y la misma tabla sirven para cuentas de cliente.
+test('cliente: perfil propio, rol real, titularidad y cuenta activa con PostgreSQL', async t => {
+  const { crearCuentaRepositorio } = require('../../src/infrastructure/cuentaRepositorio');
+  const { crearCasosCuenta } = require('../../src/usecases/cuenta');
+  const url = new URL(process.env.TEST_ADMIN_DATABASE_URL || 'http://invalid');
+  assert.ok(['127.0.0.1', 'localhost'].includes(url.hostname) && url.pathname === '/vaultly_admin_test');
+  const db = new Pool({ connectionString:url.toString() }); t.after(()=>db.end());
+  const schema='cliente_'+randomUUID().replaceAll('-',''); await db.query(`CREATE SCHEMA ${schema}`);
+  const pool=new Pool({connectionString:url.toString(),options:`-c search_path=${schema},public`});t.after(()=>pool.end());
+  await migrar(pool,()=>{});
+  const hash=await contrasenas.hashear('Actual123!');
+  const crear=async correo=>(await pool.query("INSERT INTO usuarios(rol_id,nombre_completo,correo_electronico,password_hash) VALUES((SELECT id FROM roles WHERE nombre='CLIENTE'),'Cliente',$1,$2) RETURNING *",[correo,hash])).rows[0];
+  const a=await crear('cliente@example.test'), b=await crear('otro@example.test');
+  const perfil=crearCasosCuenta({repo:crearCuentaRepositorio(pool)});
+  const guardado=await perfil.guardarNombre(a.id,{nombre_completo:'Nombre nuevo'});
+  assert.equal(guardado.usuario.rol,'CLIENTE');
+  assert.equal((await pool.query('SELECT nombre_completo FROM usuarios WHERE id=$1',[b.id])).rows[0].nombre_completo,'Cliente');
+  const casos=crearCasosCambioCorreo({repo:crearCambioCorreoRepositorio(pool),contrasenas,codigos:{generar:()=> '123456',id:randomUUID},correo:{enviarCodigo:async()=>{},notificarCambio:async()=>{}}});
+  const pedido=await casos.solicitar(a.id,{correo:'nuevo-cliente@example.test',password:'Actual123!'});
+  await assert.rejects(casos.confirmar(b.id,{solicitud_id:pedido.solicitud.id,codigo:'123456'}),{codigo:'CODIGO_NO_DISPONIBLE'});
+  const resultado=await casos.confirmar(a.id,{solicitud_id:pedido.solicitud.id,codigo:'123456'});
+  assert.equal(resultado.usuario.rol,'CLIENTE'); assert.equal(resultado.usuario.nombre_completo,'Nombre nuevo');
+  await pool.query("UPDATE usuarios SET estado_cuenta='BLOQUEADO' WHERE id=$1",[a.id]);
+  await assert.rejects(casos.estado(a.id),{estado:403});
+  await assert.rejects(perfil.guardarNombre(a.id,{nombre_completo:'No autorizado'}),{estado:403});
+});

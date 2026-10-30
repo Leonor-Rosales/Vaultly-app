@@ -18,6 +18,9 @@ import Archivos from "./Archivos/Archivos";
 import Biblioteca from "./biblioteca/Biblioteca";
 import RutaProtegida from "./components/RutaProtegida";
 
+import ClienteLayout from './cuenta/ClienteLayout';
+import ConfiguracionCliente from './cuenta/ConfiguracionCliente';
+
 function App() {
   return (
     <Routes>
@@ -40,12 +43,15 @@ function App() {
           <Route path="configuracion" element={<Configuracion />} />
           <Route path="*" element={<Navigate to="/admin/planes" replace />} />
         </Route>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/archivos" element={<Archivos />} />
-        <Route path="/biblioteca" element={<Biblioteca />} />
-        <Route path="/planes" element={<Planes />} />
-        <Route path="/planes/contratar" element={<Contratar />} />
-        <Route path="/planes/historial" element={<Historial />} />
+        <Route element={<ClienteLayout />}>
+          <Route path="/configuracion" element={<ConfiguracionCliente />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/archivos" element={<Archivos />} />
+          <Route path="/biblioteca" element={<Biblioteca />} />
+          <Route path="/planes" element={<Planes />} />
+          <Route path="/planes/contratar" element={<Contratar />} />
+          <Route path="/planes/historial" element={<Historial />} />
+        </Route>
       </Route>
     </Routes>
   );

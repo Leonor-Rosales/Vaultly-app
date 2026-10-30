@@ -1,122 +1,47 @@
-/* Pantalla de planes. La barra lateral y el layout general salen de
-   dashboard/Dashboard.css; aquí solo va lo propio de esta pantalla. */
-
-.planes-subtitle {
-  margin: 4px 0 0;
-  font-size: 10px;
-  color: #9a8d83;
-}
-
-/* GRILLA DE PLANES */
-
-.plans-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 22px;
-  margin-top: 26px;
-}
-
-.plan-card {
-  position: relative;
-  min-height: 410px;
-  padding: 12px 12px 34px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-
-  background: #faf5ef;
-  border: 1px solid #ead8c7;
-  border-radius: 7px;
-  text-align: center;
-}
-
-.plan-card.current {
-  border-color: #542818;
-}
-
-.plan-name {
-  width: 100%;
-  margin: 0;
-  padding-bottom: 6px;
-
-  border-bottom: 1px solid #ead8c7;
-
-  color: #542818;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.plan-features {
-  flex: 1;
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  align-items: center;
-}
-
-.plan-features strong {
-  color: #cf7040;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-/* BOTONES */
-
-.plan-button {
-  padding: 5px 14px;
-
-  background: transparent;
-  border: 1px solid #cf7040;
-  border-radius: 5px;
-
-  color: #cf7040;
-  font-size: 10px;
-  font-weight: 600;
-
-  cursor: pointer;
-}
-
-.plan-button:hover:not(:disabled) {
-  background: #f5e9dd;
-}
-
-.plan-button.current {
-  background: #cf7040;
-  color: white;
-  cursor: default;
-}
-
-/* RENOVACIÓN */
-
-.plan-renewal {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 10px;
-
-  color: #9a8d83;
-  font-size: 8px;
-}
-
-/* RESPONSIVE */
-
-@media (max-width: 900px) {
-  .plans-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 650px) {
-  .plans-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .plan-card {
-    min-height: 320px;
-  }
+/* Componentes de planes aislados para conservar el diseño de las otras pantallas. */
+.planes-subtitle { margin:8px 0 0; font-size:14px; line-height:1.6; color:var(--cliente-muted); }
+.planes-page .dashboard-content { padding:32px; }
+.planes-page .dashboard-header { align-items:flex-start; margin-bottom:28px; }
+.planes-history { display:inline-flex; align-items:center; justify-content:center; gap:9px; padding:12px 16px; border:1px solid var(--cliente-border); border-radius:8px; background:var(--cliente-surface); color:var(--cliente-text); font:inherit; font-size:13px; font-weight:600; cursor:pointer; flex-shrink:0; }
+.planes-history:hover { background:var(--cliente-soft); }
+.planes-history svg { font-size:18px; color:var(--cliente-link); }
+.planes-membership { display:flex; align-items:center; gap:24px; flex-wrap:wrap; padding:24px; background:var(--cliente-soft); border:1px solid var(--cliente-border); border-radius:12px; }
+.planes-membership-icon { display:grid; place-items:center; width:48px; height:48px; border-radius:12px; background:var(--cliente-surface); color:var(--cliente-link); font-size:25px; }
+.planes-membership-name { flex:1; min-width:120px; }
+.planes-membership-name span,.planes-membership-detail span { display:block; font-size:12px; color:var(--cliente-muted); margin-bottom:7px; }
+.planes-membership-name strong { font-size:21px; }
+.planes-membership-detail { padding:0 22px; border-left:1px solid var(--cliente-border); }
+.planes-membership-detail strong { font-size:15px; }
+.planes-status,.plan-badge { display:inline-flex; align-items:center; gap:6px; border-radius:20px; background:var(--cliente-surface); color:var(--cliente-link); padding:7px 11px; font-size:12px; font-weight:600; }
+.planes-section-heading { margin:36px 0 22px; }
+.planes-section-heading h2 { margin:0 0 7px; font-size:21px; }
+.planes-section-heading p { margin:0; font-size:14px; color:var(--cliente-muted); line-height:1.5; }
+.planes-page .plans-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr)); gap:20px; align-items:stretch; }
+.planes-page .plan-card { min-width:0; position:relative; padding:26px 24px 22px; display:flex; flex-direction:column; background:var(--cliente-surface); border:1px solid var(--cliente-border); border-radius:12px; text-align:left; }
+.planes-page .plan-card.current { border:2px solid var(--cliente-accent); padding:25px 23px 21px; }
+.plan-card-heading { min-height:32px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.planes-page .plan-name { font-size:20px; margin:0; overflow-wrap:anywhere; }
+.plan-badge { background:var(--cliente-soft); }
+.plan-price { display:flex; align-items:baseline; flex-wrap:wrap; gap:7px; margin-top:24px; }
+.plan-price strong { font-size:36px; letter-spacing:-1.4px; overflow-wrap:anywhere; }
+.plan-price>span { font-size:14px; color:var(--cliente-muted); }
+.plan-caption { margin:9px 0 24px; font-size:13px; color:var(--cliente-muted); line-height:1.5; }
+.planes-page .plan-features { display:flex; flex-direction:column; gap:22px; margin:0 0 28px; padding:24px 0 0; border-top:1px solid var(--cliente-border); list-style:none; flex:1; }
+.plan-features li { display:flex; align-items:flex-start; gap:12px; }
+.plan-feature-icon { display:grid; place-items:center; flex:0 0 36px; height:36px; background:var(--cliente-soft); color:var(--cliente-link); border-radius:9px; font-size:19px; }
+.plan-features li strong { display:block; font-size:14px; line-height:1.5; }
+.plan-features li div>span { display:block; margin-top:3px; color:var(--cliente-muted); font-size:12px; line-height:1.5; }
+.planes-page .plan-button { width:100%; min-height:44px; padding:11px 16px; display:flex; justify-content:center; align-items:center; gap:10px; background:var(--cliente-accent); color:var(--cliente-on-accent); border:1px solid var(--cliente-accent); border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; }
+.planes-page .plan-button:hover:not(:disabled) { filter:brightness(.94); }
+.planes-page .plan-button.current { background:var(--cliente-soft); border-color:var(--cliente-border); color:var(--cliente-link); cursor:default; }
+.planes-page .plan-renewal { margin-top:12px; text-align:center; font-size:12px; color:var(--cliente-muted); }
+.planes-state { padding:24px; border:1px solid var(--cliente-border); border-radius:12px; color:var(--cliente-muted); }
+@media(max-width:650px) {
+  .planes-page .dashboard-content { padding:20px 16px; }
+  .planes-page .dashboard-header { flex-direction:column; align-items:stretch; }
+  .planes-membership { gap:18px; padding:20px; }
+  .planes-membership-detail { padding:0; border:0; flex:1 1 40%; }
+  .planes-status { display:none; }
+  .planes-page .plan-card { padding:24px; }
+  .planes-page .plan-card.current { padding:23px; }
 }

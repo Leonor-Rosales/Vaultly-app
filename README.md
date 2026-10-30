@@ -8,6 +8,9 @@ Para la configuración, los temas y el cambio de correo verificado, consulta
 [Configuración y seguridad](docs/admin-configuracion-seguridad.md). Esta versión
 requiere aplicar `08_cambio_correo.sql` mediante el migrador antes de iniciar el backend.
 
+La configuración compartida del cliente y administrador, sus endpoints y pasos de prueba
+están en [Configuración del cliente](docs/cliente-configuracion.md).
+
 ## Entorno local
 Esta configuración inicia PostgreSQL y MinIO
 

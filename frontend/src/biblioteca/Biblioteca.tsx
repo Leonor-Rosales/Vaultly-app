@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import Sidebar from '../components/Sidebar';
 import Filtros from './Filtros';
@@ -9,18 +8,18 @@ import { ordenes } from './tipos';
 import type { Orden } from './tipos';
 import { demostracion } from './servicio';
 import './Biblioteca.css';
+import AvisosLimites from '../components/AvisosLimites';
 
 export default function Biblioteca() {
   const {consulta, cambiar, limpiar, datos, error, cargando, reintentar} = useBiblioteca();
-  const [menu, setMenu] = useState(false);
   const filtrado = tieneFiltros(consulta);
-  return <div className={`biblioteca-page${menu ? ' biblioteca-menu-abierto' : ''}`}>
-    <button type="button" className="biblioteca-menu-movil" aria-expanded={menu} aria-label={menu ? 'Cerrar navegación' : 'Abrir navegación'} onClick={() => setMenu(!menu)}><Icon icon={menu ? 'lucide:x' : 'lucide:menu'} /></button>
+  return <div className="biblioteca-page">
     <Sidebar />
     <main className="biblioteca-contenido">
       <header className="biblioteca-encabezado"><h1>Biblioteca Pública</h1><p>Explora y descarga recursos compartidos por la comunidad Vaultly</p>
         {demostracion && <span className="biblioteca-demo">Datos de demostración</span>}
       </header>
+      <AvisosLimites descargas />
       <div className="biblioteca-buscador">
         <Icon icon="lucide:search" />
         <label className="biblioteca-sr" htmlFor="biblioteca-busqueda">Buscar por nombre, etiqueta o autor</label>

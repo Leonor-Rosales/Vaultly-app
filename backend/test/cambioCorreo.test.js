@@ -6,10 +6,10 @@ const { crearCasosCambioCorreo } = require('../src/usecases/cambioCorreo');
 const { crearCorreoCambio } = require('../src/infrastructure/correoCambio');
 const { crearCambioCorreoRoutes } = require('../src/controllers/cambioCorreoRoutes');
 const { crearRequiereAuth } = require('../src/controllers/middleware/auth');
-function fixture() {
+function fixture(rol = 'ADMIN') {
   let ahora = new Date('2026-10-28T12:00:00Z');
   let solicitud = { intentos: 0, envios: 0, fallos_password: 0, estado: 'CANCELADO' };
-  const usuario = { id: 'uno', nombre_completo: 'Ana', correo_electronico: 'antes@example.test', password_hash: 'hash:actual' };
+  const usuario = { rol, id: 'uno', nombre_completo: 'Ana', correo_electronico: 'antes@example.test', password_hash: 'hash:actual' };
   const mensajes = []; let ocupado = false, fallar = false, notificacionFalla = false, secuencia = 0;
   const repo = { conUsuario: async (id, fn) => {
     assert.equal(id, 'uno');
@@ -123,4 +123,18 @@ test('mensaje HTML destaca código, conserva texto y escapa datos del usuario', 
   assert.match(mensaje.html, /&lt;img/);
   assert.doesNotMatch(mensaje.html, /<img/);
   assert.match(mensaje.text, /123456/);
+});
+
+for (const rol of ['ADMIN', 'CLIENTE']) test(`correo conserva rol real y protecciones para ${rol}`, async () => {
+  const f = fixture(rol); const r = await f.pedir();
+  await assert.rejects(f.confirmar('000001', 'otra-cuenta'), { codigo: 'CODIGO_NO_DISPONIBLE' });
+  await assert.rejects(f.confirmar('999999'), { codigo: 'CODIGO_INVALIDO' });
+  await assert.rejects(f.pedir(), { codigo: 'REENVIO_ESPERA' });
+  const confirmado = await f.confirmar('000001', r.solicitud.id);
+  assert.equal(confirmado.usuario.rol, rol);
+  await assert.rejects(f.confirmar(), { codigo: 'CODIGO_NO_DISPONIBLE' });
+  const vencido = fixture(rol); await vencido.pedir(); vencido.avanzar(600000);
+  await assert.rejects(vencido.confirmar(), { codigo: 'CODIGO_VENCIDO' });
+  const smtp = fixture(rol); smtp.fallo(true);
+  await assert.rejects(smtp.pedir(), { codigo: 'ENVIO_FALLIDO' });
 });

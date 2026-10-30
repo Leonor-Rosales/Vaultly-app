@@ -10,6 +10,12 @@ async function preparar(page: Page, rol = 'ADMIN') {
     const body = method === 'POST' || method === 'PUT' ? route.request().postDataJSON() : null;
     if (path === '/api/auth/login') return route.fulfill({ json: { token: 'prueba-admin', usuario } });
     if (path === '/api/auth/me') return route.fulfill({ json: { usuario } });
+    if (path === '/api/planes/mi-consumo') return route.fulfill({ json: {
+      plan: { id: 1, nombre: 'Free', precio_mensual: 0 },
+      almacenamiento: { cuota_bytes: 100000000, usados_bytes: 0, reservados_bytes: 0, disponibles_bytes: 100000000, porcentaje_utilizado: 0 },
+      descargas: { limite: 2, ilimitadas: false, consumidas: 0, restantes: 2, inicio: '2026-10-01', fin: '2026-11-01' },
+      alertas: { almacenamiento: null, descargas: null },
+    } });
     if (path === '/api/auth/recuperar') return route.fulfill({ json: { mensaje: 'Enlace solicitado' } });
     if (path.startsWith('/api/admin/planes')) {
       if (method === 'GET') return route.fulfill({ json: planes });
@@ -88,10 +94,14 @@ for (const ancho of [1366, 390]) {
   });
 }
 test('cliente no accede al panel por URL', async ({ page }) => {
+  const errores: string[] = [];
+  page.on('pageerror', error => errores.push(error.message));
   await preparar(page, 'CLIENTE');
   await page.goto('/admin/administradores');
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.locator('.admin-sidebar')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible();
+  expect(errores).toEqual([]);
 });
 test('listado vacío y error recuperable no simulan éxito', async ({ page }) => {
   await preparar(page);

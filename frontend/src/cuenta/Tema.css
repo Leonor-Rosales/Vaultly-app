@@ -1,0 +1,27 @@
+.cuenta-theme {
+  --cuenta-scheme:light; --cuenta-bg:#fcfaf8; --cuenta-surface:#faf5ef; --cuenta-text:#542818;
+  --cuenta-muted:#786457; --cuenta-accent:#ad4c22; --cuenta-on-accent:#fff;
+  --cuenta-border:#d8b69c; --cuenta-soft:#f0dfce; --cuenta-secondary:#e8c5a8;
+  --cuenta-link:#a1431d; --cuenta-focus:#994018; --cuenta-disabled:#e9e1da;
+  --cuenta-error:#a52b22; --cuenta-error-bg:#fcebe8; --cuenta-success:#256343;
+  --cuenta-success-bg:#edf5ee; --cuenta-warning:#7d4c0a; --cuenta-warning-bg:#fff2d9;
+  --cuenta-info:#335d7b; --cuenta-info-bg:#edf3f8;
+}
+.cuenta-theme[data-tema=oscuro] {
+  --cuenta-scheme:dark; --cuenta-bg:#211b18; --cuenta-surface:#2d2520; --cuenta-text:#f6e5d6;
+  --cuenta-muted:#ccb7a6; --cuenta-accent:#ed9a67; --cuenta-on-accent:#28160c;
+  --cuenta-border:#77604e; --cuenta-soft:#493527; --cuenta-secondary:#554135;
+  --cuenta-link:#ffb07a; --cuenta-focus:#ffc49a; --cuenta-disabled:#3c332e;
+  --cuenta-error:#ffb3aa; --cuenta-error-bg:#482823; --cuenta-success:#a4dfb4;
+  --cuenta-success-bg:#203c2c; --cuenta-warning:#f7d291; --cuenta-warning-bg:#44351d;
+  --cuenta-info:#b1d6f2; --cuenta-info-bg:#273846;
+}
+
+.cuenta-theme { color-scheme:var(--cuenta-scheme); }
+.cuenta-theme .vaultly-aviso { --aviso-color:var(--cuenta-info); --aviso-bg:var(--cuenta-info-bg); display:flex; align-items:flex-start; gap:12px; padding:15px 18px; margin:12px 0; border:1px solid var(--aviso-color); border-radius:15px; background:var(--aviso-bg); color:var(--aviso-color); font:500 14px/1.5 system-ui,sans-serif; box-shadow:0 4px 12px #00000012; max-width:550px; overflow-wrap:anywhere; }
+.cuenta-theme .aviso-exito { --aviso-color:var(--cuenta-success); --aviso-bg:var(--cuenta-success-bg); }
+.cuenta-theme .aviso-advertencia { --aviso-color:var(--cuenta-warning); --aviso-bg:var(--cuenta-warning-bg); }
+.cuenta-theme .aviso-error { --aviso-color:var(--cuenta-error); --aviso-bg:var(--cuenta-error-bg); }
+.aviso-icono { flex-shrink:0; width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:2px solid currentColor; border-radius:50%; font-weight:700; }
+.aviso-titulo { display:block; font-size:13px; margin-bottom:3px; }
+.cuenta-theme .aviso-cerrar { padding:0 6px; color:inherit; background:transparent; margin-left:auto; font-size:22px; }

@@ -1,8 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react';
-import toast from 'react-hot-toast';
 import { ApiError, getToken } from './auth';
 import type { Plan } from '../planes/planesData';
-import { avisosNuevos } from './usagePolicy';
 
 export interface Consumo {
   plan: { id: number; nombre: string; precio_mensual: number };
@@ -16,7 +14,7 @@ let propietario: string | null = null;
 let secuencia = 0;
 const listeners = new Set<() => void>();
 const publicar = () => listeners.forEach(fn => fn());
-const avisadas = new Set<string>();
+export const obtenerConsumoActual = () => snapshot.consumo;
 const suscribir = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 
 async function consultar<T>(ruta: string): Promise<T> {
@@ -46,20 +44,10 @@ export async function actualizarConsumo(): Promise<Consumo | null> {
     if (orden !== secuencia) return consumo;
     snapshot = { consumo, error: '' };
     publicar();
-    let usuario = '';
-    try { usuario = JSON.parse(localStorage.getItem('usuario') ?? '{}').id ?? ''; } catch { /* sesión legible en memoria */ }
-    for (const aviso of avisosNuevos(consumo.alertas, usuario, consumo.descargas.inicio, avisadas)) {
-      let guardado = false;
-      try {
-        guardado = sessionStorage.getItem(aviso.key) === '1';
-        sessionStorage.setItem(aviso.key, '1');
-      } catch { /* El conjunto en memoria evita repeticiones si el navegador bloquea storage. */ }
-      if (!guardado) toast(aviso.mensaje, { id: `cuota-${aviso.tipo}` });
-    }
     return consumo;
   } catch (error) {
     if (orden === secuencia && token === getToken()) {
-      snapshot = { consumo: null, error: error instanceof Error ? error.message : 'No se pudo consultar tu plan.' };
+      snapshot = { consumo: snapshot.consumo, error: error instanceof Error ? error.message : 'No se pudo consultar tu plan.' };
       publicar();
     }
     throw error;
