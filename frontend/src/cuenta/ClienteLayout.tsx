@@ -6,6 +6,7 @@ import { CuentaContexto } from './contexto';
 import { useTema } from './tema';
 import Aviso from '../components/Aviso';
 import Sidebar from '../components/Sidebar';
+import { ProveedorAvisos } from '../components/Avisos';
 import './Tema.css';
 import './Cliente.css';
 
@@ -34,10 +35,12 @@ export default function ClienteLayout() {
         setUsuario(perfil);
         try { localStorage.setItem('usuario', JSON.stringify(perfil)); } catch { /* Se conserva en memoria. */ }
       } }}>
+        <ProveedorAvisos>
         <Toaster toasterId="cliente" position="top-right" />
         <button className="cliente-menu" aria-expanded={menu} aria-controls="cliente-navegacion-movil" onClick={() => setMenu(!menu)}>☰ Menú</button>
         {menu && <div id="cliente-navegacion-movil" className="cliente-menu-panel" onClick={() => setMenu(false)}><Sidebar /></div>}
         <div key={pathname} className="cliente-vista"><Outlet /></div>
+        </ProveedorAvisos>
       </CuentaContexto.Provider>}
   </div>;
 }

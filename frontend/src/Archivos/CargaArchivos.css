@@ -522,3 +522,4 @@
 .carga-modal::-webkit-scrollbar {
   display: none;
 }
+.carga-error-archivo { margin:4px 0; font-size:12px; color:var(--cuenta-error, #a52b22); overflow-wrap:anywhere; }

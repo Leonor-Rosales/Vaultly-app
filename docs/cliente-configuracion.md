@@ -39,10 +39,23 @@ actualiza su copia local; no confía en localStorage para decidir permisos.
 ## Ajustes visuales del cliente
 
 La paleta clara recupera los tonos crema, bordes durazno y acentos naranja de los
-mockups. Dashboard muestra plan, almacenamiento, descargas restantes y total de
+mockups. Dashboard muestra plan, almacenamiento, descargas usadas/límite con su fecha de renovación y total de
 archivos públicos y privados. Biblioteca conserva búsqueda, filtros y orden, con
 la acción Todos y hasta cuatro columnas en pantallas amplias. Los datos de ejemplo
 para las capturas existen únicamente en las pruebas de navegador.
+
+Los avisos del cliente recuperan el diseño crema y durazno de las referencias:
+banners persistentes de almacenamiento próximo al límite, lleno o reservado y
+descargas próximas al límite o agotadas. Dashboard reúne ambos tipos; Mis Archivos
+muestra almacenamiento y Biblioteca muestra descargas. Los fallos al consultar
+consumo conservan el último dato conocido y ofrecen Reintentar.
+
+Los diálogos cubren espacio insuficiente/lleno (con barra y enlaces a archivos y
+planes), cuota de descargas agotada (con renovación), errores de carga/descarga,
+fallos de red, cargas parciales y confirmación de eliminación. Las cargas parciales
+reintentan únicamente archivos fallidos. Los mensajes breves de éxito, información,
+advertencia y error comparten la paleta del cliente, incluidos los de configuración.
+Los diálogos admiten teclado, Escape, restauración del foco y tema oscuro.
 
 ## API y permisos
 
@@ -73,7 +86,7 @@ aplicada la migración 08 incluida previamente en `app-cliente`.
 - 100 pruebas de backend: permisos, campos adicionales, titularidad, errores,
   códigos incorrectos/vencidos/usados, límites, SMTP simulado y rol real.
 - 18 pruebas del frontend.
-- 19 pruebas de navegador con Edge: administrador y cliente, móvil/escritorio,
+- 29 pruebas de navegador con Edge: administrador y cliente, móvil/escritorio,
   nombre, correo, recuperación, temas, navegación, archivos y cierre de sesión.
 - 3 integraciones PostgreSQL en `vaultly_admin_test`: migración/preservación,
   concurrencia del correo y administración, perfil de cliente y cuenta bloqueada.

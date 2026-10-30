@@ -28,3 +28,12 @@ export function avisosNuevos(
     return [{ ...aviso, key }];
   });
 }
+
+export function porcentajeAlmacenamiento(usados: number, cuota: number): number {
+  if (!Number.isFinite(usados) || !Number.isFinite(cuota) || cuota <= 0) return 0;
+  return Math.max(0, usados / cuota * 100);
+}
+export function textoPorcentaje(porcentaje: number): string {
+  if (porcentaje > 0 && porcentaje < 0.1) return '< 0.1%';
+  return `${(Math.floor(porcentaje * 10) / 10).toLocaleString('es-GT', { maximumFractionDigits: 1 })}%`;
+}

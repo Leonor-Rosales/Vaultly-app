@@ -31,3 +31,12 @@
 }
 
 .cliente-app .menu-item.active, .cliente-app .user-plan { background:var(--cliente-soft); color:var(--cliente-link); }
+
+/* Los avisos del cliente siguen el lenguaje de las tarjetas y banners. */
+.cliente-app .vaultly-aviso { border-radius:7px; background:var(--cliente-surface); color:var(--cliente-text); border-color:var(--cliente-border); box-shadow:0 3px 12px #54281812; padding:18px 22px; }
+.cliente-app .vaultly-aviso .aviso-icono { color:var(--aviso-color); }
+.cliente-app .vaultly-aviso .aviso-titulo { font-size:17px; margin-bottom:6px; }
+.cliente-app .vaultly-aviso .aviso-titulo+div { font-size:13px; color:var(--cliente-muted); }
+.cliente-app .vaultly-aviso.aviso-advertencia { background:var(--cliente-aviso-bg); border-color:var(--cliente-aviso-border); }
+.cliente-app .vaultly-aviso.aviso-error { border-color:var(--cuenta-error); }
+.cliente-app .vaultly-aviso.aviso-exito { border-color:var(--cuenta-success); }

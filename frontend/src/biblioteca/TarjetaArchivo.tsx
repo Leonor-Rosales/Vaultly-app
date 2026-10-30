@@ -5,19 +5,20 @@ import { formatoBytes } from '../services/usagePolicy';
 import { categoria } from './estado';
 import { tipos } from './tipos';
 import type { ArchivoPublico } from './tipos';
+import { useAvisos } from '../components/contextoAvisos';
 
 export default function TarjetaArchivo({archivo, demo}: {archivo: ArchivoPublico; demo: boolean}) {
+  const { avisarError } = useAvisos();
   const [descargando, setDescargando] = useState(false);
-  const [error, setError] = useState('');
   const ocupado = useRef(false);
   const tipo = tipos.find(t => t.valor === categoria(archivo.tipo_mime, archivo.nombre_original))!;
   const codigo = /\.(ts|js|html|css|py|json)$/i.test(archivo.nombre_original);
   const iniciales = archivo.autor.nombre_completo.trim().split(/\s+/).slice(0,2).map(n => n[0]).join('');
   const descargar = async () => {
     if (ocupado.current || demo) return;
-    ocupado.current = true; setDescargando(true); setError('');
+    ocupado.current = true; setDescargando(true);
     try { await descargarArchivo(archivo.id, archivo.nombre_original); }
-    catch (e) { setError(e instanceof Error ? e.message : 'No se pudo descargar el archivo.'); }
+    catch (e) { avisarError(e, 'No se pudo descargar el archivo', archivo.nombre_original); }
     finally { ocupado.current = false; setDescargando(false); }
   };
   return <article className="biblioteca-tarjeta">
@@ -44,6 +45,5 @@ export default function TarjetaArchivo({archivo, demo}: {archivo: ArchivoPublico
     {descargando ? 'Descargando…' : 'Descargar'}
   </button>
 </div>
-    {error && <p className="biblioteca-error-descarga" role="alert">{error}</p>}
   </article>;
 }

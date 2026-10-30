@@ -6,15 +6,24 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import CargaArchivos from "../Archivos/CargaArchivos";
 import "../Archivos/Archivos.css";
-import { useConsumo } from '../services/consumo';
-import { formatoBytes } from '../services/usagePolicy';
+import { useConsumo, obtenerConsumoActual } from '../services/consumo';
+import { formatoBytes, porcentajeAlmacenamiento, textoPorcentaje } from '../services/usagePolicy';
 import {
   listarArchivos,
   type Archivo,
 } from "../services/archivos";
 import "./Dashboard.css";
 
+import { useAvisos } from '../components/contextoAvisos';
+import AvisosLimites from '../components/AvisosLimites';
+import { ApiError } from '../services/auth';
 function Dashboard() {
+  const { avisarError } = useAvisos();
+  const abrirCarga = () => {
+    const uso = obtenerConsumoActual()?.almacenamiento;
+    if (uso && uso.usados_bytes >= uso.cuota_bytes) avisarError(new ApiError('Has alcanzado el límite de almacenamiento de tu plan.',409,'CUOTA_ALMACENAMIENTO'),'Almacenamiento lleno');
+    else setMostrarCarga(true);
+  };
   const navigate = useNavigate();
 
   const [archivos, setArchivos] = useState<Archivo[]>([]);
@@ -66,7 +75,7 @@ function Dashboard() {
     return "lucide:file";
   };
 
-  const porcentaje = Math.min(consumo?.almacenamiento.porcentaje_utilizado ?? 0, 100);
+  const porcentaje = consumo ? porcentajeAlmacenamiento(consumo.almacenamiento.usados_bytes, consumo.almacenamiento.cuota_bytes) : 0;
 
   const recientes = [...archivos]
     .sort(
@@ -86,13 +95,14 @@ function Dashboard() {
 
           <button
             className="upload-button"
-            onClick={() => setMostrarCarga(true)}
+            onClick={abrirCarga}
           >
             <Icon icon="lucide:upload" />
             Cargar archivo
           </button>
         </div>
 
+        <AvisosLimites almacenamiento descargas />
         <section className="stats-grid">
           <div className="stat-card">
             <span className="stat-title">Plan actual</span>
@@ -103,18 +113,18 @@ function Dashboard() {
           <div className="stat-card storage-card">
             <span className="stat-title">Almacenamiento</span>
             <strong>{consumo ? `${formatoBytes(consumo.almacenamiento.usados_bytes)} de ${formatoBytes(consumo.almacenamiento.cuota_bytes)} usados` : '—'}</strong>
-            <div className="storage-bar">
+            <div className="storage-bar" role="progressbar" aria-label="Almacenamiento utilizado" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(porcentaje, 100)} aria-valuetext={`${textoPorcentaje(porcentaje)} utilizados`}>
               <div
-                className="storage-progress"
-                style={{ width: `${porcentaje}%` }}
+                className="storage-progress uso-relleno"
+                style={{ width: `${Math.min(porcentaje, 100)}%`, minWidth: porcentaje > 0 ? '4px' : 0 }}
               />
             </div>
           </div>
 
           <div className="stat-card">
-            <span className="stat-title">Descargas del mes</span>
-            <strong className="download-number"><Icon icon="lucide:download" />{consumo ? consumo.descargas.ilimitadas ? 'Ilimitadas' : `${consumo.descargas.restantes} de ${consumo.descargas.limite}` : '—'}</strong>
-            <small>{consumo?.descargas.ilimitadas ? 'Descargas sin límite' : 'descargas restantes'}</small>
+            <span className="stat-title">Descargas</span>
+            <strong className="download-number"><Icon icon="lucide:download" />{consumo ? `${consumo.descargas.consumidas}/${consumo.descargas.ilimitadas ? '∞' : consumo.descargas.limite}` : '—'}</strong>
+            <small>{consumo ? `${consumo.descargas.ilimitadas ? 'Sin límite · ' : ''}Se renuevan el ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })}` : 'Consultando renovación…'}</small>
           </div>
 
           <div className="stat-card">
@@ -146,7 +156,7 @@ function Dashboard() {
               <p>Los archivos que subas aparecerán aquí.</p>
               <button
                 className="upload-button"
-                onClick={() => setMostrarCarga(true)}
+                onClick={abrirCarga}
               >
                 <Icon icon="lucide:upload" />
                 Subir mi primer archivo

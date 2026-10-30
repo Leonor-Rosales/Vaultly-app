@@ -8,6 +8,7 @@ import { ordenes } from './tipos';
 import type { Orden } from './tipos';
 import { demostracion } from './servicio';
 import './Biblioteca.css';
+import AvisosLimites from '../components/AvisosLimites';
 
 export default function Biblioteca() {
   const {consulta, cambiar, limpiar, datos, error, cargando, reintentar} = useBiblioteca();
@@ -18,6 +19,7 @@ export default function Biblioteca() {
       <header className="biblioteca-encabezado"><h1>Biblioteca Pública</h1><p>Explora y descarga recursos compartidos por la comunidad Vaultly</p>
         {demostracion && <span className="biblioteca-demo">Datos de demostración</span>}
       </header>
+      <AvisosLimites descargas />
       <div className="biblioteca-buscador">
         <Icon icon="lucide:search" />
         <label className="biblioteca-sr" htmlFor="biblioteca-busqueda">Buscar por nombre, etiqueta o autor</label>
