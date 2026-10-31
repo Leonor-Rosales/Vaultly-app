@@ -1,6 +1,7 @@
 
 import { actualizarConsumo } from "./consumo";
 import { ApiError, getToken } from "./auth";
+import { conActualizacionConsumo } from './conActualizacionConsumo';
 
 const API_URL: string =
   import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -64,19 +65,23 @@ export async function subirArchivo(
   formulario.append("etiquetas", JSON.stringify(etiquetas));
   formulario.append("es_publica", String(esPublica));
 
-  try { return await solicitud<Archivo>("/api/archivos", {
+  return enviarArchivo(formulario);
+}
+
+const enviarArchivo = conActualizacionConsumo(
+  (formulario: FormData) => solicitud<Archivo>("/api/archivos", {
     method: "POST",
     body: formulario,
-  }); } finally { await actualizarConsumo().catch(() => {}); }
-}
+  }),
+  actualizarConsumo,
+);
 
-
-export async function eliminarArchivo(id: string): Promise<void> {
-  try { await solicitud<{ mensaje: string }>(
+export const eliminarArchivo = conActualizacionConsumo(async (id: string): Promise<void> => {
+  await solicitud<{ mensaje: string }>(
     `/api/archivos/${encodeURIComponent(id)}`,
     { method: "DELETE" }
-  ); } finally { await actualizarConsumo().catch(() => {}); }
-}
+  );
+}, actualizarConsumo);
 
 export async function descargarArchivo(
   id: string,
@@ -88,7 +93,12 @@ export async function descargarArchivo(
     throw new Error("Tu sesión ha expirado. Inicia sesión nuevamente.");
   }
 
-  try {
+  return descargarContenido(id, nombre, token);
+}
+
+const descargarContenido = conActualizacionConsumo(async (
+  id: string, nombre: string, token: string,
+): Promise<void> => {
   const response = await fetch(
     `${API_URL}/api/archivos/${encodeURIComponent(id)}/descargar`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -110,8 +120,7 @@ export async function descargarArchivo(
   enlace.remove();
 
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  } finally { await actualizarConsumo().catch(() => {}); }
-}
+}, actualizarConsumo);
 
 
 export async function cambiarVisibilidad(

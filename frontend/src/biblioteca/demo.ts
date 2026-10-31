@@ -1,5 +1,6 @@
 import type { ArchivoPublico, AutorPublico, EtiquetaPublica, ServicioBiblioteca } from './tipos.ts';
 import { categoria } from './estado.ts';
+import { seleccionarEstrategiaOrden } from './estrategiasOrden.ts';
 
 export const normalizarBusqueda = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 const autores: AutorPublico[] = ['Fernando Pérez', 'Ana Martínez', 'Carlos Gómez', 'Elena Ríos', 'Sofía Castro', 'Mateo Díaz', 'Lucía Sáenz'].map((nombre_completo, i) => ({id: `00000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`, nombre_completo}));
@@ -40,15 +41,7 @@ export function crearBibliotecaDemo(archivos: ArchivoPublico[] = archivosDemo): 
         (!c.tipo || categoria(a.tipo_mime, a.nombre_original) === c.tipo) &&
         (!c.autor || a.autor.id === c.autor) &&
         (!c.etiquetas.length || a.etiquetas.some(e => c.etiquetas.includes(e.id)))
-      ).sort((a,b) => {
-        let diferencia = 0;
-        if (c.orden === 'nombre_asc') diferencia = a.nombre_original.localeCompare(b.nombre_original, 'es', {sensitivity: 'base'});
-        else if (c.orden.startsWith('tamanio')) {
-          const x = BigInt(a.tamanio_bytes), y = BigInt(b.tamanio_bytes);
-          diferencia = (x < y ? -1 : x > y ? 1 : 0) * (c.orden === 'tamanio_desc' ? -1 : 1);
-        } else diferencia = (Date.parse(a.created_at) - Date.parse(b.created_at)) * (c.orden === 'recientes' ? -1 : 1);
-        return diferencia || a.id.localeCompare(b.id);
-      });
+      ).sort(seleccionarEstrategiaOrden(c.orden));
       return {items: items.slice((c.pagina - 1) * 12, c.pagina * 12), total: items.length, pagina: c.pagina, por_pagina: 12};
     },
     async etiquetas(q, signal) {
