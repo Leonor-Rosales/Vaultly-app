@@ -1,10 +1,9 @@
+import { adaptarPago, type PagoApi } from './adaptadoresPlanesPagos';
 import { ApiError, getToken } from "./auth";
 import { actualizarConsumo } from "./consumo";
 
 // Solo se puede contratar con tarjeta simulada.
 export type MetodoPago = "tarjeta";
-// Pagos antiguos pueden venir con "transferencia"; se siguen mostrando en el historial.
-type MetodoApi = MetodoPago | "transferencia";
 export type EstadoPago = "Completado" | "Pendiente";
 
 export interface Pago {
@@ -27,40 +26,7 @@ export interface ContratarPlanData {
   metodo: MetodoPago;
 }
 
-// Respuesta del backend (/api/planes/pagos y /api/planes/contratar)
-interface PagoApi {
-  id: string;
-  fecha: string; // ISO
-  codigo: string;
-  plan: string;
-  monto: number;
-  metodo: MetodoApi;
-  estado: EstadoPago;
-}
-
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
-
-const NOMBRE_METODO: Record<MetodoApi, string> = {
-  tarjeta: "Tarjeta simulada",
-  transferencia: "Transferencia simulada",
-};
-
-const formatoFecha = (iso: string): string =>
-  new Date(iso).toLocaleDateString("es-GT", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-
-const aPago = (p: PagoApi): Pago => ({
-  id: p.id,
-  fecha: formatoFecha(p.fecha),
-  codigo: p.codigo,
-  plan: p.plan,
-  monto: p.monto,
-  metodo: NOMBRE_METODO[p.metodo] ?? p.metodo,
-  estado: p.estado,
-});
 
 async function pedir<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
   let response: Response;
@@ -88,7 +54,7 @@ async function pedir<T>(ruta: string, opciones: RequestInit = {}): Promise<T> {
 
 export const obtenerHistorial = async (): Promise<Pago[]> => {
   const pagos = await pedir<PagoApi[]>("/api/planes/pagos");
-  return pagos.map(aPago);
+  return pagos.map(adaptarPago);
 };
 
 export const obtenerPlanActual = async (): Promise<PlanActual> => {
@@ -110,5 +76,5 @@ export const contratarPlan = async (data: ContratarPlanData): Promise<Pago> => {
   });
   // Refresca el plan en el Dashboard/Planes (cuota, descargas, nombre del plan).
   await actualizarConsumo().catch(() => undefined);
-  return aPago(pago);
+  return adaptarPago(pago);
 };

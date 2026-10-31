@@ -1,3 +1,4 @@
+import { adaptarPlan, type PlanApi } from './adaptadoresPlanesPagos';
 import { useEffect, useSyncExternalStore } from 'react';
 import { ApiError, getToken } from './auth';
 import type { Plan } from '../planes/planesData';
@@ -65,6 +66,6 @@ export function useConsumo() {
   return estado;
 }
 export async function obtenerCatalogo(): Promise<Plan[]> {
-  const planes = await consultar<{ id: number; nombre: string; cuota_storage_gb: number; precio_mensual: string; limite_descargas: number | null }[]>('/api/planes');
-  return planes.map(p => ({ id: String(p.id), nombre: p.nombre, precio: Number(p.precio_mensual), almacenamientoGb: p.cuota_storage_gb, descargasMensuales: p.limite_descargas }));
+  const planes = await consultar<PlanApi[]>('/api/planes');
+  return planes.map(adaptarPlan);
 }
