@@ -122,3 +122,15 @@ test('renombrar valida el nombre y limita la edición al propietario', async () 
     { id: 'id', nombre_original: 'Revisión final.pdf' });
   await assert.rejects(casos.renombrar('id', 'otro', 'Ajeno.pdf'), { estado: 404 });
 });
+
+test('vista previa comprueba dueño y formato antes de abrir el objeto', async () => {
+  const { casos, calls, archivo } = fixture();
+  archivo.tipo_mime = 'application/pdf';
+  await assert.rejects(casos.vistaPrevia(archivo.id, 'otro'), { estado: 404 });
+  const previa = await casos.vistaPrevia(archivo.id, archivo.usuario_id);
+  assert.equal(previa.tipo, 'application/pdf');
+  previa.stream.destroy();
+  archivo.tipo_mime = 'text/html';
+  await assert.rejects(casos.vistaPrevia(archivo.id, archivo.usuario_id), { estado: 415 });
+  assert.deepEqual(calls.map(([op]) => op), ['buscar', 'buscar', 'abrir', 'buscar']);
+});

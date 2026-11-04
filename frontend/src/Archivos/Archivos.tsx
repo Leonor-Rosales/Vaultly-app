@@ -1,6 +1,6 @@
 import Organizar, { rutaDe, type Operacion } from './Organizar';
 import { listarCarpetas, crearCarpeta, renombrarArchivo, renombrarCarpeta, eliminarCarpeta, moverCarpeta, moverArchivo, type Carpeta } from '../services/archivos';
-import { iconoArchivo } from './iconoArchivo';
+import VistaPrevia from './VistaPrevia';
 import { formatoBytes } from "../services/usagePolicy";
 
 import { useEffect, useState } from "react";
@@ -25,7 +25,7 @@ import "./Archivos.css";
 
 function Archivos() {
   const location = useLocation();
-  const { avisar, avisarError, confirmar } = useAvisos();
+  const { avisarError, confirmar } = useAvisos();
   const [archivos, setArchivos] = useState<Archivo[]>([]);
   const [carpetas, setCarpetas] = useState<Carpeta[]>([]);
   const [actual, abrir] = useState<string | null>(null);
@@ -229,9 +229,7 @@ function Archivos() {
                   <DetallesArchivo archivo={archivo} onUpdated={actualizado => setArchivos(actuales => actuales.map(a => a.id === actualizado.id ? actualizado : a))} />
                 </div>
 
-                <div className="archivo-card-icon">
-                  <Icon icon={iconoArchivo(archivo.nombre_original)} />
-                </div>
+                <VistaPrevia archivo={archivo} />
 
                 <div className="archivo-card-info">
                   <p title={archivo.nombre_original}>
@@ -266,13 +264,7 @@ function Archivos() {
                     <Icon icon="lucide:trash-2" />
                   </button>
 
-                  <button
-                    type="button"
-                    title="Vista previa"
-                    onClick={() => avisar({ titulo: 'Vista previa', mensaje: 'Esta función todavía no está disponible. Puedes descargar el archivo para abrirlo en tu dispositivo.' })}
-                  >
-                    <Icon icon="lucide:eye" />
-                  </button>
+
 
                   <button
                     type="button"

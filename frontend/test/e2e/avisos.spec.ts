@@ -206,3 +206,26 @@ test('administrar archivos desde un rechazo de carga permite volver a la lista',
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(page.getByTitle('Eliminar archivo', { exact: true })).toBeVisible();
 });
+
+test('las miniaturas abren imágenes y páginas PDF y omiten formatos sin vista previa', async ({ page }) => {
+  const estado = await preparar(page);
+  estado.archivos.push({ ...archivo('imagen', 'portada.svg'), tipo_mime: 'image/svg+xml' },
+    { ...archivo('texto', 'notas.txt'), tipo_mime: 'text/plain' });
+  await page.setContent('<p>Portada</p><p style="break-before:page">Segunda página</p>');
+  const pdf = await page.pdf();
+  await page.route('**/api/archivos/propio/vista-previa', route => route.fulfill({ contentType: 'application/pdf', body: pdf }));
+  await page.route('**/api/archivos/imagen/vista-previa', route => route.fulfill({
+    contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><circle cx="40" cy="40" r="25" fill="green"/></svg>',
+  }));
+  await page.goto('/archivos');
+  await page.getByRole('button', { name: 'Ver vista previa de informe.pdf' }).click();
+  const visor = page.getByRole('dialog');
+  await expect(visor.locator('canvas')).toBeVisible();
+  await visor.getByRole('button', { name: 'Siguiente' }).click();
+  await expect(visor.getByText('2 de 2')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Ver vista previa de portada.svg' }).click();
+  await expect(visor.getByRole('img', { name: 'portada.svg' })).toBeVisible();
+  await visor.getByRole('button', { name: 'Cerrar' }).click();
+  await expect(page.getByRole('button', { name: 'Ver vista previa de notas.txt' })).toHaveCount(0);
+});

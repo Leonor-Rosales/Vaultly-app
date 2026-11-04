@@ -1,5 +1,6 @@
 const { randomUUID } = require('crypto');
 const path = require('path');
+const tiposVistaPrevia = require('../../../shared/tipos-vista-previa.json');
 const { normalizarEtiquetas } = require('../domain/etiquetas');
 const { ErrorApp } = require('../domain/errores');
 
@@ -57,6 +58,12 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
       const archivo = await repositorio.reemplazarEtiquetas(id, usuarioId, etiquetas);
       if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
       return archivo;
+    },
+    async vistaPrevia(id, usuarioId) {
+      const archivo = await repositorio.buscarPorIdYUsuario(id, usuarioId);
+      if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
+      if (!tiposVistaPrevia.includes(archivo.tipo_mime)) throw new ErrorApp('Formato sin vista previa', 415);
+      return { tipo: archivo.tipo_mime, stream: await almacenamiento.abrir(archivo.nombre_objeto_minio) };
     },
     async descargar(id, usuarioId) {
       const reserva = await cuotas.reservarDescarga(usuarioId, id);

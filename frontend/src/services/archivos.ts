@@ -169,3 +169,13 @@ export const renombrarArchivo = (id: string, nombre: string) =>
 export const moverArchivo = (id: string, padre: string | null) =>
   solicitud<{ carpeta_id: string | null }>(`/api/carpetas/archivos/${id}/destino`, json('PATCH', { padre }));
 export const eliminarCarpeta = (id: string) => solicitud(`/api/carpetas/${id}`, { method: 'DELETE' });
+
+export async function obtenerVistaPrevia(id: string, signal: AbortSignal): Promise<Blob> {
+  const token = getToken();
+  if (!token) throw new Error('Tu sesión ha expirado.');
+  const respuesta = await fetch(`${API_URL}/api/archivos/${encodeURIComponent(id)}/vista-previa`, {
+    headers: { Authorization: `Bearer ${token}` }, signal,
+  });
+  if (!respuesta.ok) throw new Error('No se pudo cargar la vista previa.');
+  return respuesta.blob();
+}
