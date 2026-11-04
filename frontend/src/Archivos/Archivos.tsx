@@ -1,3 +1,5 @@
+import Organizar, { rutaDe, type Operacion } from './Organizar';
+import { listarCarpetas, crearCarpeta, renombrarArchivo, renombrarCarpeta, eliminarCarpeta, moverCarpeta, moverArchivo, type Carpeta } from '../services/archivos';
 import { iconoArchivo } from './iconoArchivo';
 import { formatoBytes } from "../services/usagePolicy";
 
@@ -25,6 +27,37 @@ function Archivos() {
   const location = useLocation();
   const { avisar, avisarError, confirmar } = useAvisos();
   const [archivos, setArchivos] = useState<Archivo[]>([]);
+  const [carpetas, setCarpetas] = useState<Carpeta[]>([]);
+  const [actual, abrir] = useState<string | null>(null);
+  const [operacion, organizar] = useState<Operacion | null>(null);
+  const indice = new Map(carpetas.map(c => [c.id, c]));
+  const hijas = carpetas.filter(c => c.carpeta_padre_id === actual).sort((a,b) => a.nombre.localeCompare(b.nombre));
+  const visibles = archivos.filter(a => (a.carpeta_id ?? null) === actual);
+  const guardar = async (valor: string) => {
+    if (!operacion) return;
+    if (operacion.tipo === 'renombrarArchivo') {
+      const actualizado = await renombrarArchivo(operacion.id, valor);
+      setArchivos(lista => lista.map(a => a.id === actualizado.id ? { ...a, ...actualizado } : a));
+      return;
+    }
+    const destino = valor === 'raiz' ? null : valor;
+    if (operacion.tipo === 'moverArchivo') {
+      const { carpeta_id } = await moverArchivo(operacion.id, destino);
+      setArchivos(lista => lista.map(a => a.id === operacion.id ? { ...a, carpeta_id } : a));
+      return;
+    }
+    const carpeta = operacion.tipo === 'crear' ? await crearCarpeta(valor, actual)
+      : operacion.tipo === 'renombrar' ? await renombrarCarpeta(operacion.id, valor)
+      : await moverCarpeta(operacion.id, destino);
+    setCarpetas(lista => [...lista.filter(c => c.id !== carpeta.id), carpeta]);
+  };
+  const borrarCarpeta = async (c: Carpeta) => {
+    if (!await confirmar('¿Eliminar carpeta?', c.nombre)) return;
+    try {
+      await eliminarCarpeta(c.id);
+      setCarpetas(lista => lista.filter(item => item.id !== c.id));
+    } catch (error) { avisarError(error, 'No se pudo eliminar la carpeta', c.nombre); }
+  };
   const [cargando, setCargando] = useState(true);
   const [eliminando, setEliminando] = useState<string | null>(null);
   const [rutaCarga, setRutaCarga] = useState<string | null>(null);
@@ -41,9 +74,9 @@ function Archivos() {
   useEffect(() => {
     let activo = true;
 
-    listarArchivos()
-      .then((resultado) => {
-        if (activo) setArchivos(resultado);
+    Promise.all([listarArchivos(), listarCarpetas()])
+      .then(([lista, directorios]) => {
+        if (activo) { setArchivos(lista); setCarpetas(directorios); }
       })
       .catch((error: Error) => {
         if (activo) avisarError(error, 'No se pudieron cargar tus archivos');
@@ -118,11 +151,11 @@ function Archivos() {
 
       <main className="dashboard-content archivos-content">
         <header className="archivos-header">
-          <div className="breadcrumbs">
-            <span>Mis Archivos</span>
-            <span>/</span>
-            <strong>Todos los archivos</strong>
-          </div>
+          <nav className="breadcrumbs" aria-label="Ruta de carpetas">
+            <button onClick={() => abrir(null)}>Mis archivos</button>
+            {rutaDe(actual, indice).map(c => <button key={c.id} onClick={() => abrir(c.id)}> / {c.nombre}</button>)}
+          </nav>
+          <div className="archivos-actions"><button className="archivo-button" onClick={() => organizar({ tipo: 'crear' })}>Nueva carpeta</button>
 
           <button
             className="archivo-button primary"
@@ -131,6 +164,7 @@ function Archivos() {
             <Icon icon="lucide:upload" />
             Cargar archivo
           </button>
+          </div>
         </header>
         <AvisosLimites almacenamiento />
 
@@ -138,13 +172,13 @@ function Archivos() {
           <section className="archivos-vacio">
             <p>Cargando tus archivos...</p>
           </section>
-        ) : archivos.length === 0 ? (
+        ) : visibles.length === 0 && hijas.length === 0 ? (
           <section className="archivos-vacio">
             <div className="vacio-icon">
               <Icon icon="lucide:folder" />
             </div>
 
-            <h2>Tu espacio está vacío</h2>
+            <h2>{actual ? 'Esta carpeta está vacía' : 'Tu espacio está vacío'}</h2>
             <p>
               Selecciona archivos para guardarlos de forma segura en Vaultly.
             </p>
@@ -158,8 +192,27 @@ function Archivos() {
             </button>
           </section>
         ) : (
-          <section className="archivos-grid">
-            {archivos.map((archivo) => (
+          <>
+          {hijas.length > 0 && <section aria-labelledby="titulo-carpetas">
+            <h2 className="grupo-titulo" id="titulo-carpetas">Carpetas</h2>
+            <div className="carpetas-grid">
+            {hijas.map(c => <article className="carpeta-fila" key={c.id}>
+              <button className="abrir-carpeta" onClick={() => abrir(c.id)}><svg aria-hidden="true" width="38" height="32" viewBox="0 0 38 32">
+                <path fill="#AE672F" d="M2 6a3 3 0 0 1 3-3h9l4 4h15a3 3 0 0 1 3 3v15H2z" />
+                <path fill="#E9AF65" stroke="#AE672F" d="M2 12a2 2 0 0 1 2-2h30a2 2 0 0 1 2 2l-2 14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z" />
+              </svg><span>{c.nombre}</span></button>
+              <div className="archivo-card-actions">
+                <button title="Renombrar carpeta" onClick={() => organizar({ tipo: 'renombrar', ...c })}><Icon icon="lucide:pencil" /></button>
+                <button title="Mover carpeta" onClick={() => organizar({ tipo: 'moverCarpeta', ...c })}><Icon icon="lucide:arrow-left-right" /></button>
+                <button title="Eliminar carpeta" onClick={() => borrarCarpeta(c)}><Icon icon="lucide:trash-2" /></button>
+              </div>
+            </article>)}
+            </div>
+          </section>}
+          {visibles.length > 0 && <section aria-labelledby="titulo-archivos">
+            <h2 className="grupo-titulo" id="titulo-archivos">Archivos</h2>
+            <div className="archivos-grid">
+            {visibles.map((archivo) => (
               <article className="archivo-card" key={archivo.id}>
                 <div className="archivo-card-top">
                   <button
@@ -191,7 +244,7 @@ function Archivos() {
                   <button
                     type="button"
                     title="Editar nombre"
-                    onClick={() => avisar({ titulo: 'Edición de nombre', mensaje: 'Esta función todavía no está disponible. Por ahora, puedes cambiar el nombre antes de subir el archivo.' })}
+                    onClick={() => organizar({ tipo: 'renombrarArchivo', id: archivo.id, nombre: archivo.nombre_original })}
                   >
                     <Icon icon="lucide:pencil" />
                   </button>
@@ -199,7 +252,7 @@ function Archivos() {
                   <button
                     type="button"
                     title="Mover archivo"
-                    onClick={() => avisar({ titulo: 'Mover archivos', mensaje: 'Esta función todavía no está disponible. Tus archivos permanecen en su ubicación actual.' })}
+                    onClick={() => organizar({ tipo: 'moverArchivo', id: archivo.id, nombre: archivo.nombre_original })}
                   >
                     <Icon icon="lucide:arrow-left-right" />
                   </button>
@@ -231,12 +284,15 @@ function Archivos() {
                 </div>
               </article>
             ))}
-          </section>
+            </div>
+          </section>}
+          </>
         )}
       </main>
 
+      {operacion && <Organizar operacion={operacion} actual={actual} indice={indice} cerrar={() => organizar(null)} guardar={guardar} />}
       {mostrarCarga && (
-        <CargaArchivos
+        <CargaArchivos carpetaId={actual}
           onClose={() => setRutaCarga(null)}
           onUploaded={archivo => setArchivos(actuales => [archivo, ...actuales.filter(a => a.id !== archivo.id)])}
         />

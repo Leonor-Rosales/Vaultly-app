@@ -107,3 +107,18 @@ test('fallo PostgreSQL después del borrado no se presenta como éxito ni se rev
   repositorio.eliminarRegistro = async () => null;
   await assert.rejects(casos.eliminar('archivo', 'propietario'), /El objeto se eliminó/);
 });
+
+test('renombrar valida el nombre y limita la edición al propietario', async () => {
+  const { casos, repositorio, calls } = fixture();
+  repositorio.actualizarNombre = async (id, usuario, nombre) => {
+    calls.push([id, usuario, nombre]);
+    return usuario === 'propietario' ? { id, nombre_original: nombre } : null;
+  };
+  for (const nombre of [' ', '../ruta', 'ruta\\archivo', 'a'.repeat(256), null]) {
+    await assert.rejects(casos.renombrar('id', 'propietario', nombre), { estado: 400 });
+  }
+  assert.deepEqual(calls, []);
+  assert.deepEqual(await casos.renombrar('id', 'propietario', '  Revisión final.pdf  '),
+    { id: 'id', nombre_original: 'Revisión final.pdf' });
+  await assert.rejects(casos.renombrar('id', 'otro', 'Ajeno.pdf'), { estado: 404 });
+});

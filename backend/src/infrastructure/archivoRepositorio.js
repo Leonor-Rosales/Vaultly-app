@@ -149,6 +149,15 @@ async function eliminarRegistro(id, usuarioId) {
 }
 
 
+async function actualizarNombre(id, usuarioId, nombre) {
+  const { rows } = await pool.query(
+    `UPDATE archivos SET nombre_original = $3, updated_at = now()
+     WHERE id = $1 AND usuario_id = $2 RETURNING id, nombre_original`,
+    [id, usuarioId, nombre]
+  );
+  return rows[0] || null;
+}
+
 async function actualizarVisibilidad(id, usuarioId, esPublica) {
   const { rows } = await pool.query(
     `UPDATE archivos
@@ -172,6 +181,7 @@ return {
   buscarPorIdYUsuario,
   registrar,
   eliminarRegistro,
+  actualizarNombre,
   actualizarVisibilidad,
   incrementarDescargas,
 };

@@ -37,6 +37,7 @@ function crearArchivosRoutes(casos, requiereAuth) {
       nombreOriginal: req.file.originalname,
       tipoMime: req.file.mimetype,
       contenido: req.file.buffer,
+      ...(req.body?.carpeta_id !== undefined && { carpetaId: req.body.carpeta_id }),
       tamanioBytes: req.file.size,
     };
     let etiquetas = [];
@@ -46,6 +47,9 @@ function crearArchivosRoutes(casos, requiereAuth) {
       catch { throw new ErrorApp('El campo etiquetas contiene JSON mal formado', 400); }
     }
     res.status(201).json(await casos.subir(req.usuario.sub, datos, req.body?.es_publica === 'true', etiquetas));
+  }));
+  router.patch('/:id/nombre', manejar('No se pudo renombrar el archivo', async (req, res) => {
+    res.json(await casos.renombrar(req.params.id, req.usuario.sub, req.body?.nombre));
   }));
   router.patch('/:id/etiquetas', manejar('No se pudieron guardar las etiquetas', async (req, res) => {
     res.json(await casos.editarEtiquetas(req.params.id, req.usuario.sub, req.body?.etiquetas));

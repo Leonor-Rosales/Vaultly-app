@@ -357,3 +357,42 @@
   }
 }
 
+
+.organizar-dialogo { width: min(26rem, 90vw); border: 1px solid #cdbdb3; border-radius: 12px; padding: 24px; margin: auto; }
+.organizar-dialogo::backdrop { background: #26190f66; }
+.organizar-dialogo form, .organizar-dialogo label { display: grid; gap: 12px; }
+.organizar-dialogo select, .organizar-dialogo input { padding: 8px; font: inherit; width: 100%; box-sizing: border-box; }
+.archivos-header, .archivos-header .breadcrumbs, .archivos-actions { flex-wrap: wrap; }
+.breadcrumbs button, .abrir-carpeta { background: transparent; color: inherit; border: 0; font: inherit; cursor: pointer; overflow-wrap: anywhere; }
+.abrir-carpeta { display: flex; gap: 10px; align-items: center; text-align: left; min-height: 48px; }
+.abrir-carpeta svg { flex-shrink: 0; }
+
+.grupo-titulo {
+  margin: 8px 0 12px;
+  font-size: 15px;
+  color: var(--cliente-text, #542818);
+}
+.carpetas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.carpeta-fila {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--cliente-border, #e8cdb7);
+  border-radius: 10px;
+  background: var(--cliente-surface, #faf5ef);
+}
+.carpeta-fila .abrir-carpeta {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cliente-text, #542818);
+}
+.abrir-carpeta:hover span { text-decoration: underline; }
+.carpeta-fila .archivo-card-actions { border: 0; gap: 2px; }
+.carpeta-fila .archivo-card-actions button { width: 28px; height: 32px; }

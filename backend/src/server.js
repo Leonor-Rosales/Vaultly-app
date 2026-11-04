@@ -62,6 +62,8 @@ app.use('/api/admin', crearAdminRoutes(crearCasosAdministracion({
   repo: crearAdminRepositorio(require('./infrastructure/db')),
   hashear: require('./infrastructure/contrasenas').hashear,
 }), requiereAuth));
+const { crearCarpetasRoutes } = require('./controllers/carpetasRoutes');
+app.use('/api/carpetas', crearCarpetasRoutes(require('./infrastructure/db'), requiereAuth));
 app.use('/api/archivos', archivosRoutes);
 app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth, pagos));
 

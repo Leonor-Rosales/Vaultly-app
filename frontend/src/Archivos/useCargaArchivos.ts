@@ -12,12 +12,13 @@ type ArchivoPendiente = {
 };
 
 type OpcionesCargaArchivos = {
+  carpetaId?: string | null;
   onClose: () => void;
   onUploaded: (archivo: Archivo) => void | Promise<void>;
 };
 
 // Coordina la cola de carga y sus resultados; la vista conserva el marcado y los estilos.
-export function useCargaArchivos({ onClose, onUploaded }: OpcionesCargaArchivos) {
+export function useCargaArchivos({ onClose, onUploaded, carpetaId }: OpcionesCargaArchivos) {
   const { avisar, avisarError } = useAvisos();
   const [etiquetas, setEtiquetas] = useState<string[]>([]);
   const [pendienteEtiqueta, setPendienteEtiqueta] = useState('');
@@ -99,7 +100,7 @@ export function useCargaArchivos({ onClose, onUploaded }: OpcionesCargaArchivos)
           const guardado = await subirArchivo(
             pendiente.file,
             visibilidad === "publico",
-            etiquetasCarga
+            etiquetasCarga, carpetaId
           );
 
           setPendientes((actuales) =>

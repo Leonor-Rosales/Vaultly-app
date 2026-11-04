@@ -33,14 +33,24 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
           });
           return repoTx.registrar({
             usuarioId, nombreOriginal, nombreObjeto, rutaMinio,
-            tamanioBytes: datos.tamanioBytes, tipoMime, esPublica, etiquetas,
+            tamanioBytes: datos.tamanioBytes, tipoMime, esPublica, etiquetas, carpetaId: datos.carpetaId ?? null,
           });
         });
       } catch (error) {
         try { await cuotas.compensarSubida(usuarioId, reserva); }
         catch (errorLimpieza) { registrarError('No se pudo limpiar el objeto; reserva pendiente:', errorLimpieza); }
+        if (datos.carpetaId !== undefined && ['23503', '22P02'].includes(error.code)) throw new ErrorApp('Carpeta de destino inválida.', 400);
         throw error;
       }
+    },
+    async renombrar(id, usuarioId, entrada) {
+      const nombre = typeof entrada === 'string' ? entrada.trim() : '';
+      if (!nombre || [...nombre].length > 255 || nombre === '.' || nombre === '..' || /[\\/\p{Cc}]/u.test(nombre)) {
+        throw new ErrorApp('Escribe un nombre de hasta 255 caracteres, sin separadores de ruta ni caracteres de control.', 400);
+      }
+      const archivo = await repositorio.actualizarNombre(id, usuarioId, nombre);
+      if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
+      return archivo;
     },
     async editarEtiquetas(id, usuarioId, entrada) {
       const etiquetas = normalizarEtiquetas(entrada);

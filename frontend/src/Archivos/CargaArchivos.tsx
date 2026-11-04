@@ -8,16 +8,17 @@ import { iconoArchivo } from './iconoArchivo';
 import "./CargaArchivos.css";
 
 type CargaArchivosProps = {
+  carpetaId?: string | null;
   onClose: () => void;
   onUploaded: (archivo: Archivo) => void | Promise<void>;
 };
 
-function CargaArchivos({ onClose, onUploaded }: CargaArchivosProps) {
+function CargaArchivos({ onClose, onUploaded, carpetaId }: CargaArchivosProps) {
   const {
     etiquetas, setEtiquetas, pendienteEtiqueta, setPendienteEtiqueta,
     errorEtiquetas, setErrorEtiquetas, pendientes, visibilidad, setVisibilidad,
     subiendo, agregarPendientes, quitarPendiente, cerrarModal, cargarPendientes,
-  } = useCargaArchivos({ onClose, onUploaded });
+  } = useCargaArchivos({ onClose, onUploaded, carpetaId });
   const inputRef = useRef<HTMLInputElement>(null);
   const [arrastrando, setArrastrando] = useState(false);
   const formatoTamano = (valor: number | string) => formatoBytes(Number(valor));

@@ -57,10 +57,12 @@ export async function listarPublicos(): Promise<Archivo[]> {
 export async function subirArchivo(
   file: File,
   esPublica: boolean = false,
-  etiquetas: string[] = []
+  etiquetas: string[] = [],
+  carpetaId: string | null = null
 ): Promise<Archivo> {
   const formulario = new FormData();
 
+  if (carpetaId) formulario.append("carpeta_id", carpetaId);
   formulario.append("archivo", file);
   formulario.append("etiquetas", JSON.stringify(etiquetas));
   formulario.append("es_publica", String(esPublica));
@@ -145,3 +147,25 @@ export function editarEtiquetas(id: string, etiquetas: string[]): Promise<Archiv
     method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ etiquetas }),
   });
 }
+
+export interface Carpeta {
+  id: string;
+  nombre: string;
+  carpeta_padre_id: string | null;
+}
+
+const json = (method: string, body: object) => ({
+  method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+});
+export const listarCarpetas = () => solicitud<Carpeta[]>('/api/carpetas');
+export const crearCarpeta = (nombre: string, padre: string | null) =>
+  solicitud<Carpeta>('/api/carpetas', json('POST', { nombre, padre }));
+export const renombrarCarpeta = (id: string, nombre: string) =>
+  solicitud<Carpeta>(`/api/carpetas/${id}/nombre`, json('PATCH', { nombre }));
+export const moverCarpeta = (id: string, padre: string | null) =>
+  solicitud<Carpeta>(`/api/carpetas/${id}/destino`, json('PATCH', { padre }));
+export const renombrarArchivo = (id: string, nombre: string) =>
+  solicitud<Pick<Archivo, 'id' | 'nombre_original'>>(`/api/archivos/${encodeURIComponent(id)}/nombre`, json('PATCH', { nombre }));
+export const moverArchivo = (id: string, padre: string | null) =>
+  solicitud<{ carpeta_id: string | null }>(`/api/carpetas/archivos/${id}/destino`, json('PATCH', { padre }));
+export const eliminarCarpeta = (id: string) => solicitud(`/api/carpetas/${id}`, { method: 'DELETE' });
