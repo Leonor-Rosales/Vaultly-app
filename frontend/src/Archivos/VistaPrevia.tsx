@@ -75,9 +75,11 @@ export default function VistaPrevia({ archivo }: { archivo: Archivo }) {
     <button className="archivo-miniatura" disabled={error || (!imagen && !pdf)}
       aria-label={`Ver vista previa de ${archivo.nombre_original}`}
       onClick={() => { setPagina(1); setAbierto(true); dialogo.current?.showModal(); }}>
-      {pdf ? <PaginaPdf pdf={pdf} pagina={1} ancho={400} /> : imagen && !error
+      <span className={pdf ? 'miniatura-imagen miniatura-papel' : 'miniatura-imagen'}>
+      {pdf ? <PaginaPdf pdf={pdf} pagina={1} ancho={540} /> : imagen && !error
         ? <img src={imagen} alt="" onError={() => setError(true)} /> : <Icon icon={iconoArchivo(archivo.nombre_original)} />}
-      <span>{error ? 'Vista previa no disponible' : pdf || imagen ? 'Ver vista previa' : 'Cargando vista previa…'}</span>
+      </span>
+      <span className="miniatura-accion">{error ? 'Vista previa no disponible' : pdf || imagen ? 'Ver vista previa' : 'Cargando vista previa…'}{!error && (pdf || imagen) && <span aria-hidden="true">↗</span>}</span>
     </button>
     <dialog ref={dialogo} className="archivo-visor" aria-label={archivo.nombre_original} onClose={() => setAbierto(false)}>
       <header><strong>{archivo.nombre_original}</strong><button autoFocus className="archivo-button" onClick={() => dialogo.current?.close()}>Cerrar</button></header>
