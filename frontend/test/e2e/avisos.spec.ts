@@ -210,7 +210,7 @@ test('administrar archivos desde un rechazo de carga permite volver a la lista',
 test('las miniaturas abren imágenes y páginas PDF y omiten formatos sin vista previa', async ({ page }) => {
   const estado = await preparar(page);
   estado.archivos.push({ ...archivo('imagen', 'portada.svg'), tipo_mime: 'image/svg+xml' },
-    { ...archivo('texto', 'notas.txt'), tipo_mime: 'text/plain' });
+    { ...archivo('zip', 'datos.zip'), tipo_mime: 'application/zip' });
   await page.setContent('<p>Portada</p><p style="break-before:page">Segunda página</p>');
   const pdf = await page.pdf();
   await page.route('**/api/archivos/propio/vista-previa', route => route.fulfill({ contentType: 'application/pdf', body: pdf }));
@@ -227,5 +227,26 @@ test('las miniaturas abren imágenes y páginas PDF y omiten formatos sin vista 
   await page.getByRole('button', { name: 'Ver vista previa de portada.svg' }).click();
   await expect(visor.getByRole('img', { name: 'portada.svg' })).toBeVisible();
   await visor.getByRole('button', { name: 'Cerrar' }).click();
-  await expect(page.getByRole('button', { name: 'Ver vista previa de notas.txt' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Ver vista previa de datos.zip' })).toHaveCount(0);
+});
+
+test('miniaturas de texto y tablas presentan HTML literal y celdas CSV y TSV', async ({ page }) => {
+  const estado = await preparar(page);
+  const muestras = [
+    { nombre: 'pagina.html', contenido: '<script>throw "no ejecutar"</script>', mime: 'text/html' },
+    { nombre: 'ventas.csv', contenido: 'Artículo,Importe\r\n"Pan, integral",5\r\n"Dos\nlíneas",8', mime: 'application/vnd.ms-excel' },
+    { nombre: 'lista.tsv', contenido: 'ID\tNombre\n1\tAna', mime: 'application/octet-stream' },
+  ];
+  estado.archivos = muestras.map(m => ({ ...archivo(m.nombre, m.nombre, m.contenido.length), tipo_mime: m.mime }));
+  for (const m of muestras) {
+    await page.route(`**/api/archivos/${m.nombre}/vista-previa`, r => r.fulfill({ contentType: 'text/plain', body: m.contenido }));
+  }
+  await page.goto('/archivos');
+  for (const m of muestras) {
+    await page.getByRole('button', { name: 'Ver vista previa de ' + m.nombre }).click();
+    const visor = page.getByRole('dialog');
+    if (m.nombre.endsWith('.html')) await expect(visor.locator('pre')).toHaveText(m.contenido);
+    else await expect(visor.getByRole('cell', { name: m.nombre.endsWith('.csv') ? 'Pan, integral' : 'Ana' })).toBeVisible();
+    await visor.getByRole('button', { name: 'Cerrar' }).click();
+  }
 });

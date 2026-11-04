@@ -1,6 +1,6 @@
 const { randomUUID } = require('crypto');
 const path = require('path');
-const tiposVistaPrevia = require('../../../shared/tipos-vista-previa.json');
+const { formatoVistaPrevia, limiteTexto } = require('../../../shared/vista-previa.mjs');
 const { normalizarEtiquetas } = require('../domain/etiquetas');
 const { ErrorApp } = require('../domain/errores');
 
@@ -62,7 +62,14 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
     async vistaPrevia(id, usuarioId) {
       const archivo = await repositorio.buscarPorIdYUsuario(id, usuarioId);
       if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
-      if (!tiposVistaPrevia.includes(archivo.tipo_mime)) throw new ErrorApp('Formato sin vista previa', 415);
+      const formato = formatoVistaPrevia(archivo.nombre_original, archivo.tipo_mime);
+      if (!formato) throw new ErrorApp('Formato sin vista previa', 415);
+      if (['texto', 'csv', 'tsv'].includes(formato)) {
+        const grande = Number(archivo.tamanio_bytes) > limiteTexto;
+        const stream = grande ? await almacenamiento.abrirInicio(archivo.nombre_objeto_minio, limiteTexto)
+          : await almacenamiento.abrir(archivo.nombre_objeto_minio);
+        return { tipo: 'text/plain', stream };
+      }
       return { tipo: archivo.tipo_mime, stream: await almacenamiento.abrir(archivo.nombre_objeto_minio) };
     },
     async descargar(id, usuarioId) {

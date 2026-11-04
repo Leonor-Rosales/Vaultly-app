@@ -130,7 +130,20 @@ test('vista previa comprueba dueño y formato antes de abrir el objeto', async (
   const previa = await casos.vistaPrevia(archivo.id, archivo.usuario_id);
   assert.equal(previa.tipo, 'application/pdf');
   previa.stream.destroy();
-  archivo.tipo_mime = 'text/html';
+  archivo.tipo_mime = 'application/zip';
   await assert.rejects(casos.vistaPrevia(archivo.id, archivo.usuario_id), { estado: 415 });
   assert.deepEqual(calls.map(([op]) => op), ['buscar', 'buscar', 'abrir', 'buscar']);
+});
+
+test('la vista previa de código grande solicita solo el prefijo y lo entrega como texto', async () => {
+  const { casos, archivo, almacenamiento } = fixture();
+  Object.assign(archivo, { nombre_original: 'ejemplo.js', tipo_mime: 'application/octet-stream', tamanio_bytes: 200000 });
+  almacenamiento.abrirInicio = async (objeto, bytes) => {
+    assert.equal(objeto, archivo.nombre_objeto_minio);
+    assert.equal(bytes, 131072);
+    return Readable.from(['const ejemplo = true;']);
+  };
+  const previa = await casos.vistaPrevia(archivo.id, archivo.usuario_id);
+  assert.equal(previa.tipo, 'text/plain');
+  assert.equal((await Array.fromAsync(previa.stream)).join(''), 'const ejemplo = true;');
 });
