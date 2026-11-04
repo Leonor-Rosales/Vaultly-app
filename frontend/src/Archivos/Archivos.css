@@ -494,3 +494,11 @@
 .lectura-texto pre { margin: 0; padding: 16px; font: 14px/1.6 monospace; }
 .lectura-texto table { border-collapse: collapse; min-width: 100%; font-size: 14px; }
 .lectura-texto :is(td, th) { padding: 6px 10px; white-space: pre; }
+
+.miniatura-medio { width: 100%; height: 100%; display: grid; place-content: center; justify-items: center; gap: 4px; color: var(--cliente-text); }
+.miniatura-medio:has(video) { display: block; overflow: hidden; background: #211d19; }
+.miniatura-medio video { width: 100%; height: 100%; object-fit: cover; }
+.miniatura-medio svg { width: 36px; height: 36px; }
+.miniatura-medio small { font-variant-numeric: tabular-nums; }
+.visor-contenido video { max-width: 100%; max-height: 65dvh; }
+.visor-contenido audio { width: min(100%, 600px); margin: 24px 0; }

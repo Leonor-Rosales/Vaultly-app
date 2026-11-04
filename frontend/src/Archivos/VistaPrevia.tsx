@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import type { PDFDocumentLoadingTask, PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import { formatoVistaPrevia, limiteTexto } from '../../../shared/vista-previa.mjs';
+import { formatoVistaPrevia, limiteTexto, tipoMultimedia } from '../../../shared/vista-previa.mjs';
 import { ContenidoTexto, leerTabla } from './ContenidoTexto';
 import { useMemo } from 'react';
 import { obtenerVistaPrevia, type Archivo } from '../services/archivos';
@@ -43,11 +43,14 @@ function ContenidoVista({ archivo, formato }: { archivo: Archivo; formato: Retur
   const zona = useRef<HTMLDivElement>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
   const [cargar, setCargar] = useState(false);
-  const [imagen, setImagen] = useState('');
+  const [duracion, setDuracion] = useState<number | null>(null);
+  const [urlObjeto, setUrlObjeto] = useState('');
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null);
   const [error, setError] = useState(false);
   const [pagina, setPagina] = useState(1);
-  const compatible = Boolean(formato);
+  const multimedia = formato === 'audio' || formato === 'video';
+  const compatible = Boolean(formato) && (!multimedia || Boolean(document.createElement(formato).canPlayType(tipoMultimedia(archivo.nombre_original, archivo.tipo_mime) ?? '')));
+  const tiempo = duracion === null ? '' : Math.floor(duracion / 60) + ':' + String(Math.floor(duracion % 60)).padStart(2, '0');
   useEffect(() => {
     if (!compatible || !zona.current) return;
     const observador = new IntersectionObserver(([entrada]) => {
@@ -57,7 +60,7 @@ function ContenidoVista({ archivo, formato }: { archivo: Archivo; formato: Retur
     return () => observador.disconnect();
   }, [compatible]);
   useEffect(() => {
-    if (!cargar) return;
+    if (!cargar || !compatible) return;
     const abortar = new AbortController();
     let url = '';
     let tarea: PDFDocumentLoadingTask | undefined;
@@ -77,29 +80,42 @@ function ContenidoVista({ archivo, formato }: { archivo: Archivo; formato: Retur
         if (!abortar.signal.aborted) setPdf(documento);
       } else if (!abortar.signal.aborted) {
         url = URL.createObjectURL(blob);
-        setImagen(url);
+        setUrlObjeto(url);
       }
     }
     preparar().catch(() => { if (!abortar.signal.aborted) setError(true); });
     return () => { abortar.abort(); if (url) URL.revokeObjectURL(url); void tarea?.destroy(); };
-  }, [archivo.id, archivo.tamanio_bytes, formato, cargar]);
+  }, [archivo.id, archivo.tamanio_bytes, formato, cargar, compatible]);
 
   const [abierto, setAbierto] = useState(false);
-  const listo = Boolean(imagen || pdf || texto !== null);
-  if (!compatible) return <div className="archivo-card-icon"><Icon icon={iconoArchivo(archivo.nombre_original)} /></div>;
+  const listo = Boolean(urlObjeto || pdf || texto !== null);
+  if (!compatible || (multimedia && error)) return <div className="archivo-card-icon"><Icon icon={iconoArchivo(archivo.nombre_original)} /></div>;
   return <div ref={zona} className="archivo-previa">
     <button className="archivo-miniatura" disabled={error || !listo}
       aria-label={`Ver vista previa de ${archivo.nombre_original}`}
       onClick={() => { setPagina(1); setAbierto(true); dialogo.current?.showModal(); }}>
       <span className={pdf ? 'miniatura-imagen miniatura-papel' : 'miniatura-imagen'}>
-      {texto !== null ? <ContenidoTexto texto={texto} tabla={tabla} miniatura /> : pdf ? <PaginaPdf pdf={pdf} pagina={1} ancho={540} /> : imagen && !error
-        ? <img src={imagen} alt="" onError={() => setError(true)} /> : <Icon icon={iconoArchivo(archivo.nombre_original)} />}
+      {multimedia && urlObjeto ? <span className="miniatura-medio">
+        {formato === 'video' ? <video src={urlObjeto} muted playsInline preload="auto" onLoadedMetadata={e => {
+          const video = e.currentTarget;
+          if (Number.isFinite(video.duration)) video.currentTime = Math.min(0.15, video.duration / 2);
+        }} onError={() => setError(true)} /> : <>
+          <Icon icon="lucide:circle-play" />
+          <audio src={urlObjeto} preload="metadata" onLoadedMetadata={e => {
+            if (Number.isFinite(e.currentTarget.duration)) setDuracion(e.currentTarget.duration);
+          }} onError={() => setError(true)} />
+          <small>{tiempo}</small>
+        </>}
+      </span> : texto !== null ? <ContenidoTexto texto={texto} tabla={tabla} miniatura /> : pdf ? <PaginaPdf pdf={pdf} pagina={1} ancho={540} /> : urlObjeto && !error
+        ? <img src={urlObjeto} alt="" onError={() => setError(true)} /> : <Icon icon={iconoArchivo(archivo.nombre_original)} />}
       </span>
-      <span className="miniatura-accion">{error ? 'Vista previa no disponible' : listo ? 'Ver vista previa' : 'Cargando vista previa…'}{!error && listo && <span aria-hidden="true">↗</span>}</span>
+      <span className="miniatura-accion">{error ? 'Vista previa no disponible' : listo ? (multimedia ? 'Reproducir' : 'Ver vista previa') : 'Cargando vista previa…'}{!error && listo && <span aria-hidden="true">↗</span>}</span>
     </button>
     <dialog ref={dialogo} className="archivo-visor" aria-label={archivo.nombre_original} onClose={() => setAbierto(false)}>
       <header><strong>{archivo.nombre_original}</strong><button autoFocus className="archivo-button" onClick={() => dialogo.current?.close()}>Cerrar</button></header>
-      {abierto && <div className="visor-contenido">{texto !== null ? <ContenidoTexto texto={texto} tabla={tabla} /> : pdf ? <PaginaPdf pdf={pdf} pagina={pagina} ancho={1400} /> : <img src={imagen} alt={archivo.nombre_original} />}</div>}
+      {abierto && <div className="visor-contenido">{formato === 'audio'
+        ? <audio src={urlObjeto} controls autoPlay />
+        : formato === 'video' ? <video src={urlObjeto} controls autoPlay playsInline /> : texto !== null ? <ContenidoTexto texto={texto} tabla={tabla} /> : pdf ? <PaginaPdf pdf={pdf} pagina={pagina} ancho={1400} /> : <img src={urlObjeto} alt={archivo.nombre_original} />}</div>}
       {texto !== null && Number(archivo.tamanio_bytes) > limiteTexto && <p>Vista parcial. Se muestran los primeros 128 KiB.</p>}
       {pdf && <footer><button className="archivo-button" disabled={pagina <= 1} onClick={() => setPagina(p => p - 1)}>Anterior</button>
         <span aria-live="polite">{pagina} de {pdf.numPages}</span>

@@ -1,6 +1,6 @@
 const { randomUUID } = require('crypto');
 const path = require('path');
-const { formatoVistaPrevia, limiteTexto } = require('../../../shared/vista-previa.mjs');
+const { formatoVistaPrevia, limiteTexto, tipoMultimedia } = require('../../../shared/vista-previa.mjs');
 const { normalizarEtiquetas } = require('../domain/etiquetas');
 const { ErrorApp } = require('../domain/errores');
 
@@ -70,7 +70,7 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
           : await almacenamiento.abrir(archivo.nombre_objeto_minio);
         return { tipo: 'text/plain', stream };
       }
-      return { tipo: archivo.tipo_mime, stream: await almacenamiento.abrir(archivo.nombre_objeto_minio) };
+      return { tipo: tipoMultimedia(archivo.nombre_original, archivo.tipo_mime) ?? archivo.tipo_mime, stream: await almacenamiento.abrir(archivo.nombre_objeto_minio) };
     },
     async descargar(id, usuarioId) {
       const reserva = await cuotas.reservarDescarga(usuarioId, id);

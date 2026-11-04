@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { test, expect, type Page } from '@playwright/test';
 
 function archivo(id = 'propio', nombre = 'informe.pdf', bytes = 20000000) {
@@ -248,5 +249,30 @@ test('miniaturas de texto y tablas presentan HTML literal y celdas CSV y TSV', a
     if (m.nombre.endsWith('.html')) await expect(visor.locator('pre')).toHaveText(m.contenido);
     else await expect(visor.getByRole('cell', { name: m.nombre.endsWith('.csv') ? 'Pan, integral' : 'Ana' })).toBeVisible();
     await visor.getByRole('button', { name: 'Cerrar' }).click();
+  }
+});
+
+test('miniaturas multimedia muestran duración y fotograma y abren el reproductor', async ({ page }) => {
+  const estado = await preparar(page);
+  const video = readFileSync(new URL('./fixtures/colores.webm', import.meta.url));
+  const wav = Buffer.alloc(44 + 8000, 128);
+  wav.write('RIFF'); wav.writeUInt32LE(wav.length - 8, 4); wav.write('WAVEfmt ', 8);
+  wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(8000, 24); wav.writeUInt32LE(8000, 28); wav.writeUInt16LE(1, 32);
+  wav.writeUInt16LE(8, 34); wav.write('data', 36); wav.writeUInt32LE(8000, 40);
+  for (const [id, mime, body] of [['voz.wav', 'audio/wav', wav], ['clip.webm', 'video/webm', Buffer.from(video)]] as const) {
+    estado.archivos.push({ ...archivo(id, id, body.length), tipo_mime: mime });
+    await page.route(`**/api/archivos/${id}/vista-previa`, r => r.fulfill({ contentType: mime, body }));
+  }
+  await page.goto('/archivos');
+  await expect(page.getByText('0:01', { exact: true })).toBeVisible();
+  await expect.poll(() => page.locator('.miniatura-medio video').evaluate((v: HTMLVideoElement) => v.readyState)).toBeGreaterThanOrEqual(2);
+  for (const [nombre, tipo] of [['voz.wav', 'audio'], ['clip.webm', 'video']]) {
+    await page.getByRole('button', { name: 'Ver vista previa de ' + nombre }).click();
+    const visor = page.getByRole('dialog');
+    await expect(visor.locator(tipo + '[controls]')).toBeVisible();
+    await expect.poll(() => visor.locator(tipo).evaluate((el: HTMLMediaElement) => el.currentTime)).toBeGreaterThan(0);
+    await visor.getByRole('button', { name: 'Cerrar' }).click();
+    await expect(page.locator('dialog ' + tipo)).toHaveCount(0);
   }
 });
