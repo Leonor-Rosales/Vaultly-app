@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Icon from './IconoAviso';
 import { actualizarConsumo, useConsumo } from '../services/consumo';
 import BarraAlmacenamiento from './BarraAlmacenamiento';
+import AvisoRenovacion from './AvisoRenovacion';
 import './Avisos.css';
 
 export default function AvisosLimites({ almacenamiento = false, descargas = false, mostrarUso = false }: { almacenamiento?: boolean; descargas?: boolean; mostrarUso?: boolean }) {
@@ -11,6 +12,7 @@ export default function AvisosLimites({ almacenamiento = false, descargas = fals
       <Icon icon="lucide:wifi-off" /><div><h2>No pudimos actualizar tu consumo</h2><p>{consumo ? 'Mostramos el último consumo conocido. Actualiza para comprobar el espacio disponible.' : 'El consumo no está disponible. Inténtalo de nuevo.'}</p></div>
       <button type="button" className="aviso-enlace" onClick={() => void actualizarConsumo().catch(() => {})}>Reintentar</button>
     </section>}
+    {consumo && <AvisoRenovacion consumo={consumo} />}
     {consumo && almacenamiento && <>
       {consumo.alertas.almacenamiento && <section className="aviso-banner" role="status">
         <Icon icon="lucide:hard-drive" /><div>

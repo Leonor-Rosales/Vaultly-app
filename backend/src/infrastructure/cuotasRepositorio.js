@@ -25,6 +25,12 @@ function crearCuotasRepositorio(pool) {
           cerrarSuscripcion: (id, estado) => client.query('UPDATE suscripciones SET estado=$2 WHERE id=$1 AND usuario_id=$3', [id, estado, usuarioId]),
           crearFree: (planId, inicio, fin) => one(`INSERT INTO suscripciones(usuario_id,plan_id,fecha_inicio,fecha_fin,estado)
             VALUES($1,$2,$3,$4,'ACTIVA') RETURNING *`, [usuarioId, planId, inicio, fin]),
+          planActivo: (id) => one('SELECT * FROM planes WHERE id=$1 AND activo', [id]),
+          crearSuscripcion: (planId, inicio, fin, renovar = false) => one(`INSERT INTO suscripciones(usuario_id,plan_id,fecha_inicio,fecha_fin,estado,renovacion_automatica)
+            VALUES($1,$2,$3,$4,'ACTIVA',$5) RETURNING *`, [usuarioId, planId, inicio, fin, renovar]),
+          registrarPago: (p) => one(`INSERT INTO pagos(id,usuario_id,plan_id,plan_nombre,monto,metodo,estado,codigo,creado_en)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+          [p.id, usuarioId, p.planId, p.planNombre, p.monto, p.metodo, p.estado, p.codigo, p.fecha]),
           async ciclo(inicio, fin) {
             await client.query('INSERT INTO ciclos_descargas(usuario_id,inicio,fin) VALUES($1,$2,$3) ON CONFLICT DO NOTHING', [usuarioId, inicio, fin]);
             return one('SELECT * FROM ciclos_descargas WHERE usuario_id=$1 AND inicio=$2', [usuarioId, inicio]);

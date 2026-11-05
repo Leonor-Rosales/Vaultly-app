@@ -22,8 +22,13 @@ function crearPagosRepositorio(pool) {
           activa: () => one("SELECT * FROM suscripciones WHERE usuario_id=$1 AND estado='ACTIVA'", [usuarioId]),
           cerrarSuscripcion: (id) => client.query(
             "UPDATE suscripciones SET estado='VENCIDA' WHERE id=$1 AND usuario_id=$2", [id, usuarioId]),
-          crearSuscripcion: (planId, inicio, fin) => one(`INSERT INTO suscripciones(usuario_id,plan_id,fecha_inicio,fecha_fin,estado)
-            VALUES($1,$2,$3,$4,'ACTIVA') RETURNING *`, [usuarioId, planId, inicio, fin]),
+          crearSuscripcion: (planId, inicio, fin, renovar = false) => one(`INSERT INTO suscripciones(usuario_id,plan_id,fecha_inicio,fecha_fin,estado,renovacion_automatica)
+            VALUES($1,$2,$3,$4,'ACTIVA',$5) RETURNING *`, [usuarioId, planId, inicio, fin, renovar]),
+          // Solo cambia la suscripción de pago vigente; devuelve null si no hay una.
+          actualizarRenovacion: (renovar) => one(`UPDATE suscripciones s SET renovacion_automatica=$2
+            FROM planes p WHERE p.id=s.plan_id AND s.usuario_id=$1 AND s.estado='ACTIVA'
+            AND s.fecha_inicio <= $3 AND s.fecha_fin > $3 AND p.precio_mensual > 0
+            RETURNING s.fecha_fin, s.renovacion_automatica`, [usuarioId, renovar, tiempo.ahora]),
           usados: async () => Number((await one('SELECT COALESCE(SUM(tamanio_bytes),0) AS n FROM archivos WHERE usuario_id=$1', [usuarioId])).n),
           reservados: async () => Number((await one('SELECT COALESCE(SUM(bytes),0) AS n FROM reservas_subida WHERE usuario_id=$1', [usuarioId])).n),
           registrarPago: (p) => one(`INSERT INTO pagos(id,usuario_id,plan_id,plan_nombre,monto,metodo,estado,codigo,creado_en)

@@ -1,6 +1,7 @@
 const { randomUUID } = require('crypto');
 const { ErrorApp } = require('../domain/errores');
 const { policy, vigente } = require('../domain/cuotas');
+const { codigoTransaccion, sumarMes } = require('../domain/renovacion');
 
 const METODOS = { tarjeta: 'TARJETA' }; // solo tarjeta simulada; pagos viejos con transferencia se siguen mostrando
 
@@ -14,21 +15,14 @@ const presentar = (p) => ({
   estado: p.estado === 'COMPLETADO' ? 'Completado' : 'Pendiente',
 });
 
-const codigoTransaccion = () => `VLT-${randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()}`;
-const sumarMes = (fecha) => {
-  const fin = new Date(fecha);
-  fin.setUTCMonth(fin.getUTCMonth() + 1);
-  return fin;
-};
-
 /**
  * Puerto repo: conUsuario(id, fn) con tx.plan, activa, cerrarSuscripcion, crearSuscripcion,
- * usados, reservados, registrarPago, listarPagos (ver pagosRepositorio).
+ * usados, reservados, registrarPago, listarPagos, actualizarRenovacion (ver pagosRepositorio).
  * El cobro es SIMULADO: no se reciben ni guardan datos de tarjeta; el monto sale del plan en DB.
  */
 function crearCasosPagos({ repo }) {
   return {
-    contratar: (usuarioId, { planId, metodo } = {}) => {
+    contratar: (usuarioId, { planId, metodo, renovar } = {}) => {
       const id = Number(planId);
       if (!Number.isInteger(id) || id <= 0) throw new ErrorApp('Plan inválido.', 400, 'PLAN_INVALIDO');
       const metodoDb = Object.hasOwn(METODOS, metodo) ? METODOS[metodo] : undefined;
@@ -50,12 +44,21 @@ function crearCasosPagos({ repo }) {
         }
 
         if (activa) await tx.cerrarSuscripcion(activa.id);
-        await tx.crearSuscripcion(plan.id, tx.ahora, sumarMes(tx.ahora));
+        await tx.crearSuscripcion(plan.id, tx.ahora, sumarMes(tx.ahora), renovar === true);
         const pago = await tx.registrarPago({
           id: randomUUID(), planId: plan.id, planNombre: plan.nombre, monto,
           metodo: metodoDb, estado: 'COMPLETADO', codigo: codigoTransaccion(), fecha: tx.ahora,
         });
         return presentar(pago);
+      });
+    },
+    // Activa o desactiva la renovación automática de la suscripción de pago vigente.
+    configurarRenovacion: (usuarioId, { renovar } = {}) => {
+      if (typeof renovar !== 'boolean') throw new ErrorApp('Indica si quieres renovar o no.', 400, 'RENOVACION_INVALIDA');
+      return repo.conUsuario(usuarioId, async (tx) => {
+        const suscripcion = await tx.actualizarRenovacion(renovar);
+        if (!suscripcion) throw new ErrorApp('No tienes una suscripción de pago vigente.', 409, 'SIN_SUSCRIPCION_DE_PAGO');
+        return { renovacionAutomatica: suscripcion.renovacion_automatica, fechaFin: new Date(suscripcion.fecha_fin).toISOString() };
       });
     },
     historial: (usuarioId) => repo.conUsuario(usuarioId, async (tx) => (await tx.listarPagos()).map(presentar)),

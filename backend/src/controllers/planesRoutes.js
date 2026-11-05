@@ -18,6 +18,7 @@ function crearPlanesRoutes(casos, requiereAuth, pagos) {
   router.get('/mi-consumo', responder(req => casos.consultar(req.usuario.sub)));
   if (pagos) {
     router.get('/pagos', responder(req => pagos.historial(req.usuario.sub), 'No se pudo consultar tu historial de pagos.'));
+    router.patch('/renovacion', responder(req => pagos.configurarRenovacion(req.usuario.sub, req.body), 'No se pudo actualizar la renovación de tu plan.'));
     router.post('/contratar', responder(req => pagos.contratar(req.usuario.sub, req.body), 'No se pudo completar la contratación. No se realizó ningún cobro.'));
   }
   return router;

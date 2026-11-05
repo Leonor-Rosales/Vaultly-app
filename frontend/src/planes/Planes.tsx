@@ -4,10 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { avisosCliente as toast } from '../cuenta/avisos';
 import { obtenerCatalogo } from "../services/consumo";
 import Sidebar from "../components/Sidebar";
-import { obtenerPlanActual, type PlanActual } from "../services/pagos";
+import { configurarRenovacion, obtenerPlanActual, type PlanActual } from "../services/pagos";
 import { formatPrecio, textoDescargas, type Plan } from "./planesData";
 import "../dashboard/Dashboard.css";
 import "./Planes.css";
+import "./Renovacion.css";
 
 function Planes() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ function Planes() {
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [guardando, setGuardando] = useState(false);
   const cargarCatalogo = () => {
     setCargando(true);
     setError('');
@@ -25,6 +27,18 @@ function Planes() {
     obtenerCatalogo().then(setPlanes).catch(e => setError(e.message)).finally(() => setCargando(false));
   }, []);
   const planActual = planes.find(plan => plan.id === actual?.planId);
+  const cambiarRenovacion = async () => {
+    if (!actual) return;
+    const renovar = !actual.renovacionAutomatica;
+    setGuardando(true);
+    try {
+      await configurarRenovacion(renovar);
+      setActual(await obtenerPlanActual());
+      toast.success(renovar ? 'Renovación automática activada' : 'Renovación automática desactivada');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'No se pudo actualizar la renovación.');
+    } finally { setGuardando(false); }
+  };
 
   return (
     <div className="dashboard-page planes-page">
@@ -44,8 +58,18 @@ function Planes() {
           <span className="planes-membership-icon"><Icon icon="lucide:hard-drive" aria-hidden="true" /></span>
           <div className="planes-membership-name"><span>Tu plan actual</span><strong>{planActual.nombre}</strong></div>
           <div className="planes-membership-detail"><span>Almacenamiento</span><strong>{planActual.almacenamientoGb} GB</strong></div>
-          <div className="planes-membership-detail"><span>Fin del ciclo</span><strong>{actual.renovacion}</strong></div>
+          <div className="planes-membership-detail"><span>{actual.venceEl ? 'Vence el' : 'Fin del ciclo'}</span><strong>{actual.venceEl ?? actual.renovacion}</strong></div>
           <span className="planes-status"><Icon icon="lucide:check" aria-hidden="true" /> Plan actual</span>
+        </section>}
+
+        {planActual && actual?.venceEl && <section className="planes-renovacion" aria-label="Renovación del plan">
+          <div>
+            <strong>{actual.renovacionAutomatica ? 'Renovación automática activada' : 'Renovación automática desactivada'}</strong>
+            <span>{actual.renovacionAutomatica ? `Tu plan se renovará el ${actual.venceEl} con un pago simulado.` : `Si no lo renuevas, el ${actual.venceEl} volverás al plan Free.`}</span>
+          </div>
+          <button type="button" className="planes-history" disabled={guardando} onClick={() => void cambiarRenovacion()}>
+            {actual.renovacionAutomatica ? 'No renovar' : 'Renovar automáticamente'}
+          </button>
         </section>}
 
         <div className="planes-section-heading"><h2>Encuentra tu próximo espacio</h2><p>Compara almacenamiento y descargas mensuales.</p></div>
@@ -66,7 +90,7 @@ function Planes() {
                 <button type="button" className={`plan-button${esActual ? ' current' : ''}`} disabled={esActual} onClick={() => navigate(`/planes/contratar?plan=${plan.id}`)}>
                   {esActual ? 'Plan Actual' : 'Contratar Plan'}<Icon icon={esActual ? 'lucide:check' : 'lucide:arrow-right'} aria-hidden="true" />
                 </button>
-                {esActual && actual && <span className="plan-renewal">Fin del ciclo: {actual.renovacion}</span>}
+                {esActual && actual && <span className="plan-renewal">{actual.venceEl ? 'Vence el' : 'Fin del ciclo'}: {actual.venceEl ?? actual.renovacion}</span>}
               </article>;
             })}
           </section>}

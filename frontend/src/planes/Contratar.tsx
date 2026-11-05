@@ -5,6 +5,7 @@ import { avisosCliente as toast } from '../cuenta/avisos';
 import { contratarPlan, type MetodoPago } from "../services/pagos";
 import { formatPrecio, textoDescargas, type Plan } from "./planesData";
 import "./Contratar.css";
+import "./Renovacion.css";
 import { obtenerCatalogo } from "../services/consumo";
 
 const soloDigitos = (valor: string): string => valor.replace(/\D/g, "");
@@ -54,6 +55,9 @@ function Contratar() {
   const [vencimiento, setVencimiento] = useState("");
   const [cvv, setCvv] = useState("");
 
+  // Renovación automática: opcional y desactivada por defecto.
+  const [renovar, setRenovar] = useState(false);
+
   // Sin un plan válido en la URL no hay nada que contratar.
   if (planes === null) return <p>Cargando plan…</p>;
   if (!plan) return <Navigate to="/planes" replace />;
@@ -78,8 +82,8 @@ function Contratar() {
     setEnviando(true);
     try {
       // Solo se envían el plan y el método, nunca los datos de la tarjeta.
-      await contratarPlan({ planId: plan.id, metodo: METODO });
-      toast.success(`Plan ${plan.nombre} contratado`);
+      await contratarPlan({ planId: plan.id, metodo: METODO, renovar });
+      toast.success(`Plan ${plan.nombre} contratado${renovar ? " con renovación automática" : ""}`);
       navigate("/planes/historial");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No se pudo completar la contratación.");
@@ -211,6 +215,14 @@ function Contratar() {
             {mostrar(errores.cvv) && <p className="ct-error">3 o 4 dígitos</p>}
           </div>
         </div>
+
+        <label className="ct-renovar">
+          <input type="checkbox" checked={renovar} onChange={(e) => setRenovar(e.target.checked)} />
+          <span>
+            <strong>Renovar automáticamente cada mes</strong>
+            <small>Si no la marcas, al vencer tu plan volverás al plan Free. Puedes cambiarlo cuando quieras desde Planes.</small>
+          </span>
+        </label>
 
         <div className="ct-actions">
           <button type="submit" className="ct-primary" disabled={enviando}>

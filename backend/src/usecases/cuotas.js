@@ -1,6 +1,7 @@
 const { randomUUID } = require('crypto');
 const { ErrorApp } = require('../domain/errores');
 const { policy, cicloMensual, vigente, comprobarEspacio, resumen } = require('../domain/cuotas');
+const { codigoTransaccion, sumarMes, debeRenovar } = require('../domain/renovacion');
 
 /**
  * Puerto repo: listarPlanes(), usuariosConReservasVencidas(), conUsuario(id, fn).
@@ -13,26 +14,45 @@ const { policy, cicloMensual, vigente, comprobarEspacio, resumen } = require('..
  */
 function crearCasosCuotas({ repo, almacenamiento }) {
   const vencimiento = (ahora) => new Date(+ahora + policy.reservationMinutes * 60000);
+  // Renovación automática simulada: se cobra de nuevo el mismo plan por un mes más.
+  // Corre dentro de la transacción con bloqueo del usuario, así que no se renueva dos veces.
+  async function renovar(tx, vencida) {
+    if (vencida.renovacion_automatica !== true) return null;
+    const planActivo = await tx.planActivo(vencida.plan_id);
+    if (!debeRenovar(vencida, planActivo, tx.ahora)) return null;
+    await tx.cerrarSuscripcion(vencida.id, 'VENCIDA');
+    const suscripcion = await tx.crearSuscripcion(planActivo.id, tx.ahora, sumarMes(tx.ahora), true);
+    await tx.registrarPago({
+      id: randomUUID(), planId: planActivo.id, planNombre: planActivo.nombre, monto: Number(planActivo.precio_mensual),
+      metodo: 'TARJETA', estado: 'COMPLETADO', codigo: codigoTransaccion(), fecha: tx.ahora,
+    });
+    return { plan: planActivo, suscripcion };
+  }
   async function contexto(tx) {
     let suscripcion = await tx.activa();
     const ciclo = cicloMensual(tx.ahora);
     let plan;
     if (!vigente(suscripcion, tx.ahora)) {
-      if (suscripcion) await tx.cerrarSuscripcion(suscripcion.id,
-        new Date(suscripcion.fecha_inicio) > tx.ahora ? 'PENDIENTE' : 'VENCIDA');
-      plan = await tx.free();
-      if (!plan) throw new ErrorApp('No está disponible el plan Free. Contacta al administrador.', 503, 'PLAN_NO_DISPONIBLE');
-      suscripcion = await tx.crearFree(plan.id, tx.ahora, ciclo.fin);
+      const renovada = suscripcion ? await renovar(tx, suscripcion) : null;
+      if (renovada) {
+        ({ plan, suscripcion } = renovada);
+      } else {
+        if (suscripcion) await tx.cerrarSuscripcion(suscripcion.id,
+          new Date(suscripcion.fecha_inicio) > tx.ahora ? 'PENDIENTE' : 'VENCIDA');
+        plan = await tx.free();
+        if (!plan) throw new ErrorApp('No está disponible el plan Free. Contacta al administrador.', 503, 'PLAN_NO_DISPONIBLE');
+        suscripcion = await tx.crearFree(plan.id, tx.ahora, ciclo.fin);
+      }
     } else {
       plan = { ...suscripcion, id: suscripcion.plan_id };
     }
-    return { plan, ciclo: await tx.ciclo(ciclo.inicio, ciclo.fin) };
+    return { plan, suscripcion, ciclo: await tx.ciclo(ciclo.inicio, ciclo.fin) };
   }
   const casos = {
     catalogo: () => repo.listarPlanes(),
     consultar: (usuarioId) => repo.conUsuario(usuarioId, async tx => {
-      const { plan, ciclo } = await contexto(tx);
-      return resumen(plan, ciclo, await tx.usados(), await tx.reservados());
+      const { plan, ciclo, suscripcion } = await contexto(tx);
+      return resumen(plan, ciclo, await tx.usados(), await tx.reservados(), suscripcion);
     }),
     reservarSubida: (usuarioId, nombreObjeto, bytes) => repo.conUsuario(usuarioId, async tx => {
       const { plan } = await contexto(tx);
