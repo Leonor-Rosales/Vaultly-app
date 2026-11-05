@@ -6,6 +6,7 @@ import { formatoVistaPrevia, limiteTexto, tipoMultimedia } from '../../../shared
 import { ContenidoTexto, leerTabla } from './ContenidoTexto';
 import { useMemo } from 'react';
 import { obtenerVistaPrevia, type Archivo } from '../services/archivos';
+import { ContenidoOffice, type DocumentoOffice } from './ContenidoOffice';
 import { iconoArchivo } from './iconoArchivo';
 
 function PaginaPdf({ pdf, pagina, ancho }: { pdf: PDFDocumentProxy; pagina: number; ancho: number }) {
@@ -37,6 +38,7 @@ export default function VistaPrevia({ archivo }: { archivo: Archivo }) {
 }
 
 function ContenidoVista({ archivo, formato }: { archivo: Archivo; formato: ReturnType<typeof formatoVistaPrevia> }) {
+  const [office, setOffice] = useState<DocumentoOffice | null>(null);
   const [texto, setTexto] = useState<string | null>(null);
   const tabla = useMemo(() => texto !== null && (formato === 'csv' || formato === 'tsv')
     ? leerTabla(texto, formato) : null, [texto, formato]);
@@ -66,7 +68,11 @@ function ContenidoVista({ archivo, formato }: { archivo: Archivo; formato: Retur
     let tarea: PDFDocumentLoadingTask | undefined;
     async function preparar() {
       const blob = await obtenerVistaPrevia(archivo.id, abortar.signal);
-      if (formato === 'texto' || formato === 'csv' || formato === 'tsv') {
+      if (formato === 'docx' || formato === 'xlsx') {
+        const { leerOffice } = await import('./leerOffice');
+        const documento = await leerOffice(await blob.arrayBuffer(), formato);
+        if (!abortar.signal.aborted) setOffice(documento);
+      } else if (formato === 'texto' || formato === 'csv' || formato === 'tsv') {
         const datos = await blob.arrayBuffer();
         const contenido = new TextDecoder('utf-8', { fatal: true }).decode(datos, { stream: Number(archivo.tamanio_bytes) > limiteTexto });
         if (contenido.includes('\0')) throw new Error('Contenido binario');
@@ -88,14 +94,14 @@ function ContenidoVista({ archivo, formato }: { archivo: Archivo; formato: Retur
   }, [archivo.id, archivo.tamanio_bytes, formato, cargar, compatible]);
 
   const [abierto, setAbierto] = useState(false);
-  const listo = Boolean(urlObjeto || pdf || texto !== null);
+  const listo = Boolean(office || urlObjeto || pdf || texto !== null);
   if (!compatible || (multimedia && error)) return <div className="archivo-card-icon"><Icon icon={iconoArchivo(archivo.nombre_original)} /></div>;
   return <div ref={zona} className="archivo-previa">
     <button className="archivo-miniatura" disabled={error || !listo}
       aria-label={`Ver vista previa de ${archivo.nombre_original}`}
       onClick={() => { setPagina(1); setAbierto(true); dialogo.current?.showModal(); }}>
       <span className={pdf ? 'miniatura-imagen miniatura-papel' : 'miniatura-imagen'}>
-      {multimedia && urlObjeto ? <span className="miniatura-medio">
+      {office ? <ContenidoOffice documento={office} miniatura /> : multimedia && urlObjeto ? <span className="miniatura-medio">
         {formato === 'video' ? <video src={urlObjeto} muted playsInline preload="auto" onLoadedMetadata={e => {
           const video = e.currentTarget;
           if (Number.isFinite(video.duration)) video.currentTime = Math.min(0.15, video.duration / 2);
@@ -113,7 +119,7 @@ function ContenidoVista({ archivo, formato }: { archivo: Archivo; formato: Retur
     </button>
     <dialog ref={dialogo} className="archivo-visor" aria-label={archivo.nombre_original} onClose={() => setAbierto(false)}>
       <header><strong>{archivo.nombre_original}</strong><button autoFocus className="archivo-button" onClick={() => dialogo.current?.close()}>Cerrar</button></header>
-      {abierto && <div className="visor-contenido">{formato === 'audio'
+      {abierto && <div className="visor-contenido">{office ? <ContenidoOffice documento={office} /> : formato === 'audio'
         ? <audio src={urlObjeto} controls autoPlay />
         : formato === 'video' ? <video src={urlObjeto} controls autoPlay playsInline /> : texto !== null ? <ContenidoTexto texto={texto} tabla={tabla} /> : pdf ? <PaginaPdf pdf={pdf} pagina={pagina} ancho={1400} /> : <img src={urlObjeto} alt={archivo.nombre_original} />}</div>}
       {texto !== null && Number(archivo.tamanio_bytes) > limiteTexto && <p>Vista parcial. Se muestran los primeros 128 KiB.</p>}

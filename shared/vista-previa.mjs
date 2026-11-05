@@ -19,6 +19,9 @@ export function formatoVistaPrevia(nombre, tipo) {
   const mime = tipo.toLowerCase().split(';')[0].trim();
   const ext = /\.([^.]+)$/.exec(nombre.toLowerCase())?.[1];
   if (['zip', 'exe', 'msi', 'dll', 'rar', '7z', 'tar', 'gz'].includes(ext)) return null;
+  if (mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'docx';
+  if (mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') return 'xlsx';
+  if ((!mime || mime === 'application/octet-stream' || mime === 'application/zip') && ['docx', 'xlsx'].includes(ext)) return ext;
   if (tipos.includes(mime)) return mime === 'application/pdf' ? 'pdf' : 'imagen';
   const medio = tipoMultimedia(nombre, tipo);
   if (medio) return medio.startsWith('audio/') ? 'audio' : 'video';

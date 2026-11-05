@@ -276,3 +276,32 @@ test('miniaturas multimedia muestran duración y fotograma y abren el reproducto
     await expect(page.locator('dialog ' + tipo)).toHaveCount(0);
   }
 });
+
+test('miniaturas Office abren DOCX y hojas XLSX y manejan archivos dañados', async ({ page }) => {
+  const { default: ExcelJS } = await import('exceljs');
+  const libro = new ExcelJS.Workbook();
+  libro.addWorksheet('Ventas').addRows([['Producto', 'Total'], ['Café', { formula: '2+3', result: 5 }]]);
+  libro.addWorksheet('Resumen').addRows([['Estado'], ['Completado']]);
+  const estado = await preparar(page);
+  const muestras = [
+    { nombre: 'informe.docx', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', body: readFileSync(new URL('./fixtures/documento.docx', import.meta.url)) },
+    { nombre: 'ventas.xlsx', mime: 'application/octet-stream', body: Buffer.from(await libro.xlsx.writeBuffer()) },
+    { nombre: 'roto.docx', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', body: Buffer.from('dañado') },
+  ];
+  estado.archivos = muestras.map(m => ({ ...archivo(m.nombre, m.nombre, m.body.length), tipo_mime: m.mime }));
+  for (const m of muestras) await page.route(`**/api/archivos/${m.nombre}/vista-previa`, r => r.fulfill({ body: m.body, contentType: m.mime }));
+  await page.goto('/archivos');
+  await page.getByRole('button', { name: 'Ver vista previa de informe.docx' }).click();
+  const visor = page.getByRole('dialog');
+  await expect(visor.getByText('Contenido del documento con acentos.')).toBeVisible();
+  await expect(visor.getByRole('cell', { name: 'Celda del documento' })).toBeVisible();
+  await visor.getByRole('button', { name: 'Cerrar' }).click();
+  await page.getByRole('button', { name: 'Ver vista previa de ventas.xlsx' }).click();
+  await expect(visor.getByRole('cell', { name: 'Café' })).toBeVisible();
+  await expect(visor.getByRole('cell', { name: '5', exact: true })).toBeVisible();
+  await visor.getByLabel('Hoja', { exact: true }).selectOption({ label: 'Resumen' });
+  await expect(visor.getByRole('cell', { name: 'Completado' })).toBeVisible();
+  await visor.getByRole('button', { name: 'Cerrar' }).click();
+  await expect(page.getByRole('button', { name: 'Ver vista previa de roto.docx' })).toBeDisabled();
+  await expect(page.getByText('Vista previa no disponible')).toBeVisible();
+});
