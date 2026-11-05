@@ -268,7 +268,9 @@ test('miniaturas multimedia muestran duración y fotograma y abren el reproducto
   await expect(page.getByText('0:01', { exact: true })).toBeVisible();
   await expect.poll(() => page.locator('.miniatura-medio video').evaluate((v: HTMLVideoElement) => v.readyState)).toBeGreaterThanOrEqual(2);
   for (const [nombre, tipo] of [['voz.wav', 'audio'], ['clip.webm', 'video']]) {
-    await page.getByRole('button', { name: 'Ver vista previa de ' + nombre }).click();
+    const miniatura = page.getByRole('button', { name: 'Ver vista previa de ' + nombre });
+    await miniatura.scrollIntoViewIfNeeded();
+    await miniatura.click();
     const visor = page.getByRole('dialog');
     await expect(visor.locator(tipo + '[controls]')).toBeVisible();
     await expect.poll(() => visor.locator(tipo).evaluate((el: HTMLMediaElement) => el.currentTime)).toBeGreaterThan(0);
@@ -322,4 +324,50 @@ test('la conversión fallida permite reintentar y sigue mostrando descarga del o
   await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
   await expect(page.getByText('Preparando vista previa…')).toBeVisible();
   await expect(page.getByTitle('Descargar archivo', { exact: true })).toBeEnabled();
+});
+
+test('Biblioteca abre los mismos visores gratuitamente y mantiene íconos sin vista previa', async ({ page }) => {
+  const estado = await preparar(page);
+  estado.restantes = 0;
+  await page.setContent('<h1>Documento público</h1>');
+  const pdf = await page.pdf();
+  const png = await page.screenshot();
+  const muestras = [
+    ['Guía.pdf', 'application/pdf'],
+    ['Notas.txt', 'text/plain'],
+    ['Datos.csv', 'text/csv'],
+    ['Portada.png', 'image/png'],
+    ['Documento.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    ['Libro.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+    ['Archivo.zip', 'application/zip'],
+  ];
+  let descargas = 0;
+  await page.route('**/api/biblioteca/archivos?*', r => r.fulfill({ json: {
+    items: muestras.map(([nombre, mime], i) => ({ ...archivo(String(i), nombre, 100), tipo_mime: mime, tamanio_bytes: '100',
+      descargas: 7, autor: { id: 'otro', nombre_completo: 'Ana Martínez' } })),
+    total: muestras.length, pagina: 1, por_pagina: 12,
+  } }));
+  await page.route('**/api/archivos/*/descargar', r => { descargas++; return r.fulfill({ body: 'descarga' }); });
+  await page.route('**/api/archivos/*/estado-vista-previa', r => r.fulfill({ json: { estado: 'LISTA' } }));
+  await page.route('**/api/archivos/*/miniatura', r => r.fulfill({ body: png, contentType: 'image/png' }));
+  await page.route('**/api/archivos/*/vista-previa', r => {
+    const id = new URL(r.request().url()).pathname.split('/')[3];
+    if (id === '1') return r.fulfill({ body: 'Notas de Biblioteca', contentType: 'text/plain' });
+    if (id === '2') return r.fulfill({ body: 'Nombre,Total\nAna,5', contentType: 'text/plain' });
+    return r.fulfill({ body: id === '3' ? png : pdf, contentType: id === '3' ? 'image/png' : 'application/pdf' });
+  });
+  await page.goto('/biblioteca');
+  for (const [nombre] of muestras.slice(0, 6)) {
+    const miniatura = page.getByRole('button', { name: 'Ver vista previa de ' + nombre });
+    await miniatura.scrollIntoViewIfNeeded();
+    await miniatura.click();
+    const visor = page.getByRole('dialog', { name: nombre });
+    await expect(visor).toBeVisible();
+    if (/pdf|docx|xlsx$/.test(nombre)) await expect(visor.locator('canvas')).toBeVisible();
+    if (nombre.endsWith('.csv')) await expect(visor.getByRole('cell', { name: 'Ana', exact: true })).toBeVisible();
+    await visor.getByRole('button', { name: 'Cerrar' }).click();
+  }
+  expect(descargas).toBe(0);
+  await expect(page.getByRole('button', { name: 'Ver vista previa de Archivo.zip' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Descargar Archivo.zip', exact: true })).toBeVisible();
 });

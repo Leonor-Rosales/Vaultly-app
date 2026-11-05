@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { PDFDocumentLoadingTask, PDFDocumentProxy } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { Icon } from '@iconify/react';
-import { estadoVistaPrevia, obtenerVistaPrevia, reintentarVistaPrevia, type Archivo, type EstadoVistaPrevia } from '../services/archivos';
+import { estadoVistaPrevia, obtenerVistaPrevia, reintentarVistaPrevia, type ArchivoVistaPrevia, type EstadoVistaPrevia } from '../services/archivos';
 import PaginaPdf from './PaginaPdf';
 
 function DocumentoConvertido({ id }: { id: string }) {
@@ -34,7 +34,7 @@ function DocumentoConvertido({ id }: { id: string }) {
   </>;
 }
 
-export default function VistaPreviaOffice({ archivo }: { archivo: Archivo }) {
+export default function VistaPreviaOffice({ archivo, permitirReintento }: { archivo: ArchivoVistaPrevia; permitirReintento: boolean }) {
   const zona = useRef<HTMLDivElement>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
   const [visible, setVisible] = useState(false);
@@ -94,7 +94,7 @@ export default function VistaPreviaOffice({ archivo }: { archivo: Archivo }) {
       </span>
       <span className="miniatura-accion">{imagen ? 'Ver vista previa ↗' : error || estado === 'FALLIDA' ? 'Vista previa no disponible' : 'Preparando vista previa…'}</span>
     </button>
-    {(error || estado === 'FALLIDA') && <button className="previa-reintentar" disabled={reintentando}
+    {(error || (estado === 'FALLIDA' && permitirReintento)) && <button className="previa-reintentar" disabled={reintentando}
       title={error || 'Volver a preparar el documento'} onClick={estado === 'FALLIDA' ? reintentar : () => setRevision(v => v + 1)}>
       {reintentando ? 'Solicitando…' : 'Reintentar'}
     </button>}

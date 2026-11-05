@@ -84,3 +84,8 @@
 
 .biblioteca-todos{min-height:38px;padding:7px 18px;border:1px solid var(--cliente-border);border-radius:20px;background:transparent;color:var(--cliente-text);font-size:13px;font-weight:600}
 .biblioteca-todos[aria-pressed=true]{border-color:var(--cliente-accent);background:var(--cliente-accent);color:var(--cliente-on-accent)}
+
+.biblioteca-previa { margin: -20px -20px 16px; border-radius: 12px 12px 0 0; overflow: hidden; }
+.biblioteca-previa .archivo-previa { margin: 0; }
+.biblioteca-previa .archivo-miniatura { height: 180px; }
+.biblioteca-tarjeta:has(.biblioteca-previa) .biblioteca-tarjeta-superior { margin-bottom: 10px; }

@@ -4,8 +4,9 @@ const { formatoVistaPrevia } = require('../../../shared/vista-previa.mjs');
 const objetos = id => ({ pdf: `vistas-previas/${id}/documento.pdf`, miniatura: `vistas-previas/${id}/miniatura.png` });
 
 function crearCasosVistasPrevias({ archivos, repo, almacenamiento, convertir, registrarError = console.error }) {
-  async function autorizar(id, usuarioId) {
-    const archivo = await archivos.buscarPorIdYUsuario(id, usuarioId);
+  async function autorizar(id, usuarioId, soloPropietario = false) {
+    const archivo = soloPropietario ? await archivos.buscarPorIdYUsuario(id, usuarioId)
+      : await archivos.buscarDescargable(id, usuarioId);
     if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
     if (!['docx', 'xlsx'].includes(formatoVistaPrevia(archivo.nombre_original, archivo.tipo_mime))) {
       throw new ErrorApp('Este formato no requiere conversión', 415);
@@ -17,7 +18,7 @@ function crearCasosVistasPrevias({ archivos, repo, almacenamiento, convertir, re
       return await repo.consultar(id) || { estado: 'PENDIENTE' };
     },
     async reintentar(id, usuarioId) {
-      await autorizar(id, usuarioId);
+      await autorizar(id, usuarioId, true);
       await repo.reintentar(id);
       return await repo.consultar(id) || { estado: 'PENDIENTE' };
     },

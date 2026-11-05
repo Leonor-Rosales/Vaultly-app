@@ -5,18 +5,19 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { formatoVistaPrevia, limiteTexto, tipoMultimedia } from '../../../shared/vista-previa.mjs';
 import { ContenidoTexto, leerTabla } from './ContenidoTexto';
 import { useMemo } from 'react';
-import { obtenerVistaPrevia, type Archivo } from '../services/archivos';
+import { obtenerVistaPrevia, type ArchivoVistaPrevia } from '../services/archivos';
 import VistaPreviaOffice from './VistaPreviaOffice';
 import PaginaPdf from './PaginaPdf';
+import './Archivos.css';
 import { iconoArchivo } from './iconoArchivo';
 
-export default function VistaPrevia({ archivo }: { archivo: Archivo }) {
+export default function VistaPrevia({ archivo, permitirReintento = true }: { archivo: ArchivoVistaPrevia; permitirReintento?: boolean }) {
   const formato = formatoVistaPrevia(archivo.nombre_original, archivo.tipo_mime);
-  if (formato === 'docx' || formato === 'xlsx') return <VistaPreviaOffice archivo={archivo} />;
+  if (formato === 'docx' || formato === 'xlsx') return <VistaPreviaOffice archivo={archivo} permitirReintento={permitirReintento} />;
   return <ContenidoVista key={formato} archivo={archivo} formato={formato} />;
 }
 
-function ContenidoVista({ archivo, formato }: { archivo: Archivo; formato: ReturnType<typeof formatoVistaPrevia> }) {
+function ContenidoVista({ archivo, formato }: { archivo: ArchivoVistaPrevia; formato: ReturnType<typeof formatoVistaPrevia> }) {
   const [texto, setTexto] = useState<string | null>(null);
   const tabla = useMemo(() => texto !== null && (formato === 'csv' || formato === 'tsv')
     ? leerTabla(texto, formato) : null, [texto, formato]);

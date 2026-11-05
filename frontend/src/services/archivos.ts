@@ -18,6 +18,8 @@ export interface Archivo {
   created_at: string;
 }
 
+export type ArchivoVistaPrevia = Pick<Archivo, 'id' | 'nombre_original' | 'tipo_mime' | 'tamanio_bytes'>;
+
 async function solicitud<T>(
   path: string,
   options: RequestInit = {}

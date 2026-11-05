@@ -1,3 +1,5 @@
+import VistaPrevia from '../Archivos/VistaPrevia';
+import { formatoVistaPrevia } from '../../../shared/vista-previa.mjs';
 import { useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { descargarArchivo } from '../services/archivos';
@@ -12,6 +14,7 @@ export default function TarjetaArchivo({archivo, demo}: {archivo: ArchivoPublico
   const [descargando, setDescargando] = useState(false);
   const ocupado = useRef(false);
   const tipo = tipos.find(t => t.valor === categoria(archivo.tipo_mime, archivo.nombre_original))!;
+  const tieneVista = !demo && Boolean(formatoVistaPrevia(archivo.nombre_original, archivo.tipo_mime));
   const codigo = /\.(ts|js|html|css|py|json)$/i.test(archivo.nombre_original);
   const iniciales = archivo.autor.nombre_completo.trim().split(/\s+/).slice(0,2).map(n => n[0]).join('');
   const descargar = async () => {
@@ -22,8 +25,9 @@ export default function TarjetaArchivo({archivo, demo}: {archivo: ArchivoPublico
     finally { ocupado.current = false; setDescargando(false); }
   };
   return <article className="biblioteca-tarjeta">
+    {tieneVista && <div className="biblioteca-previa"><VistaPrevia archivo={archivo} permitirReintento={false} /></div>}
     <div className="biblioteca-tarjeta-superior">
-      <span className="biblioteca-icono" title={tipo.nombre}><Icon icon={codigo ? 'lucide:code' : tipo.icono} /><span className="biblioteca-sr">{tipo.nombre}</span></span>
+      {tieneVista ? <span>{tipo.nombre}</span> : <span className="biblioteca-icono" title={tipo.nombre}><Icon icon={codigo ? 'lucide:code' : tipo.icono} /><span className="biblioteca-sr">{tipo.nombre}</span></span>}
       <span>{formatoBytes(Number(archivo.tamanio_bytes))}</span>
     </div>
     <h2 title={archivo.nombre_original}>{archivo.nombre_original}</h2>

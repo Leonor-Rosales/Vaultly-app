@@ -7,7 +7,7 @@ test('PDF y miniatura requieren propietario y conversión lista', async () => {
   let estado = 'PROCESANDO';
   const abiertos = [];
   const casos = crearCasosVistasPrevias({
-    archivos: { buscarPorIdYUsuario: async (_id, user) => user === 'dueno'
+    archivos: { buscarDescargable: async (_id, user) => user === 'dueno'
       ? { nombre_original: 'documento.docx', tipo_mime: 'application/octet-stream' } : null },
     repo: { consultar: async () => ({ estado }) },
     almacenamiento: { abrir: async clave => { abiertos.push(clave); return Readable.from([]); } },
