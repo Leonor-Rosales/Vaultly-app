@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { crearSolicitudActual, leerConsulta, serializar, cambiarConsulta, limpiarConsulta } from './estado';
 import type { Consulta } from './tipos';
@@ -15,17 +15,24 @@ export function useRecurso<T>(pedir: (signal: AbortSignal) => Promise<T>, espera
     return () => { clearTimeout(timer); solicitud.cancelar(); };
   }, [pedir, espera, intento]);
   const actual = estado?.pedir === pedir ? estado : null;
-  return {datos: actual?.datos, error: actual?.error, cargando: !actual, reintentar: () => { setEstado(null); setIntento(n => n + 1); }};
+  return {datos: actual?.datos, datosAnteriores: estado?.datos, error: actual?.error, cargando: !actual, reintentar: () => { setEstado(null); setIntento(n => n + 1); }};
 }
 
 export function useBiblioteca() {
   const [params, setParams] = useSearchParams();
   const clave = params.toString();
   const consulta = useMemo(() => leerConsulta(new URLSearchParams(clave)), [clave]);
+  const ultimaConsulta = useRef(consulta);
+  useLayoutEffect(() => { ultimaConsulta.current = consulta; }, [consulta]);
   const pedir = useMemo(() => (signal: AbortSignal) => biblioteca.buscar(consulta, signal), [consulta]);
   const resultado = useRecurso(pedir);
   const cambiar = (cambios: Partial<Consulta>, replace = false) => {
-    setParams(actual => serializar(cambiarConsulta(leerConsulta(actual), cambios)), {replace});
+    // useSearchParams no acumula sus callbacks entre navegaciones pendientes.
+    // Conserva cada cambio inmediato para que dos clics rápidos no se sobrescriban.
+    const siguiente = cambiarConsulta(ultimaConsulta.current, cambios);
+    ultimaConsulta.current = siguiente;
+    setParams(serializar(siguiente), {replace});
   };
-  return {...resultado, consulta, cambiar, limpiar: () => setParams(serializar(limpiarConsulta(consulta)))};
+  const datos = resultado.datos ?? (resultado.cargando ? resultado.datosAnteriores : undefined);
+  return {...resultado, datos, consulta, cambiar, limpiar: () => cambiar(limpiarConsulta(ultimaConsulta.current))};
 }

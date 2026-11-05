@@ -34,7 +34,7 @@ export default function Biblioteca() {
         </select><Icon icon="lucide:chevron-down" /></label>
       </div>
       <section aria-label="Archivos públicos" aria-busy={cargando}>
-        {cargando ? <div className="biblioteca-grid" aria-hidden="true">{Array.from({length: 12}, (_, i) => <div className="biblioteca-skeleton" key={i}><span /><span /><span /><span /></div>)}</div>
+        {cargando && !datos ? <div className="biblioteca-grid" aria-hidden="true">{Array.from({length: 12}, (_, i) => <div className="biblioteca-skeleton" key={i}><span /><span /><span /><span /></div>)}</div>
           : error ? <div className="biblioteca-vacio" role="alert"><span className="biblioteca-vacio-icono"><Icon icon="lucide:cloud-off" /></span><h2>No pudimos cargar la biblioteca</h2><p>{error}</p><button type="button" onClick={reintentar}>Reintentar</button></div>
           : datos?.items.length ? <div className="biblioteca-grid">{datos.items.map(a => <TarjetaArchivo key={a.id} archivo={a} demo={demostracion} />)}</div>
           : <div className="biblioteca-vacio">

@@ -371,3 +371,99 @@ test('Biblioteca abre los mismos visores gratuitamente y mantiene íconos sin vi
   await expect(page.getByRole('button', { name: 'Ver vista previa de Archivo.zip' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Descargar Archivo.zip', exact: true })).toBeVisible();
 });
+
+test('filtros de etiquetas, autor y tipo permiten cambios repetidos y combinados', async ({ page }) => {
+  test.setTimeout(60000);
+  await preparar(page);
+  const errores: string[] = [];
+  page.on('pageerror', error => errores.push(error.message));
+  page.on('crash', () => errores.push('El navegador se cerró'));
+  const consultas: URLSearchParams[] = [];
+  await page.route('**/api/biblioteca/etiquetas?*', r => r.fulfill({ json: { items: [{ id: 1, nombre: 'Finanzas' }, { id: 2, nombre: 'Apuntes' }] } }));
+  await page.route('**/api/biblioteca/autores?*', r => r.fulfill({ json: { items: [{ id: 'autor-1', nombre_completo: 'Ana Martínez' }, { id: 'autor-2', nombre_completo: 'Luis Pérez' }] } }));
+  await page.route('**/api/biblioteca/archivos?*', r => {
+    const consulta = new URL(r.request().url()).searchParams;
+    consultas.push(consulta);
+    return r.fulfill({ json: { items: [], total: 0, pagina: Number(consulta.get('pagina')), por_pagina: 12 } });
+  });
+  await page.goto('/biblioteca');
+  for (let i = 0; i < 3; i++) {
+    const etiquetas = page.locator('details').filter({ has: page.getByPlaceholder('Buscar etiquetas…') });
+    await etiquetas.locator('summary').click();
+    await etiquetas.getByRole('checkbox', { name: 'Finanzas' }).click();
+    await expect(etiquetas.getByRole('checkbox', { name: 'Finanzas' })).toBeChecked();
+    await expect(page).toHaveURL(/etiqueta_id=1/);
+    await etiquetas.getByRole('checkbox', { name: 'Apuntes' }).click();
+    await expect(etiquetas.getByRole('checkbox', { name: 'Apuntes' })).toBeChecked();
+    await expect(page).toHaveURL(/etiqueta_id=2/);
+    await page.getByRole('heading', { name: 'Biblioteca Pública' }).click();
+    const autores = page.locator('details').filter({ has: page.getByPlaceholder('Buscar por nombre…') });
+    await autores.locator('summary').click();
+    await autores.getByRole('radio', { name: 'Ana Martínez' }).click();
+    await expect(autores.getByRole('radio', { name: 'Ana Martínez' })).toBeChecked();
+    await expect(page).toHaveURL(/autor_id=autor-1/);
+    await page.locator('.biblioteca-filtros select').selectOption('documentos');
+    await expect.poll(() => consultas.at(-1)?.get('tipo')).toBe('documentos');
+    expect(consultas.at(-1)?.getAll('etiqueta_id')).toEqual(['1', '2']);
+    expect(consultas.at(-1)?.get('autor_id')).toBe('autor-1');
+    await page.getByRole('button', { name: 'Limpiar todo', exact: true }).click();
+    for (const tipo of ['imagenes', 'videos', 'audio', 'comprimidos', 'otros', '']) {
+      await page.locator('.biblioteca-filtros select').selectOption(tipo);
+      await expect.poll(() => consultas.at(-1)?.get('tipo') || '').toBe(tipo);
+    }
+  }
+  expect(errores).toEqual([]);
+});
+
+test('filtrar conserva las miniaturas de los archivos que siguen en los resultados', async ({ page }) => {
+  test.setTimeout(60000);
+  await preparar(page);
+  await page.setContent('<h1>Documento de biblioteca</h1>');
+  const pdf = await page.pdf();
+  let cargas = 0, consultas = 0;
+  const items = Array.from({ length: 4 }, (_, i) => ({
+    ...archivo('pdf-' + i, 'Documento ' + i + '.pdf', pdf.length), tamanio_bytes: String(pdf.length),
+    descargas: 0, autor: { id: 'autor-1', nombre_completo: 'Ana Martínez' }, etiquetas: [{ id: 1, nombre: 'Finanzas' }],
+  }));
+  await page.route('**/api/biblioteca/etiquetas?*', r => r.fulfill({ json: { items: [{ id: 1, nombre: 'Finanzas' }] } }));
+  await page.route('**/api/biblioteca/autores?*', r => r.fulfill({ json: { items: [{ id: 'autor-1', nombre_completo: 'Ana Martínez' }] } }));
+  await page.route('**/api/biblioteca/archivos?*', async r => {
+    consultas++;
+    await new Promise(resolve => setTimeout(resolve, 100));
+    return r.fulfill({ json: { items, total: items.length, pagina: 1, por_pagina: 12 } });
+  });
+  await page.route('**/api/archivos/*/vista-previa', r => {
+    cargas++;
+    return r.fulfill({ body: pdf, contentType: 'application/pdf' });
+  });
+  await page.goto('/biblioteca');
+  for (let i = 0; i < 4; i++) {
+    const vista = page.getByRole('button', { name: 'Ver vista previa de Documento ' + i + '.pdf' });
+    await vista.scrollIntoViewIfNeeded();
+    await expect(vista).toBeEnabled();
+  }
+  await page.getByRole('heading', { name: 'Biblioteca Pública' }).scrollIntoViewIfNeeded();
+  const inicial = cargas;
+  for (let i = 0; i < 3; i++) {
+    let anteriores = consultas;
+    await page.locator('details').filter({ has: page.getByPlaceholder('Buscar etiquetas…') }).locator('summary').click();
+    await page.getByRole('checkbox', { name: 'Finanzas' }).click();
+    await expect.poll(() => consultas).toBeGreaterThan(anteriores);
+    await expect(page.locator('section[aria-label="Archivos públicos"]')).toHaveAttribute('aria-busy', 'false');
+    await page.getByRole('heading', { name: 'Biblioteca Pública' }).click();
+    anteriores = consultas;
+    await page.locator('details').filter({ has: page.getByPlaceholder('Buscar por nombre…') }).locator('summary').click();
+    await page.getByRole('radio', { name: 'Ana Martínez' }).click();
+    await expect.poll(() => consultas).toBeGreaterThan(anteriores);
+    await expect(page.locator('section[aria-label="Archivos públicos"]')).toHaveAttribute('aria-busy', 'false');
+    anteriores = consultas;
+    await page.locator('.biblioteca-filtros select').selectOption('documentos');
+    await expect.poll(() => consultas).toBeGreaterThan(anteriores);
+    await expect(page.locator('section[aria-label="Archivos públicos"]')).toHaveAttribute('aria-busy', 'false');
+    anteriores = consultas;
+    await page.getByRole('button', { name: 'Limpiar todo', exact: true }).click();
+    await expect.poll(() => consultas).toBeGreaterThan(anteriores);
+    await expect(page.locator('section[aria-label="Archivos públicos"]')).toHaveAttribute('aria-busy', 'false');
+  }
+  expect(cargas).toBe(inicial);
+});
