@@ -503,11 +503,6 @@
 .visor-contenido video { max-width: 100%; max-height: 65dvh; }
 .visor-contenido audio { width: min(100%, 600px); margin: 24px 0; }
 
-.office-documento, .office-libro { width: 100%; min-width: 0; }
-.office-nota { font-size: 12px; color: var(--cliente-muted); line-height: 1.5; }
-.office-pagina { background: white; color: #292929; padding: clamp(16px, 4vw, 40px); text-align: left; overflow-wrap: anywhere; line-height: 1.6; max-height: 60dvh; overflow: auto; }
-.office-pagina table { border-collapse: collapse; max-width: 100%; }
-.office-pagina td, .office-pagina th { border: 1px solid #ccc; padding: 4px 8px; }
-.office-pagina img { max-width: 100%; height: auto; }
-.office-libro select { max-width: 100%; padding: 6px; font: inherit; color: inherit; background: var(--cliente-surface); border: 1px solid var(--cliente-border); border-radius: 6px; }
-.muestra-documento { white-space: pre-wrap; font-family: Georgia, serif; }
+.miniatura-papel img { width: 73%; height: auto; margin-top: 29px; background: white; box-shadow: 0 2px 10px #37231526; }
+.archivo-previa:has(.previa-reintentar) { position: relative; }
+.previa-reintentar { position: absolute; left: 10px; bottom: 9px; border: 0; border-radius: 20px; padding: 4px 9px; cursor: pointer; background: var(--cliente-surface); color: var(--cliente-text); }

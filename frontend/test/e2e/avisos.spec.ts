@@ -277,31 +277,49 @@ test('miniaturas multimedia muestran duración y fotograma y abren el reproducto
   }
 });
 
-test('miniaturas Office abren DOCX y hojas XLSX y manejan archivos dañados', async ({ page }) => {
-  const { default: ExcelJS } = await import('exceljs');
-  const libro = new ExcelJS.Workbook();
-  libro.addWorksheet('Ventas').addRows([['Producto', 'Total'], ['Café', { formula: '2+3', result: 5 }]]);
-  libro.addWorksheet('Resumen').addRows([['Estado'], ['Completado']]);
+test('miniaturas Office esperan la conversión, cargan la imagen y abren el PDF al pulsar', async ({ page }) => {
   const estado = await preparar(page);
-  const muestras = [
-    { nombre: 'informe.docx', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', body: readFileSync(new URL('./fixtures/documento.docx', import.meta.url)) },
-    { nombre: 'ventas.xlsx', mime: 'application/octet-stream', body: Buffer.from(await libro.xlsx.writeBuffer()) },
-    { nombre: 'roto.docx', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', body: Buffer.from('dañado') },
-  ];
-  estado.archivos = muestras.map(m => ({ ...archivo(m.nombre, m.nombre, m.body.length), tipo_mime: m.mime }));
-  for (const m of muestras) await page.route(`**/api/archivos/${m.nombre}/vista-previa`, r => r.fulfill({ body: m.body, contentType: m.mime }));
+  await page.setContent('<h1>Documento convertido</h1>');
+  const pdf = await page.pdf();
+  const png = await page.screenshot();
+  estado.archivos = ['informe.docx', 'ventas.xlsx'].map(nombre => ({
+    ...archivo(nombre, nombre, 200),
+    tipo_mime: nombre.endsWith('docx') ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  }));
+  let consultas = 0;
+  let cargasPdf = 0;
+  await page.route('**/api/archivos/*/estado-vista-previa', r =>
+    r.fulfill({ json: { estado: ++consultas <= 2 ? 'PROCESANDO' : 'LISTA' } }));
+  await page.route('**/api/archivos/*/miniatura', r => r.fulfill({ body: png, contentType: 'image/png' }));
+  await page.route('**/api/archivos/*/vista-previa', r => {
+    cargasPdf++;
+    return r.fulfill({ body: pdf, contentType: 'application/pdf' });
+  });
   await page.goto('/archivos');
-  await page.getByRole('button', { name: 'Ver vista previa de informe.docx' }).click();
+  await expect(page.getByText('Preparando vista previa…').first()).toBeVisible();
+  const abrir = page.getByRole('button', { name: 'Ver vista previa de informe.docx' });
+  await expect(abrir).toBeEnabled({ timeout: 10000 });
+  expect(cargasPdf).toBe(0);
+  await abrir.click();
   const visor = page.getByRole('dialog');
-  await expect(visor.getByText('Contenido del documento con acentos.')).toBeVisible();
-  await expect(visor.getByRole('cell', { name: 'Celda del documento' })).toBeVisible();
+  await expect(visor.locator('canvas')).toBeVisible();
+  expect(cargasPdf).toBeGreaterThan(0);
   await visor.getByRole('button', { name: 'Cerrar' }).click();
   await page.getByRole('button', { name: 'Ver vista previa de ventas.xlsx' }).click();
-  await expect(visor.getByRole('cell', { name: 'Café' })).toBeVisible();
-  await expect(visor.getByRole('cell', { name: '5', exact: true })).toBeVisible();
-  await visor.getByLabel('Hoja', { exact: true }).selectOption({ label: 'Resumen' });
-  await expect(visor.getByRole('cell', { name: 'Completado' })).toBeVisible();
-  await visor.getByRole('button', { name: 'Cerrar' }).click();
-  await expect(page.getByRole('button', { name: 'Ver vista previa de roto.docx' })).toBeDisabled();
-  await expect(page.getByText('Vista previa no disponible')).toBeVisible();
+  await expect(visor.locator('canvas')).toBeVisible();
+});
+
+test('la conversión fallida permite reintentar y sigue mostrando descarga del original', async ({ page }) => {
+  const estado = await preparar(page);
+  estado.archivos = [{ ...archivo('fallido', 'documento.docx'), tipo_mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }];
+  let reintentado = false;
+  await page.route('**/api/archivos/*/estado-vista-previa', r => r.fulfill({ json: { estado: reintentado ? 'PENDIENTE' : 'FALLIDA' } }));
+  await page.route('**/api/archivos/*/reintentar-vista-previa', r => {
+    reintentado = true; return r.fulfill({ json: { estado: 'PENDIENTE' } });
+  });
+  await page.goto('/archivos');
+  await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
+  await expect(page.getByText('Preparando vista previa…')).toBeVisible();
+  await expect(page.getByTitle('Descargar archivo', { exact: true })).toBeEnabled();
 });

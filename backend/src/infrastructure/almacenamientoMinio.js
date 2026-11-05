@@ -10,6 +10,8 @@ async function guardar({ nombreObjeto, contenido, tamanioBytes, tipoMime }) {
 
 module.exports = {
   guardar,
+  descargarTemporal: (objeto, destino) => minio.fGetObject(MINIO_BUCKET, objeto, destino),
+  guardarDerivado: (objeto, archivo, tipo) => minio.fPutObject(MINIO_BUCKET, objeto, archivo, { "Content-Type": tipo }),
   abrir: (nombreObjeto) => minio.getObject(MINIO_BUCKET, nombreObjeto),
   abrirInicio: (nombreObjeto, bytes) => minio.getPartialObject(MINIO_BUCKET, nombreObjeto, 0, bytes),
   eliminar: (nombreObjeto) => minio.removeObject(MINIO_BUCKET, nombreObjeto),

@@ -85,6 +85,37 @@ services:
 
         echo "Bucket listo y privado: $$MINIO_BUCKET"
 
+  vistas-previas:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.vistas-previas
+    restart: unless-stopped
+    init: true
+    mem_limit: 768m
+    cpus: 1.0
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /tmp:size=384m,mode=1777
+    environment:
+      HOME: /tmp
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    stop_grace_period: 120s
+
 volumes:
   pgdata:
   miniodata:

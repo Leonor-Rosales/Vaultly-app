@@ -5,7 +5,7 @@ const { pipeline } = require('node:stream/promises');
 const { ErrorApp } = require('../domain/errores');
 const { transmitirDescarga } = require('./transmitirDescarga');
 
-function crearArchivosRoutes(casos, requiereAuth) {
+function crearArchivosRoutes(casos, requiereAuth, vistasPrevias) {
   const router = express.Router();
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -57,6 +57,17 @@ function crearArchivosRoutes(casos, requiereAuth) {
   }));
   router.patch('/:id/visibilidad', manejar('No se pudo cambiar la visibilidad del archivo', async (req, res) => {
     res.json(await casos.cambiarVisibilidad(req.params.id, req.usuario.sub, req.body?.es_publica));
+  }));
+  router.get('/:id/estado-vista-previa', manejar('No se pudo consultar la vista previa', async (req, res) => {
+    res.set('Cache-Control', 'private, no-store').json(await vistasPrevias.estado(req.params.id, req.usuario.sub));
+  }));
+  router.post('/:id/reintentar-vista-previa', manejar('No se pudo reintentar la vista previa', async (req, res) => {
+    res.json(await vistasPrevias.reintentar(req.params.id, req.usuario.sub));
+  }));
+  router.get('/:id/miniatura', manejar('No se pudo cargar la miniatura', async (req, res) => {
+    const { stream, tipo } = await vistasPrevias.abrir(req.params.id, req.usuario.sub, true);
+    res.set({ 'Content-Type': tipo, 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' });
+    await pipeline(stream, res);
   }));
   router.get('/:id/vista-previa', manejar('No se pudo abrir la vista previa', async (req, res) => {
     const { tipo, stream } = await casos.vistaPrevia(req.params.id, req.usuario.sub);

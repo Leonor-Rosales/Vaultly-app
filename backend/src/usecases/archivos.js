@@ -15,7 +15,7 @@ const { ErrorApp } = require('../domain/errores');
  * eliminar(nombreObjeto) es idempotente si el objeto ya no existe.
  * Ningún puerto recibe objetos de Express.
  */
-function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarError = console.error }) {
+function crearCasosArchivos({ repositorio, almacenamiento, cuotas, vistasPrevias, registrarError = console.error }) {
   return {
     listar: (usuarioId) => repositorio.listarPorUsuario(usuarioId),
     listarPublicos: () => repositorio.listarPublicos(),
@@ -63,6 +63,7 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, registrarErro
       const archivo = await repositorio.buscarPorIdYUsuario(id, usuarioId);
       if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
       const formato = formatoVistaPrevia(archivo.nombre_original, archivo.tipo_mime);
+      if (['docx', 'xlsx'].includes(formato)) return vistasPrevias.abrir(id, usuarioId);
       if (!formato) throw new ErrorApp('Formato sin vista previa', 415);
       if (['texto', 'csv', 'tsv'].includes(formato)) {
         const grande = Number(archivo.tamanio_bytes) > limiteTexto;

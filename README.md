@@ -167,3 +167,24 @@ Si se cambian en .env, deben ajustarse las conexiones correspondientes
 - Las carpetas con contenido no se eliminan directamente por SQL.
 - Las contraseñas de los usuarios se guardan como hashes
   generados por el backend.
+
+## Vistas previas de Word y Excel
+
+El módulo de archivos encola la conversión de DOCX y XLSX en PostgreSQL al guardar el original.
+El proceso de trabajo del mismo backend convierte con LibreOffice y genera una miniatura con Poppler.
+MinIO conserva los derivados privados. Las cuotas de usuario contabilizan el original.
+Los documentos existentes se encolan en la migración 09.
+
+Para instalar o actualizar el conversor local:
+
+```powershell
+docker compose up -d --build vistas-previas
+```
+
+El servicio aplica las migraciones al arrancar. La API y el frontend se ejecutan con sus comandos habituales.
+Hay una conversión global simultánea, hasta tres intentos automáticos y un tiempo máximo de 90 segundos
+para LibreOffice y 20 segundos para la miniatura. El contenedor tiene 768 MB de memoria y una CPU como límites.
+La cola conserva trabajos tras un reinicio y limpia los derivados después de eliminar el original.
+El reintento manual se habilita un minuto después del último fallo.
+Las fuentes instaladas incluyen Liberation, Carlito y Caladea. La distribución puede variar respecto
+a Microsoft Office; las hojas Excel usan su configuración de impresión.

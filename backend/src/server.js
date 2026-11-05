@@ -28,11 +28,19 @@ const casosAuth = crearCasosAuth({
 const authRoutes = crearAuthRoutes(crearAuthController({ casos: casosAuth, frontendUrl: FRONTEND_URL }), requiereAuth);
 const { crearArchivosRoutes } = require('./controllers/archivosRoutes');
 const { crearCasosArchivos } = require('./usecases/archivos');
+const { crearCasosVistasPrevias } = require('./usecases/vistasPrevias');
+const { crearVistaPreviaRepositorio } = require('./infrastructure/vistaPreviaRepositorio');
+const vistasPrevias = crearCasosVistasPrevias({
+  archivos: require('./infrastructure/archivoRepositorio'),
+  repo: crearVistaPreviaRepositorio(require('./infrastructure/db')),
+  almacenamiento,
+});
 const archivosRoutes = crearArchivosRoutes(crearCasosArchivos({
   repositorio: require('./infrastructure/archivoRepositorio'),
   almacenamiento,
   cuotas,
-}), requiereAuth);
+  vistasPrevias,
+}), requiereAuth, vistasPrevias);
 
 const app = express();
 

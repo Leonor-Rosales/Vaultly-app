@@ -170,12 +170,19 @@ export const moverArchivo = (id: string, padre: string | null) =>
   solicitud<{ carpeta_id: string | null }>(`/api/carpetas/archivos/${id}/destino`, json('PATCH', { padre }));
 export const eliminarCarpeta = (id: string) => solicitud(`/api/carpetas/${id}`, { method: 'DELETE' });
 
-export async function obtenerVistaPrevia(id: string, signal: AbortSignal): Promise<Blob> {
+export async function obtenerVistaPrevia(id: string, signal: AbortSignal, miniatura = false): Promise<Blob> {
   const token = getToken();
   if (!token) throw new Error('Tu sesión ha expirado.');
-  const respuesta = await fetch(`${API_URL}/api/archivos/${encodeURIComponent(id)}/vista-previa`, {
+  const respuesta = await fetch(`${API_URL}/api/archivos/${encodeURIComponent(id)}/${miniatura ? "miniatura" : "vista-previa"}`, {
     headers: { Authorization: `Bearer ${token}` }, signal,
   });
   if (!respuesta.ok) throw new Error('No se pudo cargar la vista previa.');
   return respuesta.blob();
 }
+
+
+export type EstadoVistaPrevia = { estado: 'PENDIENTE' | 'PROCESANDO' | 'LISTA' | 'FALLIDA' };
+export const estadoVistaPrevia = (id: string, signal: AbortSignal) =>
+  solicitud<EstadoVistaPrevia>(`/api/archivos/${encodeURIComponent(id)}/estado-vista-previa`, { signal });
+export const reintentarVistaPrevia = (id: string) =>
+  solicitud<EstadoVistaPrevia>(`/api/archivos/${encodeURIComponent(id)}/reintentar-vista-previa`, { method: 'POST' });
