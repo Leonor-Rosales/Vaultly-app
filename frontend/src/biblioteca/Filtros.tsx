@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Icon } from '@iconify/react';
 import { tipos } from './tipos';
@@ -7,18 +7,33 @@ import { biblioteca } from './servicio';
 import { useRecurso } from './useBiblioteca';
 
 function Desplegable({titulo, children}: {titulo: string; children: ReactNode}) {
-  const ref = useRef<HTMLDetailsElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const boton = useRef<HTMLButtonElement>(null);
+  const [abierto, setAbierto] = useState(false);
+  const panelId = useId();
   useEffect(() => {
-    const fuera = (e: PointerEvent) => { if (e.target instanceof Node && !ref.current?.contains(e.target)) ref.current?.removeAttribute('open'); };
+    if (!abierto) return;
+    const fuera = (e: PointerEvent) => {
+      if (e.target instanceof Node && !ref.current?.contains(e.target)) setAbierto(false);
+    };
     document.addEventListener('pointerdown', fuera);
     return () => document.removeEventListener('pointerdown', fuera);
-  }, []);
-  return <details className="biblioteca-desplegable" ref={ref}
-    onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.removeAttribute('open'); }}
-    onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); ref.current?.removeAttribute('open'); ref.current?.querySelector('summary')?.focus(); } }}>
-    <summary>{titulo}<Icon icon="lucide:chevron-down" /></summary>
-    <div className="biblioteca-opciones">{children}</div>
-  </details>;
+  }, [abierto]);
+  return <div className="biblioteca-desplegable" ref={ref}
+    onBlur={e => {
+      if (e.relatedTarget instanceof Node && !e.currentTarget.contains(e.relatedTarget)) setAbierto(false);
+    }}
+    onKeyDown={e => {
+      if (e.key === 'Escape' && abierto) {
+        e.preventDefault(); setAbierto(false); boton.current?.focus();
+      }
+    }}>
+    <button type="button" className="biblioteca-desplegable-boton" ref={boton}
+      aria-expanded={abierto} aria-controls={panelId} onClick={() => setAbierto(a => !a)}>
+      {titulo}<Icon icon="lucide:chevron-down" />
+    </button>
+    <div id={panelId} className="biblioteca-opciones" hidden={!abierto}>{children}</div>
+  </div>;
 }
 
 export default function Filtros({consulta, cambiar, limpiar}: {

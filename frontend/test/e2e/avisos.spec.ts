@@ -388,17 +388,21 @@ test('filtros de etiquetas, autor y tipo permiten cambios repetidos y combinados
   });
   await page.goto('/biblioteca');
   for (let i = 0; i < 3; i++) {
-    const etiquetas = page.locator('details').filter({ has: page.getByPlaceholder('Buscar etiquetas…') });
-    await etiquetas.locator('summary').click();
+    const etiquetas = page.locator('.biblioteca-desplegable').filter({ has: page.getByPlaceholder('Buscar etiquetas…') });
+    await etiquetas.locator('.biblioteca-desplegable-boton').click();
     await etiquetas.getByRole('checkbox', { name: 'Finanzas' }).click();
     await expect(etiquetas.getByRole('checkbox', { name: 'Finanzas' })).toBeChecked();
     await expect(page).toHaveURL(/etiqueta_id=1/);
     await etiquetas.getByRole('checkbox', { name: 'Apuntes' }).click();
     await expect(etiquetas.getByRole('checkbox', { name: 'Apuntes' })).toBeChecked();
     await expect(page).toHaveURL(/etiqueta_id=2/);
+    await expect(etiquetas.locator('button[aria-expanded]')).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(etiquetas.locator('button[aria-expanded]')).toBeFocused();
+    await expect(etiquetas.getByPlaceholder('Buscar etiquetas…')).toBeHidden();
     await page.getByRole('heading', { name: 'Biblioteca Pública' }).click();
-    const autores = page.locator('details').filter({ has: page.getByPlaceholder('Buscar por nombre…') });
-    await autores.locator('summary').click();
+    const autores = page.locator('.biblioteca-desplegable').filter({ has: page.getByPlaceholder('Buscar por nombre…') });
+    await autores.locator('.biblioteca-desplegable-boton').click();
     await autores.getByRole('radio', { name: 'Ana Martínez' }).click();
     await expect(autores.getByRole('radio', { name: 'Ana Martínez' })).toBeChecked();
     await expect(page).toHaveURL(/autor_id=autor-1/);
@@ -446,13 +450,13 @@ test('filtrar conserva las miniaturas de los archivos que siguen en los resultad
   const inicial = cargas;
   for (let i = 0; i < 3; i++) {
     let anteriores = consultas;
-    await page.locator('details').filter({ has: page.getByPlaceholder('Buscar etiquetas…') }).locator('summary').click();
+    await page.locator('.biblioteca-desplegable').filter({ has: page.getByPlaceholder('Buscar etiquetas…') }).locator('.biblioteca-desplegable-boton').click();
     await page.getByRole('checkbox', { name: 'Finanzas' }).click();
     await expect.poll(() => consultas).toBeGreaterThan(anteriores);
     await expect(page.locator('section[aria-label="Archivos públicos"]')).toHaveAttribute('aria-busy', 'false');
     await page.getByRole('heading', { name: 'Biblioteca Pública' }).click();
     anteriores = consultas;
-    await page.locator('details').filter({ has: page.getByPlaceholder('Buscar por nombre…') }).locator('summary').click();
+    await page.locator('.biblioteca-desplegable').filter({ has: page.getByPlaceholder('Buscar por nombre…') }).locator('.biblioteca-desplegable-boton').click();
     await page.getByRole('radio', { name: 'Ana Martínez' }).click();
     await expect.poll(() => consultas).toBeGreaterThan(anteriores);
     await expect(page.locator('section[aria-label="Archivos públicos"]')).toHaveAttribute('aria-busy', 'false');
