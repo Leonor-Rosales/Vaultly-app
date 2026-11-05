@@ -9,22 +9,29 @@ const { crearAuthController } = require('./controllers/authController');
 const { crearAuthRoutes } = require('./controllers/authRoutes');
 const { crearRequiereAuth } = require('./controllers/middleware/auth');
 const requiereAuth = crearRequiereAuth(tokens.verificarTokenSesion, require('./infrastructure/usuarioRepositorio').buscarPorIdConRol);
+const { conRegistro } = require('./usecases/decoradores');
 const { crearCuotasRepositorio } = require('./infrastructure/cuotasRepositorio');
 const { crearCasosCuotas } = require('./usecases/cuotas');
 const { crearPlanesRoutes } = require('./controllers/planesRoutes');
 const almacenamiento = require('./infrastructure/almacenamientoMinio');
-const cuotas = crearCasosCuotas({ repo: crearCuotasRepositorio(require('./infrastructure/db')), almacenamiento });
+const cuotas = conRegistro(
+  crearCasosCuotas({ repo: crearCuotasRepositorio(require('./infrastructure/db')), almacenamiento }),
+  'cuotas'
+);
 const { crearPagosRepositorio } = require('./infrastructure/pagosRepositorio');
 const { crearCasosPagos } = require('./usecases/pagos');
-const pagos = crearCasosPagos({ repo: crearPagosRepositorio(require('./infrastructure/db')) });
-const casosAuth = crearCasosAuth({
+const pagos = conRegistro(
+  crearCasosPagos({ repo: crearPagosRepositorio(require('./infrastructure/db')) }),
+  'pagos'
+);
+const casosAuth = conRegistro(crearCasosAuth({
   repo: require('./infrastructure/usuarioRepositorio'),
   contrasenas: require('./infrastructure/contrasenas'),
   tokens,
   correo: require('./infrastructure/mailer'),
   frontendUrl: FRONTEND_URL,
   backendUrl: BACKEND_URL,
-});
+}), 'auth');
 const authRoutes = crearAuthRoutes(crearAuthController({ casos: casosAuth, frontendUrl: FRONTEND_URL }), requiereAuth);
 const { crearArchivosRoutes } = require('./controllers/archivosRoutes');
 const { crearCasosArchivos } = require('./usecases/archivos');
@@ -35,12 +42,12 @@ const vistasPrevias = crearCasosVistasPrevias({
   repo: crearVistaPreviaRepositorio(require('./infrastructure/db')),
   almacenamiento,
 });
-const archivosRoutes = crearArchivosRoutes(crearCasosArchivos({
+const archivosRoutes = crearArchivosRoutes(conRegistro(crearCasosArchivos({
   repositorio: require('./infrastructure/archivoRepositorio'),
   almacenamiento,
   cuotas,
   vistasPrevias,
-}), requiereAuth, vistasPrevias);
+}), 'archivos'), requiereAuth, vistasPrevias);
 
 const app = express();
 
@@ -76,7 +83,7 @@ app.use('/api/archivos', archivosRoutes);
 app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth, pagos));
 
 const { crearBibliotecaRoutes } = require('./controllers/bibliotecaController');
-const casosBiblioteca = require('./usecases/biblioteca');
+const casosBiblioteca = conRegistro(require('./usecases/biblioteca'), 'biblioteca');
 
 app.use('/api/biblioteca', crearBibliotecaRoutes(casosBiblioteca, requiereAuth));
 
