@@ -60,7 +60,7 @@ function crearCasosArchivos({ repositorio, almacenamiento, cuotas, vistasPrevias
       return archivo;
     },
     async vistaPrevia(id, usuarioId) {
-      const archivo = await repositorio.buscarDescargable(id, usuarioId);
+      const archivo = await repositorio.buscarParaVistaPrevia(id, usuarioId);
       if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
       const formato = formatoVistaPrevia(archivo.nombre_original, archivo.tipo_mime);
       if (['docx', 'xlsx'].includes(formato)) return vistasPrevias.abrir(id, usuarioId);

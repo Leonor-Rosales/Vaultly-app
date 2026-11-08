@@ -9,6 +9,7 @@ import "./Sidebar.css";
 const ITEMS = [
   { key: "dashboard", label: "Dashboard", icon: "lucide:layout-dashboard", to: "/dashboard" },
   { key: "archivos", label: "Mis Archivos", icon: "lucide:folder", to: "/archivos" },
+  { key: "papelera", label: "Papelera", icon: "lucide:trash-2", to: "/papelera" },
   { key: "biblioteca", label: "Biblioteca Pública", icon: "lucide:globe", to: "/biblioteca" },
   { key: "planes", label: "Planes y Facturación", icon: "lucide:credit-card", to: "/planes" },
   { key: "configuracion", label: "Configuración", icon: "lucide:settings", to: "/configuracion" },
@@ -31,6 +32,7 @@ function Sidebar() {
     .toUpperCase();
 
   const obtenerSeccion = () => {
+    if (location.pathname.startsWith("/papelera")) return "papelera";
     if (location.pathname.startsWith("/planes")) return "planes";
     if (location.pathname.startsWith("/archivos")) return "archivos";
     if (location.pathname.startsWith("/biblioteca")) return "biblioteca";

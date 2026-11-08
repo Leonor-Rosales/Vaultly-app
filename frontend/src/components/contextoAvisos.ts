@@ -9,11 +9,12 @@ export interface Aviso {
   almacenamiento?: Consumo['almacenamiento'];
   planes?: boolean;
   confirmar?: boolean;
+  accion?: string;
 }
 export interface AccionesAviso {
   avisar: (aviso: Aviso) => void;
   avisarError: (error: unknown, titulo: string, detalle?: string) => void;
-  confirmar: (titulo: string, mensaje: string) => Promise<boolean>;
+  confirmar: (titulo: string, mensaje: string, accion?: string) => Promise<boolean>;
 }
 export const ContextoAvisos = createContext<AccionesAviso | null>(null);
 export function useAvisos() {

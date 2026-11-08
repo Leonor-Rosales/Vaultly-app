@@ -15,6 +15,7 @@ import Dashboard from "./dashboard/Dashboard";
 import Planes from "./planes/Planes";
 import Contratar from "./planes/Contratar";
 import Historial from "./planes/Historial";
+import Papelera from './Archivos/Papelera';
 import Archivos from "./Archivos/Archivos";
 import Biblioteca from "./biblioteca/Biblioteca";
 import RutaProtegida from "./components/RutaProtegida";
@@ -48,6 +49,7 @@ function App() {
         <Route element={<ClienteLayout />}>
           <Route path="/configuracion" element={<ConfiguracionCliente />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/papelera" element={<Papelera />} />
           <Route path="/archivos" element={<Archivos />} />
           <Route path="/biblioteca" element={<Biblioteca />} />
           <Route path="/planes" element={<Planes />} />

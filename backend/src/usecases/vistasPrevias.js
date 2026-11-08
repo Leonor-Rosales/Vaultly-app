@@ -6,7 +6,7 @@ const objetos = id => ({ pdf: `vistas-previas/${id}/documento.pdf`, miniatura: `
 function crearCasosVistasPrevias({ archivos, repo, almacenamiento, convertir, registrarError = console.error }) {
   async function autorizar(id, usuarioId, soloPropietario = false) {
     const archivo = soloPropietario ? await archivos.buscarPorIdYUsuario(id, usuarioId)
-      : await archivos.buscarDescargable(id, usuarioId);
+      : await archivos.buscarParaVistaPrevia(id, usuarioId);
     if (!archivo) throw new ErrorApp('Archivo no encontrado', 404);
     if (!['docx', 'xlsx'].includes(formatoVistaPrevia(archivo.nombre_original, archivo.tipo_mime))) {
       throw new ErrorApp('Este formato no requiere conversión', 415);

@@ -1,0 +1,25 @@
+.papelera-encabezado,.papelera-consumo,.papelera-fila label { display:flex; align-items:center; gap:8px; }
+.papelera-encabezado { justify-content:space-between; flex-wrap:wrap; }
+.papelera-encabezado h1 { margin:0; font-size:22px; }
+.papelera-encabezado p,.papelera-consumo,.papelera-fila > span { color:var(--cliente-muted); font-size:12px; }
+.papelera-encabezado p { margin:4px 0; }
+.papelera-consumo { flex-wrap:wrap; margin:8px 0 14px; }
+.papelera-contenido { padding:0; margin:0; min-width:0; border:0; }
+.papelera-contenido .archivos-lote { padding:6px 10px; font-size:13px; margin-bottom:10px; }
+.papelera-tarjetas { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,215px),1fr)); align-items:start; gap:12px; }
+.papelera-fila { display:grid; gap:4px; min-width:0; padding:10px 12px; background:var(--cliente-surface); border:1px solid var(--cliente-border); border-radius:9px; font-size:13px; overflow-wrap:anywhere; }
+.papelera-fila label svg { flex:none; color:var(--cliente-accent); }
+.papelera-previa { margin:-10px -12px 5px; border-radius:9px 9px 0 0; overflow:hidden; }
+.papelera-previa .archivo-previa { margin:0; }
+.papelera-previa .archivo-miniatura,.papelera-previa .archivo-card-icon { height:105px; min-height:0; width:100%; }
+.papelera-lista { border:1px solid var(--cliente-border); border-radius:8px; }
+.papelera-lista .papelera-fila { grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:8px; align-items:center; border:0; border-radius:0; background:transparent; }
+.papelera-lista .papelera-fila + .papelera-fila { border-top:1px solid var(--cliente-border); }
+.papelera-lista .papelera-fila > div { grid-column:1/-1; }
+.papelera-controles,.papelera-nombre { display:flex; align-items:center; gap:8px; }
+.papelera-nombre svg { flex:none; color:var(--cliente-accent); }
+.papelera-fila { position:relative; }
+.papelera-lista .papelera-fila:has(.seleccion-tarjeta) { padding-right:36px; }
+.papelera-conflicto { position:relative; z-index:5; }
+.papelera-previa[inert] .miniatura-accion { visibility:hidden; }
+@media(max-width:750px) { .papelera-lista .papelera-fila { grid-template-columns:1fr; gap:3px; } }

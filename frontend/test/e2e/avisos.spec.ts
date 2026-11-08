@@ -42,8 +42,7 @@ async function preparar(page: Page, usados = 20000000) {
     if (route.request().method() === 'DELETE') {
       estado.eliminaciones++;
       const id = ruta.split('/').pop();
-      const borrado = estado.archivos.find(a => a.id === id);
-      estado.usados -= borrado?.tamanio_bytes ?? 0;
+      // En la papelera el archivo sigue contando para almacenamiento.
       estado.archivos = estado.archivos.filter(a => a.id !== id);
       return route.fulfill({ json: { mensaje: 'Archivo eliminado' } });
     }
@@ -65,7 +64,7 @@ async function seleccionar(page: Page, nombres = ['nuevo.pdf']) {
   await page.getByRole('button', { name: 'Cargar archivos', exact: true }).click();
 }
 
-test('la barra crece tras subir y disminuye tras eliminar; cancelar no borra', async ({ page }) => {
+test('la barra crece tras subir y mantiene la cuota al mover a la papelera', async ({ page }) => {
   const estado = await preparar(page);
   await page.goto('/dashboard');
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20');
@@ -74,15 +73,15 @@ test('la barra crece tras subir y disminuye tras eliminar; cancelar no borra', a
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
   await expect.poll(async () => page.locator('.uso-relleno').evaluate(el => el.getBoundingClientRect().width / el.parentElement!.getBoundingClientRect().width)).toBeCloseTo(.4, 1);
   await page.getByRole('link', { name: 'Mis Archivos', exact: true }).click();
-  await page.getByTitle('Eliminar archivo', { exact: true }).first().click();
-  await expect(page.getByRole('dialog', { name: '¿Eliminar archivo?' })).toBeVisible();
+  await page.getByTitle('Mover archivo a la papelera', { exact: true }).first().click();
+  await expect(page.getByRole('dialog', { name: '¿Mover el archivo a la papelera?' })).toBeVisible();
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   expect(estado.eliminaciones).toBe(0);
-  await page.getByTitle('Eliminar archivo', { exact: true }).first().click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Eliminar archivo', exact: true }).click();
+  await page.getByTitle('Mover archivo a la papelera', { exact: true }).first().click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Mover a la papelera', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('link', { name: 'Dashboard', exact: true }).click();
-  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '20');
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '40');
   expect(estado.eliminaciones).toBe(1);
 });
 
@@ -205,7 +204,7 @@ test('administrar archivos desde un rechazo de carga permite volver a la lista',
   await seleccionar(page);
   await page.getByRole('dialog', { name: 'Espacio insuficiente' }).getByRole('button', { name: 'Administrar archivos' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.getByTitle('Eliminar archivo', { exact: true })).toBeVisible();
+  await expect(page.getByTitle('Mover archivo a la papelera', { exact: true })).toBeVisible();
 });
 
 test('las miniaturas abren imágenes y páginas PDF y omiten formatos sin vista previa', async ({ page }) => {
@@ -501,9 +500,9 @@ test('selección mixta mueve a un destino válido y conserva los fallos al elimi
   await expect(page.getByText('Movidos: 2.', {exact:true})).toBeVisible();
   await page.getByRole('button', {name:'Destino', exact:true}).click();
   await marcarAmbos();
-  await page.getByRole('button', {name:'Eliminar selección'}).click();
-  await page.getByRole('dialog').getByRole('button', {name:/Eliminar/}).click();
-  await expect(page.getByText(/Eliminados: 1. Pendientes: 1/)).toBeVisible();
+  await page.getByRole('button', {name:'Mover a la papelera'}).click();
+  await page.getByRole('dialog').getByRole('button', {name:/Mover a la papelera/}).click();
+  await expect(page.getByText(/En la papelera: 1. Pendientes: 1/)).toBeVisible();
   await expect(page.getByRole('button', {name:'Seleccionar Apuntes'})).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', {name:'Seleccionar informe.pdf'})).toHaveCount(0);
 });
@@ -517,5 +516,54 @@ test('las acciones siguen visibles al seleccionar al final de Mis archivos', asy
   await page.getByRole('button', { name: 'Ver detalles de Documento 59.zip', exact: true }).click();
   await page.getByRole('region', { name: 'Detalles del archivo' }).getByRole('button', { name: 'Seleccionar', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Seleccionar Documento 59.zip' })).toBeInViewport();
-  await expect(page.getByRole('button', { name: 'Eliminar selección' })).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'Mover a la papelera' })).toBeInViewport();
+});
+
+test('la papelera muestra su consumo y confirma el borrado definitivo', async ({page}) => {
+  await preparar(page);
+  const entrada = {id:'entrada', archivo_id:'original', tipo_mime:'text/plain', tipo:'archivo', nombre:'Notas.txt', ubicacion:'Mis archivos', bytes:'2000000', vence_en:'2027-01-01T12:00:00Z', destino_en_raiz:false};
+  let borrado = false;
+  await page.route('**/api/papelera', r => r.fulfill({json:{items:borrado ? [] : [entrada],bytes:borrado ? '0' : entrada.bytes}}));
+  await page.route('**/api/papelera/entrada', r => { borrado = true; return r.fulfill({json:{ok:true}}); });
+  await page.route('**/api/archivos/original/vista-previa', r=>r.fulfill({body:'Texto para vista previa',contentType:'text/plain'}));
+  await page.goto('/papelera');
+  await expect(page.getByRole('button',{name:'Ver vista previa de Notas.txt'})).toBeEnabled();
+  await page.getByRole('button',{name:'Lista',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Ver vista previa de Notas.txt'})).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('button',{name:'Lista',exact:true})).toHaveAttribute('aria-pressed','true');
+  await page.getByRole('button',{name:'Tarjetas',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Ver vista previa de Notas.txt'})).toBeEnabled();
+  await expect(page.getByText('2.0 MB en la papelera')).toBeVisible();
+  await expect(page.getByRole('checkbox')).toHaveCount(0);
+  await page.getByRole('button',{name:'Seleccionar',exact:true}).click();
+  await page.getByRole('button',{name:'Seleccionar Notas.txt'}).click();
+  await page.getByRole('button',{name:'Lista',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Seleccionar Notas.txt'})).toHaveAttribute('aria-pressed','true');
+  await page.getByRole('button',{name:'Eliminar definitivamente'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Cancelar'}).click();
+  expect(borrado).toBe(false);
+  await page.getByRole('button',{name:'Eliminar definitivamente'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Eliminar definitivamente'}).click();
+  await expect(page.getByRole('heading',{name:'La papelera está vacía'})).toBeVisible();
+  await expect(page.getByText('0 B en la papelera')).toBeVisible();
+});
+
+test('Mis archivos conserva la carpeta y la selección al cambiar de vista', async ({page}) => {
+  await preparar(page);
+  await page.route('**/api/carpetas', r => r.fulfill({json:[{id:'a',nombre:'Apuntes',carpeta_padre_id:null}]}));
+  await page.route('**/api/archivos', r => r.fulfill({json:[{...archivo(),carpeta_id:'a'}]}));
+  await page.goto('/archivos');
+  await page.getByRole('button',{name:'Apuntes',exact:true}).click();
+  await page.getByRole('button',{name:'Seleccionar',exact:true}).click();
+  const item = page.getByRole('button',{name:'Seleccionar informe.pdf'});
+  await item.click();
+  await page.getByRole('button',{name:'Lista',exact:true}).click();
+  await expect(item).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('.archivo-card .seleccion-previa')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('button',{name:'Lista',exact:true})).toHaveAttribute('aria-pressed','true');
+  await page.getByRole('button',{name:'Apuntes',exact:true}).click();
+  await page.getByRole('button',{name:'Tarjetas',exact:true}).click();
+  await expect(page.locator('.archivo-card .seleccion-previa')).toHaveCount(1);
 });

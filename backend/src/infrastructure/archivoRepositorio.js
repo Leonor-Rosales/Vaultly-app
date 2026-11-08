@@ -38,7 +38,7 @@ async function asignar(id, nombres) {
 async function reemplazarEtiquetas(id, usuarioId, nombres) {
   return conTransaccion(async (repo, client) => {
     const { rows: [archivo] } = await client.query(`SELECT id, nombre_original, tamanio_bytes,
-      tipo_mime, es_publica, carpeta_id, created_at FROM archivos WHERE id=$1 AND usuario_id=$2 FOR UPDATE`, [id, usuarioId]);
+      tipo_mime, es_publica, carpeta_id, created_at FROM archivos_activos WHERE id=$1 AND usuario_id=$2 FOR UPDATE`, [id, usuarioId]);
     if (!archivo) return null;
     await client.query('DELETE FROM archivo_etiquetas WHERE archivo_id=$1', [id]);
     return {...archivo, etiquetas: await repo.asignar(id, nombres)};
@@ -49,7 +49,7 @@ async function reemplazarEtiquetas(id, usuarioId, nombres) {
 async function listarPublicos() {
   const { rows } = await pool.query(`SELECT id, usuario_id, nombre_original, tamanio_bytes,
     tipo_mime, es_publica, created_at, descargas
-    FROM archivos
+    FROM archivos_activos
     WHERE es_publica = TRUE
     ORDER BY created_at DESC`);
 
@@ -57,13 +57,22 @@ async function listarPublicos() {
 }
 
 async function buscarDescargable(id, usuarioId) {
-  const { rows } = await pool.query(`SELECT * FROM archivos
+  const { rows } = await pool.query(`SELECT * FROM archivos_activos
     WHERE id = $1 AND (usuario_id = $2 OR es_publica = TRUE)`, [id, usuarioId]);
+  return rows[0] || null;
+}
+async function buscarParaVistaPrevia(id, usuarioId) {
+  const { rows } = await pool.query(`SELECT a.* FROM archivos a
+    LEFT JOIN papelera p ON p.id=a.papelera_id
+    WHERE a.id=$1 AND (
+      (a.papelera_id IS NULL AND (a.usuario_id=$2 OR a.es_publica))
+      OR (a.usuario_id=$2 AND p.usuario_id=$2 AND p.vence_en>now())
+    )`, [id, usuarioId]);
   return rows[0] || null;
 }
 async function incrementarDescargas(id) {
   const { rows } = await pool.query(
-    `UPDATE archivos
+    `UPDATE archivos_activos
      SET descargas = descargas + 1
      WHERE id = $1
      RETURNING descargas`,
@@ -77,7 +86,7 @@ async function listarPorUsuario(usuarioId) {
   const { rows } = await pool.query(
     `SELECT id, nombre_original, tamanio_bytes, tipo_mime,
             es_publica, carpeta_id, created_at
-     FROM archivos
+     FROM archivos_activos
      WHERE usuario_id = $1
      ORDER BY created_at DESC`,
     [usuarioId]
@@ -91,7 +100,7 @@ async function buscarPorIdYUsuario(id, usuarioId) {
     `SELECT id, usuario_id, nombre_original, nombre_objeto_minio,
             ruta_minio, tamanio_bytes, tipo_mime, es_publica,
             carpeta_id, created_at
-     FROM archivos
+     FROM archivos_activos
      WHERE id = $1 AND usuario_id = $2`,
     [id, usuarioId]
   );
@@ -139,7 +148,7 @@ async function registrar({
 
 async function eliminarRegistro(id, usuarioId) {
   const { rows } = await pool.query(
-    `DELETE FROM archivos
+    `DELETE FROM archivos_activos
      WHERE id = $1 AND usuario_id = $2
      RETURNING id`,
     [id, usuarioId]
@@ -151,7 +160,7 @@ async function eliminarRegistro(id, usuarioId) {
 
 async function actualizarNombre(id, usuarioId, nombre) {
   const { rows } = await pool.query(
-    `UPDATE archivos SET nombre_original = $3, updated_at = now()
+    `UPDATE archivos_activos SET nombre_original = $3, updated_at = now()
      WHERE id = $1 AND usuario_id = $2 RETURNING id, nombre_original`,
     [id, usuarioId, nombre]
   );
@@ -160,7 +169,7 @@ async function actualizarNombre(id, usuarioId, nombre) {
 
 async function actualizarVisibilidad(id, usuarioId, esPublica) {
   const { rows } = await pool.query(
-    `UPDATE archivos
+    `UPDATE archivos_activos
      SET es_publica = $3
      WHERE id = $1 AND usuario_id = $2
      RETURNING id, nombre_original, tamanio_bytes, tipo_mime,
@@ -177,6 +186,7 @@ return {
   reemplazarEtiquetas,
   listarPublicos,
   buscarDescargable,
+  buscarParaVistaPrevia,
   listarPorUsuario,
   buscarPorIdYUsuario,
   registrar,

@@ -24,6 +24,7 @@ test('HTTP conserva autenticación, endpoints, respuestas, multipart y descarga 
       listarPorUsuario: async (user) => user === metadata?.usuario_id ? [metadata] : [],
       listarPublicos: async () => metadata?.es_publica ? [metadata] : [],
       buscarDescargable: async (id, user) => id === metadata?.id && (user === metadata.usuario_id || metadata.es_publica) ? metadata : null,
+      buscarParaVistaPrevia: async (id, user) => id === metadata?.id && (user === metadata.usuario_id || metadata.es_publica) ? metadata : null,
       buscarPorIdYUsuario: async (id, user) => id === metadata?.id && user === metadata.usuario_id ? metadata : null,
       actualizarVisibilidad: async (id, user, visible) => {
         if (id !== metadata?.id || user !== metadata.usuario_id) return null;

@@ -42,12 +42,16 @@ const vistasPrevias = crearCasosVistasPrevias({
   repo: crearVistaPreviaRepositorio(require('./infrastructure/db')),
   almacenamiento,
 });
-const archivosRoutes = crearArchivosRoutes(conRegistro(crearCasosArchivos({
+const pool = require('./infrastructure/db');
+const papelera = require('./usecases/papelera').crearPapelera(
+  require('./infrastructure/papeleraRepositorio').crearPapeleraRepositorio(pool), almacenamiento
+);
+const archivosRoutes = crearArchivosRoutes(conRegistro({...crearCasosArchivos({
   repositorio: require('./infrastructure/archivoRepositorio'),
   almacenamiento,
   cuotas,
   vistasPrevias,
-}), 'archivos'), requiereAuth, vistasPrevias);
+}), eliminar: papelera.enviarArchivo}, 'archivos'), requiereAuth, vistasPrevias);
 
 const app = express();
 
@@ -78,7 +82,8 @@ app.use('/api/admin', crearAdminRoutes(crearCasosAdministracion({
   hashear: require('./infrastructure/contrasenas').hashear,
 }), requiereAuth));
 const { crearCarpetasRoutes } = require('./controllers/carpetasRoutes');
-app.use('/api/carpetas', crearCarpetasRoutes(require('./infrastructure/db'), requiereAuth));
+app.use('/api/carpetas', crearCarpetasRoutes(pool, requiereAuth, papelera));
+app.use('/api/papelera', require('./controllers/papeleraRoutes').crearPapeleraRoutes(papelera, requiereAuth));
 app.use('/api/archivos', archivosRoutes);
 app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth, pagos));
 
@@ -100,6 +105,8 @@ async function recuperarReservas() {
   } catch (error) { console.error('No se pudieron recuperar reservas:', error.message); }
   finally { recuperando = false; }
 }
+setInterval(() => papelera.limpiar(), 60000).unref();
+papelera.limpiar();
 setInterval(recuperarReservas, 60000).unref();
 recuperarReservas();
 

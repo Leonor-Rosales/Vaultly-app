@@ -1,3 +1,4 @@
+import SelectorVista, { useVistaGuardada } from './SelectorVista';
 import Organizar, { rutaDe, type Operacion } from './Organizar';
 import { listarCarpetas, crearCarpeta, renombrarArchivo, renombrarCarpeta, eliminarCarpeta, moverCarpeta, moverArchivo, type Carpeta } from '../services/archivos';
 import VistaPrevia from './VistaPrevia';
@@ -27,6 +28,7 @@ type Elemento = { tipo: 'archivo' | 'carpeta'; id: string; nombre: string };
 const clave = (item: Elemento) => item.tipo + ':' + item.id;
 
 function Archivos() {
+  const { vista, cambiarVista } = useVistaGuardada('mis-archivos-vista');
   const location = useLocation();
   const { avisarError, confirmar } = useAvisos();
   const [archivos, setArchivos] = useState<Archivo[]>([]);
@@ -64,8 +66,8 @@ function Archivos() {
   }
   async function aplicarSeleccion(accion: 'eliminar' | 'mover', destino: string | null = null) {
     if (procesando || !seleccion.length) return;
-    if (accion === 'eliminar' && !await confirmar('¿Eliminar la selección?',
-      `Vas a eliminar ${seleccion.length} elemento(s). Esta acción no se puede deshacer.`)) return;
+    if (accion === 'eliminar' && !await confirmar('¿Mover la selección a la papelera?',
+      `Podrás restaurar los ${seleccion.length} elementos durante 30 días.`, 'Mover a la papelera')) return;
     setProcesando(true);
     setResumen('');
     const fallos: Elemento[] = [];
@@ -81,7 +83,7 @@ function Archivos() {
             setArchivos(lista => lista.map(a => a.id === item.id ? { ...a, carpeta_id } : a));
           } else if (accion === 'eliminar') {
             await eliminarCarpeta(item.id);
-            setCarpetas(lista => lista.filter(c => c.id !== item.id));
+            retirarCarpeta(item.id);
           } else {
             const actualizada = await moverCarpeta(item.id, destino);
             setCarpetas(lista => lista.map(c => c.id === item.id ? actualizada : c));
@@ -94,7 +96,7 @@ function Archivos() {
       seleccionar(fallos);
       setModoSeleccion(fallos.length > 0);
       const hechos = seleccion.length - fallos.length;
-      const resultado = accion === 'mover' ? 'Movidos' : 'Eliminados';
+      const resultado = accion === 'mover' ? 'Movidos' : 'En la papelera';
       setResumen(fallos.length ? `${resultado}: ${hechos}. Pendientes: ${fallos.length}. ${primerError}` : `${resultado}: ${hechos}.`);
     } finally {
       setProcesando(false);
@@ -119,11 +121,16 @@ function Archivos() {
       : await moverCarpeta(operacion.id, destino);
     setCarpetas(lista => [...lista.filter(c => c.id !== carpeta.id), carpeta]);
   };
+  function retirarCarpeta(id: string) {
+    const retiradas = new Set(carpetas.filter(c => rutaDe(c.id, indice).some(p => p.id === id)).map(c => c.id));
+    setCarpetas(lista => lista.filter(c => !retiradas.has(c.id)));
+    setArchivos(lista => lista.filter(a => !a.carpeta_id || !retiradas.has(a.carpeta_id)));
+  }
   const borrarCarpeta = async (c: Carpeta) => {
-    if (!await confirmar('¿Eliminar carpeta?', c.nombre)) return;
+    if (!await confirmar('¿Mover la carpeta a la papelera?', `Podrás restaurar «${c.nombre}» y su contenido durante 30 días.`, 'Mover a la papelera')) return;
     try {
       await eliminarCarpeta(c.id);
-      setCarpetas(lista => lista.filter(item => item.id !== c.id));
+      retirarCarpeta(c.id);
     } catch (error) { avisarError(error, 'No se pudo eliminar la carpeta', c.nombre); }
   };
   const [cargando, setCargando] = useState(true);
@@ -184,7 +191,7 @@ function Archivos() {
   };
 
   const borrarArchivo = async (archivo: Archivo) => {
-    if (!await confirmar('¿Eliminar archivo?', `Se eliminará «${archivo.nombre_original}» de tu cuenta. Esta acción no se puede deshacer.`)) {
+    if (!await confirmar('¿Mover el archivo a la papelera?', `Podrás restaurar «${archivo.nombre_original}» durante 30 días.`, 'Mover a la papelera')) {
       return;
     }
 
@@ -197,7 +204,7 @@ function Archivos() {
         actuales.filter((item) => item.id !== archivo.id)
       );
 
-      toast.success("Archivo eliminado correctamente");
+      toast.success("Archivo enviado a la papelera");
     } catch (error) {
       avisarError(error, 'No se pudo eliminar el archivo', archivo.nombre_original);
     } finally {
@@ -217,7 +224,7 @@ function Archivos() {
     <div className="dashboard-page archivos-page">
       <Sidebar />
 
-      <main className="dashboard-content archivos-content" inert={procesando} aria-busy={procesando}>
+      <main className="dashboard-content archivos-content" data-vista={vista} inert={procesando} aria-busy={procesando}>
         <header className="archivos-header">
           <div className="archivos-navegacion">
           <button type="button" className="archivo-button archivos-regresar" disabled={!actual}
@@ -231,6 +238,7 @@ function Archivos() {
           </nav>
           </div>
           <div className="archivos-actions">
+            <SelectorVista vista={vista} cambiarVista={cambiarVista} etiqueta="Vista de Mis archivos" />
             {!modoSeleccion && (visibles.length > 0 || hijas.length > 0) &&
               <button className="archivo-button" onClick={() => iniciarSeleccion()}><Icon icon="lucide:list-checks" aria-hidden="true" />Seleccionar</button>}
             <button className="archivo-button" onClick={() => organizar({ tipo: 'crear' })}><Icon icon="lucide:folder-plus" aria-hidden="true" />Nueva carpeta</button>
@@ -250,7 +258,7 @@ function Archivos() {
             tipo: 'moverSeleccion', nombre: `${seleccion.length} elemento(s)`,
             carpetas: seleccion.filter(i => i.tipo === 'carpeta').map(i => i.id),
           })}>Mover a…</button>
-          <button className="archivo-button" disabled={!seleccion.length} onClick={() => aplicarSeleccion('eliminar')}>Eliminar selección</button>
+          <button className="archivo-button" disabled={!seleccion.length} onClick={() => aplicarSeleccion('eliminar')}>Mover a la papelera</button>
           <button className="archivo-button" onClick={() => { seleccionar([]); setModoSeleccion(false); }}>Cancelar</button>
         </div>}
         {resumen && <p role="status">{resumen}</p>}
@@ -297,7 +305,7 @@ function Archivos() {
                 </details>
                 <button title="Renombrar carpeta" onClick={() => organizar({ tipo: 'renombrar', ...c })}><Icon icon="lucide:pencil" /></button>
                 <button title="Mover carpeta" onClick={() => organizar({ tipo: 'moverCarpeta', ...c })}><Icon icon="lucide:arrow-left-right" /></button>
-                <button title="Eliminar carpeta" onClick={() => borrarCarpeta(c)}><Icon icon="lucide:trash-2" /></button>
+                <button title="Mover carpeta a la papelera" onClick={() => borrarCarpeta(c)}><Icon icon="lucide:trash-2" /></button>
               </div>
             </article>)}
             </div>
@@ -322,7 +330,7 @@ function Archivos() {
                   <DetallesArchivo archivo={archivo} onSeleccionar={() => iniciarSeleccion({ tipo: 'archivo', id: archivo.id, nombre: archivo.nombre_original })} onUpdated={actualizado => setArchivos(actuales => actuales.map(a => a.id === actualizado.id ? actualizado : a))} />
                 </div>
 
-                <div className="seleccion-previa" inert={modoSeleccion}><VistaPrevia archivo={archivo} /></div>
+                {vista === 'tarjetas' && <div className="seleccion-previa" inert={modoSeleccion}><VistaPrevia archivo={archivo} /></div>}
 
                 {controlSeleccion({ tipo: 'archivo', id: archivo.id, nombre: archivo.nombre_original })}
                 <div className="archivo-card-info">
@@ -351,7 +359,7 @@ function Archivos() {
 
                   <button
                     type="button"
-                    title="Eliminar archivo"
+                    title="Mover archivo a la papelera"
                     disabled={eliminando === archivo.id}
                     onClick={() => borrarArchivo(archivo)}
                   >

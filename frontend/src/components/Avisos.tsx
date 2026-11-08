@@ -22,10 +22,10 @@ export function ProveedorAvisos({ children }: { children: ReactNode }) {
     resolver.current = null;
     setAviso(nuevo);
   }, []);
-  const confirmar = useCallback((titulo: string, mensaje: string) => new Promise<boolean>(resolve => {
+  const confirmar = useCallback((titulo: string, mensaje: string, accion = 'Confirmar') => new Promise<boolean>(resolve => {
     resolver.current?.(false);
     resolver.current = resolve;
-    setAviso({ titulo, mensaje, confirmar: true });
+    setAviso({ titulo, mensaje, accion, confirmar: true });
   }), []);
   const avisarError = useCallback((error: unknown, titulo: string, detalle?: string) => {
     const consumo = obtenerConsumoActual();
@@ -68,7 +68,7 @@ export function ProveedorAvisos({ children }: { children: ReactNode }) {
       <div className="aviso-acciones">
         {aviso.confirmar ? <>
           <button type="button" className="aviso-boton secundario" onClick={() => cerrar()}>Cancelar</button>
-          <button type="button" className="aviso-boton" onClick={() => cerrar(true)}>Eliminar archivo</button>
+          <button type="button" className="aviso-boton" onClick={() => cerrar(true)}>{aviso.accion}</button>
         </> : aviso.planes ? <>
           <button type="button" className="aviso-boton secundario" onClick={() => aviso.almacenamiento ? ir('/archivos') : cerrar()}>{aviso.almacenamiento ? 'Administrar archivos' : 'Entendido'}</button>
           <button type="button" className="aviso-boton" onClick={() => ir('/planes')}>Ver planes</button>

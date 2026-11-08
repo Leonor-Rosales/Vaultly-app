@@ -13,7 +13,7 @@ test('Biblioteca: vistas públicas gratuitas y privadas protegidas, incluido PDF
     tipo_mime: id === 'office' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'text/plain',
     nombre_objeto_minio: 'original', tamanio_bytes: 10 });
   const archivos = {
-    buscarDescargable: async (id, user) => user === 'dueno' || publica ? archivo(id) : null,
+    buscarParaVistaPrevia: async (id, user) => user === 'dueno' || publica ? archivo(id) : null,
     buscarPorIdYUsuario: async (id, user) => user === 'dueno' ? archivo(id) : null,
   };
   const almacenamiento = { abrir: async () => Readable.from(['contenido']) };

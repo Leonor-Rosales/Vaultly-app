@@ -43,6 +43,8 @@ test('integración aislada PostgreSQL + MinIO: cuotas, concurrencia y migracione
   const conPlanPrevio = await usuario();
   await pool.query("INSERT INTO suscripciones(usuario_id,plan_id,fecha_inicio,fecha_fin,estado,descargas_consumidas_ciclo) SELECT $1,id,now()-interval '1 day',now()+interval '2 days','ACTIVA',1 FROM planes WHERE nombre='Free'", [conPlanPrevio]);
   await pool.query(sql('03_planes_cuotas.sql'));
+  await pool.query(sql('07_contador_descargas.sql'));
+  await pool.query(sql('11_papelera.sql'));
   const almacenamiento = loadWith(path.resolve(__dirname, '../../src/infrastructure/almacenamientoMinio.js'), {
     './minioCliente': { minio, MINIO_BUCKET: bucket, asegurarBucket: async () => {} },
   });

@@ -11,6 +11,7 @@ function fixture() {
     listarPorUsuario: async (user) => { calls.push(['listar', user]); return user === archivo.usuario_id ? [archivo] : []; },
     registrar: async (metadata) => { calls.push(['registrar', metadata]); return { id: archivo.id, ...metadata }; },
     buscarDescargable: async (id, user) => { calls.push(['buscar', id, user]); return id === archivo.id && (user === archivo.usuario_id || archivo.es_publica) ? archivo : null; },
+    buscarParaVistaPrevia: async (id, user) => { calls.push(['buscar', id, user]); return id === archivo.id && (user === archivo.usuario_id || archivo.es_publica) ? archivo : null; },
     buscarPorIdYUsuario: async (id, user) => { calls.push(['buscar', id, user]); return id === archivo.id && user === archivo.usuario_id ? archivo : null; },
     eliminarRegistro: async (id, user) => { calls.push(['borrarRegistro', id, user]); return { id }; },
     actualizarVisibilidad: async (id, user, visible) => { calls.push(['visibilidad', id, user, visible]); return id === archivo.id && user === archivo.usuario_id ? { ...archivo, es_publica: visible } : null; },

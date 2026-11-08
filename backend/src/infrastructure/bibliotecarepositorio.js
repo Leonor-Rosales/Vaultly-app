@@ -58,7 +58,7 @@ async function listarArchivos({ q, tipo, etiquetaIds, autorId, orden, pagina }) 
        a.usuario_id AS autor_id,
        u.nombre_completo AS autor_nombre,
        unaccent(lower(a.nombre_original)) AS nombre_norm
-      FROM archivos a
+      FROM archivos_activos a
       JOIN usuarios u ON u.id = a.usuario_id
       WHERE ${filtros.join('\n        AND ')}
     ),
@@ -100,7 +100,7 @@ async function listarArchivos({ q, tipo, etiquetaIds, autorId, orden, pagina }) 
 async function listarEtiquetas({ q, limite }) {
   const params = [];
   const filtros = [`EXISTS (SELECT 1 FROM archivo_etiquetas ae
-      JOIN archivos a ON a.id = ae.archivo_id
+      JOIN archivos_activos a ON a.id = ae.archivo_id
       WHERE ae.etiqueta_id = e.id AND a.es_publica = TRUE)`];
   if (q) {
     params.push(patron(q));
@@ -119,7 +119,7 @@ async function listarEtiquetas({ q, limite }) {
 
 async function listarAutores({ q, limite }) {
   const params = [];
-  const filtros = [`EXISTS (SELECT 1 FROM archivos a
+  const filtros = [`EXISTS (SELECT 1 FROM archivos_activos a
       WHERE a.usuario_id = u.id AND a.es_publica = TRUE)`];
   if (q) {
     params.push(patron(q));
