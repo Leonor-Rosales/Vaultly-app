@@ -53,7 +53,7 @@ export default function Papelera() {
   }
   return <div className="dashboard-page archivos-page"><Sidebar />
     <main className="dashboard-content archivos-content papelera-page">
-      <header className="papelera-encabezado"><div><h1>Papelera</h1>
+      <header className="papelera-encabezado"><div><h1 className="titulo-pagina">Papelera</h1>
         <p>Los elementos se eliminan definitivamente después de 30 días.</p></div>
         <div className="papelera-controles">
           {!!items.length && !modoSeleccion && <button className="archivo-button" onClick={() => setModoSeleccion(true)}>Seleccionar</button>}

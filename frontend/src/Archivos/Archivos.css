@@ -396,7 +396,7 @@
 }
 .abrir-carpeta:hover span { text-decoration: underline; }
 .carpeta-fila .archivo-card-actions { border: 0; gap: 2px; }
-.carpeta-fila .archivo-card-actions button { width: 28px; height: 32px; }
+.carpeta-fila .archivo-card-actions > button { width: 28px; height: 32px; }
 
 .archivo-card:has(.archivo-previa) {
   position: relative;
@@ -560,9 +560,10 @@
 .seleccion-tarjeta span { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: var(--cliente-accent); color: var(--cliente-on-accent); }
 .archivo-card-actions[inert], .archivo-card-top[inert] { visibility: hidden; }
 .carpeta-menu { position: relative; }
-.carpeta-menu summary { cursor: pointer; list-style: none; padding: 6px; }
+.carpeta-menu summary { display: grid; place-items: center; width: 28px; height: 32px; border-radius: 4px; cursor: pointer; list-style: none; color: var(--cliente-muted, #907e70); }
+.carpeta-menu summary:hover { color: var(--cliente-link, #cf7040); }
 .carpeta-menu summary::-webkit-details-marker { display: none; }
-.carpeta-menu .carpeta-menu-opcion { position: absolute; right: 0; top: 100%; z-index: 5; width: max-content; padding: 3px 7px; background: var(--cliente-bg); color: var(--cliente-text); border: 1px solid var(--cliente-border); border-radius: 6px; }
+.carpeta-menu .carpeta-menu-opcion { position: absolute; right: 0; top: 100%; z-index: 5; width: max-content; white-space: nowrap; padding: 3px 7px; background: var(--cliente-bg); color: var(--cliente-text); border: 1px solid var(--cliente-border); border-radius: 6px; }
 
 .archivos-lote strong { margin-inline-end:auto; }
 .seleccion-previa[inert] .miniatura-accion { visibility:hidden; }

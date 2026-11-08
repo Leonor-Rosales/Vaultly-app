@@ -225,6 +225,7 @@ function Archivos() {
       <Sidebar />
 
       <main className="dashboard-content archivos-content" data-vista={vista} inert={procesando} aria-busy={procesando}>
+        <h1 className="titulo-pagina archivos-titulo">Mis archivos</h1>
         <header className="archivos-header">
           <div className="archivos-navegacion">
           <button type="button" className="archivo-button archivos-regresar" disabled={!actual}
@@ -290,14 +291,14 @@ function Archivos() {
         ) : (
           <>
           {hijas.length > 0 && <section aria-labelledby="titulo-carpetas">
-            <h2 className="grupo-titulo" id="titulo-carpetas">Carpetas</h2>
+            <h2 className="grupo-titulo titulo-seccion" id="titulo-carpetas">Carpetas</h2>
             <div className="carpetas-grid">
             {hijas.map(c => <article className="carpeta-fila" key={c.id}>
               {controlSeleccion({ tipo: 'carpeta', id: c.id, nombre: c.nombre })}
               <button inert={modoSeleccion} className="abrir-carpeta" onClick={() => abrir(c.id)}><Icon icon="lucide:folder" className="carpeta-icono" aria-hidden="true" /><span>{c.nombre}</span></button>
               <div className="archivo-card-actions" inert={modoSeleccion}>
                 <details className="carpeta-menu">
-                  <summary aria-label={`Opciones de ${c.nombre}`}>•••</summary>
+                  <summary aria-label={`Opciones de ${c.nombre}`}><Icon icon="lucide:more-horizontal" aria-hidden="true" /></summary>
                   <button type="button" className="carpeta-menu-opcion accion-seleccionar" onClick={e => {
                     e.currentTarget.closest('details')?.removeAttribute('open');
                     iniciarSeleccion({ tipo: 'carpeta', id: c.id, nombre: c.nombre });
@@ -311,7 +312,7 @@ function Archivos() {
             </div>
           </section>}
           {visibles.length > 0 && <section aria-labelledby="titulo-archivos">
-            <h2 className="grupo-titulo" id="titulo-archivos">Archivos</h2>
+            <h2 className="grupo-titulo titulo-seccion" id="titulo-archivos">Archivos</h2>
             <div className="archivos-grid">
             {visibles.map((archivo) => (
               <article className="archivo-card" key={archivo.id}>

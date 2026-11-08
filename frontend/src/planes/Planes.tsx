@@ -49,7 +49,7 @@ function Planes() {
       <main className="dashboard-content">
         <div className="dashboard-header">
           <div>
-            <h1>Planes y almacenamiento</h1>
+            <h1 className="titulo-pagina">Planes y almacenamiento</h1>
             <p className="planes-subtitle">Más espacio para tus archivos, un plan a tu medida.</p>
           </div>
           <button type="button" className="planes-history" onClick={() => navigate('/planes/historial')}>
@@ -76,7 +76,7 @@ function Planes() {
           </button>
         </section>}
 
-        <div id="catalogo" className="planes-section-heading"><h2>Encuentra tu próximo espacio</h2><p>Compara almacenamiento y descargas mensuales.</p></div>
+        <div id="catalogo" className="planes-section-heading"><h2 className="titulo-seccion">Encuentra tu próximo espacio</h2><p>Compara almacenamiento y descargas mensuales.</p></div>
         {cargando ? <p className="planes-state" role="status">Cargando planes…</p> : error ?
           <div className="planes-state" role="alert"><p>{error}</p><button className="planes-history" onClick={cargarCatalogo}>Reintentar</button></div> :
           planes.length === 0 ? <p className="planes-state">No hay planes disponibles en este momento.</p> :

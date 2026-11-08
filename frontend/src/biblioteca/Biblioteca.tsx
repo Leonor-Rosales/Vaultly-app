@@ -16,7 +16,7 @@ export default function Biblioteca() {
   return <div className="biblioteca-page">
     <Sidebar />
     <main className="biblioteca-contenido">
-      <header className="biblioteca-encabezado"><h1>Biblioteca Pública</h1><p>Explora y descarga recursos compartidos por la comunidad Vaultly</p>
+      <header className="biblioteca-encabezado"><h1 className="titulo-pagina">Biblioteca Pública</h1><p>Explora y descarga recursos compartidos por la comunidad Vaultly</p>
         {demostracion && <span className="biblioteca-demo">Datos de demostración</span>}
       </header>
       <AvisosLimites descargas />
