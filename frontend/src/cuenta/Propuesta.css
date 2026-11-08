@@ -1,0 +1,228 @@
+/* Propuesta visual del cliente. Reutiliza la paleta y los controles existentes. */
+#root:has(.cliente-app) {
+  width: 100%;
+  border: 0;
+}
+
+.cliente-app {
+  font-family: Arial, sans-serif;
+  letter-spacing: 0;
+  --propuesta-espacio: clamp(24px, 3.4vw, 56px);
+}
+
+.cliente-app :is(.dashboard-page, .biblioteca-page, .cliente-config-page) {
+  gap: 0;
+}
+
+.cliente-app :is(.dashboard-content, .biblioteca-contenido, .cliente-config-content) {
+  padding: 40px var(--propuesta-espacio) 48px;
+}
+
+.cliente-app .sidebar {
+  position: sticky;
+  top: 18px;
+  align-self: flex-start;
+  width: 242px;
+  min-width: 242px;
+  height: calc(100dvh - 36px);
+  min-height: 0;
+  margin: 18px 0 18px 18px;
+  border: 1px solid var(--cliente-border);
+  border-radius: 20px;
+  background: var(--cliente-surface);
+}
+
+.cliente-app .sidebar-logo {
+  min-height: 96px;
+  padding: 0 24px;
+  gap: 12px;
+  letter-spacing: -.8px;
+}
+
+.cliente-app .sidebar-logo-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 21px;
+}
+
+.cliente-app .sidebar-menu {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 12px 20px;
+  gap: 6px;
+}
+
+.cliente-app .menu-item {
+  position: relative;
+  min-height: 46px;
+  height: auto;
+  flex-shrink: 0;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  gap: 12px;
+}
+
+.cliente-app .menu-item svg { font-size: 18px; }
+.cliente-app .menu-item:hover { background: var(--cliente-soft); }
+.cliente-app .menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  width: 3px;
+  height: 19px;
+  border-radius: 3px;
+  background: var(--cliente-accent);
+}
+
+.cliente-app .sidebar-user {
+  flex-shrink: 0;
+  margin: 0 16px;
+  padding: 20px 0;
+  gap: 10px;
+}
+.cliente-app .user-info strong { max-width: 142px; font-size: 13px; }
+.cliente-app .user-avatar { width: 38px; height: 38px; min-width: 38px; font-size: 13px; }
+
+.cliente-app h1.titulo-pagina {
+  font-size: clamp(28px, 2.6vw, 36px);
+  letter-spacing: -1px;
+  line-height: 1.2;
+}
+.cliente-app .dashboard-header { margin-bottom: 32px; }
+.cliente-app .dashboard-eyebrow {
+  margin: 0 0 10px;
+  color: var(--cliente-link);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+.cliente-app .dashboard-intro {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--cliente-muted);
+  line-height: 1.6;
+}
+
+/* Un bloque principal de almacenamiento y tres métricas compactas. */
+.cliente-app .stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  align-items: stretch;
+  border: 1px solid var(--cliente-border);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--cliente-surface);
+  margin-bottom: 36px;
+}
+.cliente-app .stat-card {
+  min-height: 136px;
+  padding: 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  justify-content: flex-start;
+}
+.cliente-app .stat-card + .stat-card:not(.storage-card) { border-left: 1px solid var(--cliente-border); }
+.cliente-app .stat-title { margin-bottom: 14px; font-size: 12px; }
+.cliente-app .stat-card strong { font-size: 24px; letter-spacing: -.7px; line-height: 1.3; }
+.cliente-app .stat-card small { margin-top: 7px; font-size: 11px; line-height: 1.5; }
+.cliente-app .storage-card {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  padding: 28px 32px;
+  background: var(--cliente-accent);
+  color: var(--cliente-on-accent);
+  border-bottom: 1px solid var(--cliente-border);
+}
+.cliente-app .storage-card strong { font-size: 44px; letter-spacing: -1.8px; }
+.cliente-app .storage-card small { margin-top: 0; }
+.cliente-app .storage-card :is(.stat-title, small) { color: inherit; }
+.cliente-app .storage-bar { height: 6px; margin-top: 22px; background: color-mix(in srgb, var(--cliente-on-accent) 25%, transparent); }
+.cliente-app .storage-card .storage-progress { background: var(--cliente-on-accent); }
+
+.cliente-app .recent-files {
+  border: 1px solid var(--cliente-border);
+  border-radius: 18px;
+  background: var(--cliente-surface);
+  padding: 24px;
+}
+.cliente-app .recent-files-header { margin-bottom: 20px; }
+.cliente-app .recent-files-header h2 { margin: 0; }
+.cliente-app .files-table { border: 0; border-radius: 10px; }
+.cliente-app .file-row { min-height: 70px; padding-inline: 16px; font-size: 13px; }
+.cliente-app .file-header { min-height: 38px; font-size: 11px; }
+.cliente-app .file-icon { width: 38px; height: 38px; border-radius: 10px; }
+.cliente-app .dashboard-empty { border: 0; background: var(--cliente-bg); border-radius: 12px; min-height: 240px; }
+
+/* La misma geometría acompaña las otras pantallas del cliente. */
+.cliente-app .archivos-header {
+  padding: 18px 0 24px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid var(--cliente-border);
+  gap: 20px;
+}
+.cliente-app .archivos-content[data-vista=tarjetas] .archivos-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 20px;
+}
+.cliente-app .archivo-card { border-radius: 16px; }
+.cliente-app .archivo-card:hover { transform: none; }
+.cliente-app .carpeta-fila { border-radius: 12px; padding: 10px 14px; }
+.cliente-app .grupo-titulo { margin-top: 16px; }
+.cliente-app .biblioteca-encabezado { margin-bottom: 28px; }
+.cliente-app .biblioteca-buscador { background: var(--cliente-surface); border-radius: 12px; }
+.cliente-app .biblioteca-resultados-barra { margin-block: 28px 20px; }
+.cliente-app .biblioteca-tarjeta { border-radius: 16px; padding: 24px; }
+.cliente-app :is(.planes-membership, .plan-card, .cuenta-card) { border-radius: 18px; }
+.cliente-app .planes-membership { padding: 28px; }
+.cliente-app .cuenta-heading { margin-bottom: 32px; }
+.cliente-app .cuenta-card { padding: 28px; }
+
+@media (min-width: 1400px) {
+  .cliente-app .stats-grid { grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)); }
+  .cliente-app .storage-card { grid-column: 1; grid-row: 1; border-bottom: 0; border-right: 1px solid var(--cliente-border); }
+  .cliente-app .stat-card { justify-content: center; }
+}
+
+@media (min-width: 651px) and (max-width: 1000px) {
+  .cliente-app .sidebar { width: 210px; min-width: 210px; margin-left: 12px; }
+  .cliente-app .menu-item { font-size: 12px; padding-inline: 10px; gap: 9px; }
+  .cliente-app .user-info strong { max-width: 112px; }
+  .cliente-app .stat-card { padding: 20px 16px; }
+  .cliente-app .stat-card strong { font-size: 20px; }
+  .cliente-app .storage-card strong { font-size: 38px; }
+}
+
+@media (max-width: 650px) {
+  .cliente-app :is(.dashboard-content, .biblioteca-contenido, .cliente-config-content) { padding: 20px 18px 32px; }
+  .cliente-app .cliente-menu { margin: 14px 18px 0; }
+  .cliente-app .cliente-menu-panel .sidebar {
+    position: static;
+    width: calc(100% - 36px);
+    min-width: 0;
+    height: auto;
+    margin: 14px 18px 0;
+    border: 1px solid var(--cliente-border);
+  }
+  .cliente-app .cliente-menu-panel .sidebar-logo { min-height: 68px; height: 68px; }
+  .cliente-app .cliente-menu-panel .sidebar-user { padding: 16px 0; }
+  .cliente-app .dashboard-header { flex-wrap: wrap; gap: 18px; margin-bottom: 24px; }
+  .cliente-app .dashboard-header > div { min-width: 0; }
+  .cliente-app .dashboard-eyebrow { font-size: 9px; }
+  .cliente-app .dashboard-intro { font-size: 12px; }
+  .cliente-app .stats-grid { grid-template-columns: 1fr; margin-bottom: 24px; }
+  .cliente-app .stat-card { padding: 20px 24px; min-height: 110px; }
+  .cliente-app .stat-card + .stat-card:not(.storage-card) { border-left: 0; border-top: 1px solid var(--cliente-border); }
+  .cliente-app .storage-card { padding: 24px; }
+  .cliente-app .recent-files { padding: 20px 12px; }
+  .cliente-app .recent-files-header { padding-inline: 4px; gap: 8px; }
+  .cliente-app .recent-files-header h2 { font-size: 16px; }
+  .cliente-app .file-row { padding-inline: 8px; font-size: 12px; }
+  .cliente-app .archivos-header { padding-top: 8px; }
+  .cliente-app .biblioteca-tarjeta { padding: 20px; }
+  .cliente-app .cuenta-card { padding: 22px 18px; }
+  .cliente-app .planes-membership { padding: 22px; }
+}

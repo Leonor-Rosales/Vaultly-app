@@ -91,7 +91,11 @@ function Dashboard() {
 
       <main className="dashboard-content">
         <div className="dashboard-header">
-          <h1 className="titulo-pagina">Dashboard</h1>
+          <div>
+            <p className="dashboard-eyebrow">TU ESPACIO PERSONAL</p>
+            <h1 className="titulo-pagina">Dashboard</h1>
+            <p className="dashboard-intro">Tus archivos y el uso de tu cuenta, de un vistazo.</p>
+          </div>
 
           <button
             className="upload-button"
@@ -112,7 +116,8 @@ function Dashboard() {
 
           <div className="stat-card storage-card">
             <span className="stat-title">Almacenamiento</span>
-            <strong>{consumo ? `${formatoBytes(consumo.almacenamiento.usados_bytes)} de ${formatoBytes(consumo.almacenamiento.cuota_bytes)} usados` : '—'}</strong>
+            <strong>{consumo ? formatoBytes(consumo.almacenamiento.usados_bytes) : '—'}</strong>
+            <small>{consumo ? `de ${formatoBytes(consumo.almacenamiento.cuota_bytes)} en total` : 'Consultando almacenamiento…'}</small>
             <div className="storage-bar" role="progressbar" aria-label="Almacenamiento utilizado" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(porcentaje, 100)} aria-valuetext={`${textoPorcentaje(porcentaje)} utilizados`}>
               <div
                 className="storage-progress uso-relleno"
@@ -123,8 +128,8 @@ function Dashboard() {
 
           <div className="stat-card">
             <span className="stat-title">Descargas</span>
-            <strong className="download-number"><Icon icon="lucide:download" />{consumo ? `${consumo.descargas.consumidas}/${consumo.descargas.ilimitadas ? '∞' : consumo.descargas.limite}` : '—'}</strong>
-            <small>{consumo ? `${consumo.descargas.ilimitadas ? 'Sin límite · ' : ''}Se renuevan el ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })}` : 'Consultando renovación…'}</small>
+            <strong className="download-number"><Icon icon="lucide:download" />{consumo ? consumo.descargas.ilimitadas ? 'Ilimitado' : `${consumo.descargas.consumidas}/${consumo.descargas.limite}` : '—'}</strong>
+            <small>{consumo ? consumo.descargas.ilimitadas ? `${consumo.descargas.consumidas} ${consumo.descargas.consumidas === 1 ? 'descarga realizada' : 'descargas realizadas'} en este ciclo` : `Se renuevan el ${new Date(consumo.descargas.fin).toLocaleDateString('es-GT', { timeZone: 'UTC' })}` : 'Consultando renovación…'}</small>
           </div>
 
           <div className="stat-card">
