@@ -146,16 +146,23 @@ function Archivos() {
   };
 
   return (
-    <div className="dashboard-page">
+    <div className="dashboard-page archivos-page">
       <Sidebar />
 
       <main className="dashboard-content archivos-content">
         <header className="archivos-header">
+          <div className="archivos-navegacion">
+          <button type="button" className="archivo-button archivos-regresar" disabled={!actual}
+            onClick={() => abrir(actual ? indice.get(actual)?.carpeta_padre_id ?? null : null)}
+            title="Subir a la carpeta que contiene la actual">
+            <Icon icon="lucide:arrow-left" aria-hidden="true" />Regresar
+          </button>
           <nav className="breadcrumbs" aria-label="Ruta de carpetas">
             <button onClick={() => abrir(null)}>Mis archivos</button>
             {rutaDe(actual, indice).map(c => <button key={c.id} onClick={() => abrir(c.id)}> / {c.nombre}</button>)}
           </nav>
-          <div className="archivos-actions"><button className="archivo-button" onClick={() => organizar({ tipo: 'crear' })}>Nueva carpeta</button>
+          </div>
+          <div className="archivos-actions"><button className="archivo-button" onClick={() => organizar({ tipo: 'crear' })}><Icon icon="lucide:folder-plus" aria-hidden="true" />Nueva carpeta</button>
 
           <button
             className="archivo-button primary"
@@ -197,10 +204,7 @@ function Archivos() {
             <h2 className="grupo-titulo" id="titulo-carpetas">Carpetas</h2>
             <div className="carpetas-grid">
             {hijas.map(c => <article className="carpeta-fila" key={c.id}>
-              <button className="abrir-carpeta" onClick={() => abrir(c.id)}><svg aria-hidden="true" width="38" height="32" viewBox="0 0 38 32">
-                <path fill="#AE672F" d="M2 6a3 3 0 0 1 3-3h9l4 4h15a3 3 0 0 1 3 3v15H2z" />
-                <path fill="#E9AF65" stroke="#AE672F" d="M2 12a2 2 0 0 1 2-2h30a2 2 0 0 1 2 2l-2 14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z" />
-              </svg><span>{c.nombre}</span></button>
+              <button className="abrir-carpeta" onClick={() => abrir(c.id)}><Icon icon="lucide:folder" className="carpeta-icono" aria-hidden="true" /><span>{c.nombre}</span></button>
               <div className="archivo-card-actions">
                 <button title="Renombrar carpeta" onClick={() => organizar({ tipo: 'renombrar', ...c })}><Icon icon="lucide:pencil" /></button>
                 <button title="Mover carpeta" onClick={() => organizar({ tipo: 'moverCarpeta', ...c })}><Icon icon="lucide:arrow-left-right" /></button>
