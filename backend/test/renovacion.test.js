@@ -91,3 +91,12 @@ test('suscripción vigente: expone vencimiento y estado de renovación', async (
   assert.equal(+new Date(r.suscripcion.fecha_fin), +new Date('2026-12-20T00:00:00Z'));
   assert.equal(estado.pagos.length, 0);
 });
+
+test('un plan retirado conserva el acceso y avisa antes del vencimiento', async () => {
+  const vigente = vencidaPro({ fecha_fin: new Date('2026-12-20T00:00:00Z'), plan_disponible: false });
+  const { estado, repo } = crearRepo({ suscripcion: vigente });
+  const consumo = await crearCasosCuotas({ repo, almacenamiento: {} }).consultar('u1');
+  assert.equal(consumo.plan.id, vigente.plan_id);
+  assert.equal(consumo.suscripcion.plan_retirado, true);
+  assert.equal(estado.pagos.length, 0);
+});

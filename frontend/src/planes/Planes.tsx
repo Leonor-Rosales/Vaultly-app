@@ -1,8 +1,9 @@
+import AvisoPlanRetirado from '../components/AvisoPlanRetirado';
 import { useEffect, useState } from "react";
 import Icon from '../components/IconoAviso';
 import { useNavigate } from "react-router-dom";
 import { avisosCliente as toast } from '../cuenta/avisos';
-import { obtenerCatalogo } from "../services/consumo";
+import { obtenerCatalogo, useConsumo } from "../services/consumo";
 import Sidebar from "../components/Sidebar";
 import { configurarRenovacion, obtenerPlanActual, type PlanActual } from "../services/pagos";
 import { formatPrecio, textoDescargas, type Plan } from "./planesData";
@@ -11,6 +12,8 @@ import "./Planes.css";
 import "./Renovacion.css";
 
 function Planes() {
+  const { consumo } = useConsumo();
+  const retirado = consumo?.suscripcion?.plan_retirado === true;
   const navigate = useNavigate();
   const [actual, setActual] = useState<PlanActual | null>(null);
   const [planes, setPlanes] = useState<Plan[]>([]);
@@ -54,6 +57,7 @@ function Planes() {
           </button>
         </div>
 
+        <AvisoPlanRetirado />
         {planActual && actual && <section className="planes-membership" aria-label="Tu suscripción">
           <span className="planes-membership-icon"><Icon icon="lucide:hard-drive" aria-hidden="true" /></span>
           <div className="planes-membership-name"><span>Tu plan actual</span><strong>{planActual.nombre}</strong></div>
@@ -62,7 +66,7 @@ function Planes() {
           <span className="planes-status"><Icon icon="lucide:check" aria-hidden="true" /> Plan actual</span>
         </section>}
 
-        {planActual && actual?.venceEl && <section className="planes-renovacion" aria-label="Renovación del plan">
+        {!retirado && planActual && actual?.venceEl && <section className="planes-renovacion" aria-label="Renovación del plan">
           <div>
             <strong>{actual.renovacionAutomatica ? 'Renovación automática activada' : 'Renovación automática desactivada'}</strong>
             <span>{actual.renovacionAutomatica ? `Tu plan se renovará el ${actual.venceEl} con un pago simulado.` : `Si no lo renuevas, el ${actual.venceEl} volverás al plan Free.`}</span>
@@ -72,7 +76,7 @@ function Planes() {
           </button>
         </section>}
 
-        <div className="planes-section-heading"><h2>Encuentra tu próximo espacio</h2><p>Compara almacenamiento y descargas mensuales.</p></div>
+        <div id="catalogo" className="planes-section-heading"><h2>Encuentra tu próximo espacio</h2><p>Compara almacenamiento y descargas mensuales.</p></div>
         {cargando ? <p className="planes-state" role="status">Cargando planes…</p> : error ?
           <div className="planes-state" role="alert"><p>{error}</p><button className="planes-history" onClick={cargarCatalogo}>Reintentar</button></div> :
           planes.length === 0 ? <p className="planes-state">No hay planes disponibles en este momento.</p> :

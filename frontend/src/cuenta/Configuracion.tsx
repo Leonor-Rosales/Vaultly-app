@@ -1,3 +1,4 @@
+import AvisoPlanRetirado from '../components/AvisoPlanRetirado';
 import { useState } from 'react';
 import { requestPasswordReset, ApiError, type Usuario } from '../services/auth';
 import { guardarNombre } from '../services/cuenta';
@@ -17,6 +18,7 @@ export default function Configuracion({ usuario, actualizar, ambito }: { usuario
   const [error, setError] = useState('');
   return <section className="cuenta-configuracion">
     <header className="cuenta-heading"><div><h1>Configuración</h1><p className="cuenta-intro">Personaliza tu espacio y protege tu cuenta</p></div></header>
+    {ambito === 'cliente' && <AvisoPlanRetirado />}
     <div className="cuenta-config-grid">
       <section className="cuenta-card cuenta-editar-perfil" aria-labelledby="perfil-titulo"><h2 id="perfil-titulo">Editar perfil</h2>
         <p className="cuenta-ayuda">Administra tu información personal y los datos de tu cuenta.</p>

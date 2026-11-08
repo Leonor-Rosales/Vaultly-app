@@ -1,3 +1,4 @@
+import AvisoPlanRetirado from '../components/AvisoPlanRetirado';
 import SelectorVista, { useVistaGuardada } from './SelectorVista';
 import { useCallback, useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
@@ -58,6 +59,7 @@ export default function Papelera() {
           {!!items.length && !modoSeleccion && <button className="archivo-button" onClick={() => setModoSeleccion(true)}>Seleccionar</button>}
         <SelectorVista vista={vista} cambiarVista={cambiarVista} etiqueta="Vista de la papelera" />
         </div></header>
+      <AvisoPlanRetirado />
       {datos && <p className="papelera-consumo"><Icon icon="lucide:hard-drive" aria-hidden="true" />
         <strong>{formatoBytes(Number(datos.bytes))} en la papelera</strong> · Incluidos en tu cuota</p>}
       {error && <p role="alert">{error} <button className="archivo-button" onClick={cargar}>Reintentar</button></p>}

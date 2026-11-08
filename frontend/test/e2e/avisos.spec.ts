@@ -567,3 +567,27 @@ test('Mis archivos conserva la carpeta y la selección al cambiar de vista', asy
   await page.getByRole('button',{name:'Tarjetas',exact:true}).click();
   await expect(page.locator('.archivo-card .seleccion-previa')).toHaveCount(1);
 });
+
+test('el cliente ve el retiro del plan desde su perfil antes de los últimos tres días', async ({page}) => {
+  await preparar(page);
+  await page.route('**/api/planes/mi-consumo', async r => r.fulfill({json:{
+    plan:{id:2,nombre:'Pro',precio_mensual:50},
+    suscripcion:{plan_retirado:true,renovacion_automatica:true,fecha_fin:new Date(Date.now()+20*86400000).toISOString()},
+    almacenamiento:{cuota_bytes:100000000,usados_bytes:0,reservados_bytes:0,disponibles_bytes:100000000,porcentaje_utilizado:0},
+    descargas:{limite:2,consumidas:0,restantes:2,inicio:'2026-11-01',fin:'2026-12-01'},
+    alertas:{almacenamiento:null,descargas:null},
+  }}));
+  for (const ruta of ['/configuracion','/dashboard','/planes']) {
+    await page.goto(ruta);
+    const aviso = page.getByRole('heading',{name:'Tu plan Pro dejará de estar disponible'});
+    await expect(aviso).toBeVisible();
+    await expect(page.locator('main').getByRole('heading',{name:'Tu plan Pro dejará de estar disponible'})).toBeVisible();
+    const panel = await page.locator('aside.sidebar').boundingBox();
+    const banner = await aviso.boundingBox();
+    expect(panel!.y).toBeLessThanOrEqual(1);
+    expect(banner!.x).toBeGreaterThan(panel!.x + panel!.width);
+
+    await expect(page.getByRole('link',{name:'Ver planes disponibles'})).toBeVisible();
+    await expect(page.getByRole('button',{name:/^Renovar/})).toHaveCount(0);
+  }
+});

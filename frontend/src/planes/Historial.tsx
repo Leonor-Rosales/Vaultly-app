@@ -1,3 +1,4 @@
+import AvisoPlanRetirado from '../components/AvisoPlanRetirado';
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
@@ -56,6 +57,7 @@ function Historial() {
           </button>
         </div>
 
+        <AvisoPlanRetirado />
         <div className="pagos-toolbar">
           <h2>Pagos</h2>
 

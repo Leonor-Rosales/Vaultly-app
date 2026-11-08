@@ -1,3 +1,4 @@
+import AvisoPlanRetirado from '../components/AvisoPlanRetirado';
 import { useEffect, useState, type FormEvent } from "react";
 import { Icon } from "@iconify/react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
@@ -104,6 +105,7 @@ function Contratar() {
       <form className="ct-card" onSubmit={confirmar} noValidate>
         <h1>Confirmar contratación</h1>
 
+        <AvisoPlanRetirado />
         <div className="ct-summary">
           <div>
             <span className="ct-label">Plan seleccionado</span>

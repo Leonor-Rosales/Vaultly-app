@@ -14,6 +14,7 @@ export default function AvisoRenovacion({ consumo }: { consumo: Consumo }) {
   const suscripcion = consumo.suscripcion;
   if (!suscripcion) return null;
   const faltan = new Date(suscripcion.fecha_fin).getTime() - Date.now();
+  if (suscripcion.plan_retirado) return null;
   if (faltan <= 0 || faltan > DIAS_AVISO * DIA_MS) return null;
 
   const automatica = suscripcion.renovacion_automatica;

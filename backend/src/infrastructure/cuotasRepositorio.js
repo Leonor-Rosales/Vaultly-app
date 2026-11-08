@@ -19,7 +19,7 @@ function crearCuotasRepositorio(pool) {
         const tx = {
           ahora: tiempo.ahora,
           archivos: crearArchivoRepositorio(client, true),
-          activa: () => one(`SELECT s.*, p.nombre, p.cuota_storage_gb, p.limite_descargas, p.precio_mensual
+          activa: () => one(`SELECT s.*, p.activo AS plan_disponible, p.nombre, p.cuota_storage_gb, p.limite_descargas, p.precio_mensual
             FROM suscripciones s JOIN planes p ON p.id=s.plan_id WHERE s.usuario_id=$1 AND s.estado='ACTIVA'`, [usuarioId]),
           free: () => one("SELECT * FROM planes WHERE nombre='Free' AND activo"),
           cerrarSuscripcion: (id, estado) => client.query('UPDATE suscripciones SET estado=$2 WHERE id=$1 AND usuario_id=$3', [id, estado, usuarioId]),

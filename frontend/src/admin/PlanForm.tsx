@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { guardarPlan, type PlanAdmin } from '../services/admin';
+import { mensajeEstadoPlan, guardarPlan, type PlanAdmin } from '../services/admin';
 import { Marca } from './AdminLayout';
 import { avisos as toast } from './avisos';
 import Aviso from '../components/Aviso';
@@ -20,7 +20,7 @@ export default function PlanForm({ plan }: { plan?: PlanAdmin }) {
   return <section className="admin-form-page"><Marca /><form className="admin-card" onSubmit={async e => {
     e.preventDefault(); setError('');
     if (!nombre.trim()) { setError('Escribe un nombre para el plan'); return; }
-    if (plan && activo !== plan.activo && !(await confirmar(`¿${activo ? 'Activar' : 'Desactivar'} este plan? Las suscripciones existentes se conservarán.`))) return;
+    if (plan && activo !== plan.activo && !(await confirmar(mensajeEstadoPlan(plan)))) return;
     setGuardando(true);
     try {
       await guardarPlan({ nombre: nombre.trim(), precio_mensual: Number(precio), cuota_storage_gb: Number(gb), limite_descargas: ilimitadas ? null : Number(limite), permite_carpetas_publicas: publicas, activo }, plan?.id);

@@ -1,5 +1,6 @@
 import { request } from './auth';
 export interface PlanAdmin {
+  suscripciones_vigentes?: number;
   id: number; nombre: string; precio_mensual: number | string; cuota_storage_gb: number;
   limite_descargas: number | null; permite_carpetas_publicas: boolean; activo: boolean;
 }
@@ -21,3 +22,8 @@ export interface PagoAdmin {
   creado_en: string;
 }
 export const listarPagos = () => request<PagoAdmin[]>('/api/admin/pagos', { auth: true });
+
+export function mensajeEstadoPlan(plan: PlanAdmin) {
+  if (!plan.activo) return `¿Activar el plan ${plan.nombre}?`;
+  return `¿Desactivar el plan ${plan.nombre}? Suscripciones vigentes: ${plan.suscripciones_vigentes ?? 0}. Los usuarios conservarán sus beneficios hasta el vencimiento y después pasarán a Free sin otro cobro.`;
+}

@@ -30,7 +30,7 @@ function resumen(plan, ciclo, usados, reservados, suscripcion = null) {
     plan: { id: plan.id, nombre: plan.nombre, precio_mensual: Number(plan.precio_mensual) },
     // Solo los planes de pago tienen vencimiento y renovación.
     suscripcion: suscripcion && Number(plan.precio_mensual) > 0
-      ? { fecha_fin: suscripcion.fecha_fin, renovacion_automatica: suscripcion.renovacion_automatica === true }
+      ? { ...(suscripcion.plan_disponible === false ? { plan_retirado: true } : {}), fecha_fin: suscripcion.fecha_fin, renovacion_automatica: suscripcion.renovacion_automatica === true }
       : null,
     almacenamiento: { cuota_bytes: cuota, usados_bytes: usados, reservados_bytes: reservados,
       disponibles_bytes: Math.max(0, cuota - usados - reservados), porcentaje_utilizado: porcentaje },

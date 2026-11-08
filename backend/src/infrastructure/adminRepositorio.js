@@ -11,7 +11,9 @@ function crearAdminRepositorio(pool) {
       `);
       return resultado.rows;
     },
-    listarPlanes: async () => (await pool.query('SELECT * FROM planes ORDER BY precio_mensual, id')).rows,
+    listarPlanes: async () => (await pool.query(`SELECT p.*, (SELECT count(*)::int FROM suscripciones s
+      WHERE s.plan_id=p.id AND s.estado='ACTIVA' AND s.fecha_inicio<=now() AND s.fecha_fin>now()) AS suscripciones_vigentes
+      FROM planes p ORDER BY p.precio_mensual,p.id`)).rows,
     listarAdministradores: async () => (await pool.query(`SELECT ${campos} FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='ADMIN' ORDER BY u.nombre_completo, u.id`)).rows,
     async transaccion(tipo, fn) {
       const c = await pool.connect();

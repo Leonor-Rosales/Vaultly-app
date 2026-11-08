@@ -6,7 +6,7 @@ import type { Plan } from '../planes/planesData';
 export interface Consumo {
   plan: { id: number; nombre: string; precio_mensual: number };
   // Solo existe en planes de pago: vencimiento y si se renueva sola.
-  suscripcion?: { fecha_fin: string; renovacion_automatica: boolean } | null;
+  suscripcion?: { plan_retirado?: boolean; fecha_fin: string; renovacion_automatica: boolean } | null;
   almacenamiento: { cuota_bytes: number; usados_bytes: number; reservados_bytes: number; disponibles_bytes: number; porcentaje_utilizado: number };
   descargas: { limite: number | null; ilimitadas: boolean; consumidas: number; restantes: number | null; inicio: string; fin: string };
   alertas: { almacenamiento: string | null; descargas: string | null };

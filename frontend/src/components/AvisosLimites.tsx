@@ -1,3 +1,4 @@
+import AvisoPlanRetirado from '../components/AvisoPlanRetirado';
 import { Link } from 'react-router-dom';
 import Icon from './IconoAviso';
 import { actualizarConsumo, useConsumo } from '../services/consumo';
@@ -8,6 +9,7 @@ import './Avisos.css';
 export default function AvisosLimites({ almacenamiento = false, descargas = false, mostrarUso = false }: { almacenamiento?: boolean; descargas?: boolean; mostrarUso?: boolean }) {
   const { consumo, error } = useConsumo();
   return <div className="avisos-limites">
+    <AvisoPlanRetirado />
     {error && <section className="aviso-banner" role="status">
       <Icon icon="lucide:wifi-off" /><div><h2>No pudimos actualizar tu consumo</h2><p>{consumo ? 'Mostramos el último consumo conocido. Actualiza para comprobar el espacio disponible.' : 'El consumo no está disponible. Inténtalo de nuevo.'}</p></div>
       <button type="button" className="aviso-enlace" onClick={() => void actualizarConsumo().catch(() => {})}>Reintentar</button>
