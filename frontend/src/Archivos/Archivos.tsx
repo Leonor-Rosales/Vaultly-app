@@ -23,16 +23,83 @@ import CargaArchivos from "../Archivos/CargaArchivos";
 import DetallesArchivo from "./DetallesArchivo";
 import "./Archivos.css";
 
+type Elemento = { tipo: 'archivo' | 'carpeta'; id: string; nombre: string };
+const clave = (item: Elemento) => item.tipo + ':' + item.id;
+
 function Archivos() {
   const location = useLocation();
   const { avisarError, confirmar } = useAvisos();
   const [archivos, setArchivos] = useState<Archivo[]>([]);
   const [carpetas, setCarpetas] = useState<Carpeta[]>([]);
-  const [actual, abrir] = useState<string | null>(null);
+  const [actual, setActual] = useState<string | null>(null);
   const [operacion, organizar] = useState<Operacion | null>(null);
   const indice = new Map(carpetas.map(c => [c.id, c]));
   const hijas = carpetas.filter(c => c.carpeta_padre_id === actual).sort((a,b) => a.nombre.localeCompare(b.nombre));
   const visibles = archivos.filter(a => (a.carpeta_id ?? null) === actual);
+  const [seleccion, seleccionar] = useState<Elemento[]>([]);
+  const [modoSeleccion, setModoSeleccion] = useState(false);
+  const [procesando, setProcesando] = useState(false);
+  const [resumen, setResumen] = useState('');
+  const marcados = new Set(seleccion.map(clave));
+  function abrir(id: string | null) {
+    setActual(id);
+    setModoSeleccion(false);
+    seleccionar([]);
+    setResumen('');
+  }
+  function iniciarSeleccion(item?: Elemento) {
+    seleccionar(item ? [item] : []);
+    setResumen('');
+    setModoSeleccion(true);
+  }
+  function controlSeleccion(item: Elemento) {
+    if (!modoSeleccion) return null;
+    const id = clave(item);
+    const marcado = marcados.has(id);
+    return <button type="button" className="seleccion-tarjeta" aria-label={`Seleccionar ${item.nombre}`}
+      aria-pressed={marcado} onClick={() => {
+        setResumen('');
+        seleccionar(lista => lista.some(i => clave(i) === id) ? lista.filter(i => clave(i) !== id) : [...lista, item]);
+      }}>{marcado && <span aria-hidden="true">✓</span>}</button>;
+  }
+  async function aplicarSeleccion(accion: 'eliminar' | 'mover', destino: string | null = null) {
+    if (procesando || !seleccion.length) return;
+    if (accion === 'eliminar' && !await confirmar('¿Eliminar la selección?',
+      `Vas a eliminar ${seleccion.length} elemento(s). Esta acción no se puede deshacer.`)) return;
+    setProcesando(true);
+    setResumen('');
+    const fallos: Elemento[] = [];
+    let primerError = '';
+    try {
+      for (const item of seleccion) {
+        try {
+          if (item.tipo === 'archivo' && accion === 'eliminar') {
+            await eliminarArchivo(item.id);
+            setArchivos(lista => lista.filter(a => a.id !== item.id));
+          } else if (item.tipo === 'archivo') {
+            const { carpeta_id } = await moverArchivo(item.id, destino);
+            setArchivos(lista => lista.map(a => a.id === item.id ? { ...a, carpeta_id } : a));
+          } else if (accion === 'eliminar') {
+            await eliminarCarpeta(item.id);
+            setCarpetas(lista => lista.filter(c => c.id !== item.id));
+          } else {
+            const actualizada = await moverCarpeta(item.id, destino);
+            setCarpetas(lista => lista.map(c => c.id === item.id ? actualizada : c));
+          }
+        } catch (error) {
+          fallos.push(item);
+          if (!primerError) primerError = item.nombre + ': ' + (error instanceof Error ? error.message : 'No se pudo completar la operación.');
+        }
+      }
+      seleccionar(fallos);
+      setModoSeleccion(fallos.length > 0);
+      const hechos = seleccion.length - fallos.length;
+      const resultado = accion === 'mover' ? 'Movidos' : 'Eliminados';
+      setResumen(fallos.length ? `${resultado}: ${hechos}. Pendientes: ${fallos.length}. ${primerError}` : `${resultado}: ${hechos}.`);
+    } finally {
+      setProcesando(false);
+    }
+  }
   const guardar = async (valor: string) => {
     if (!operacion) return;
     if (operacion.tipo === 'renombrarArchivo') {
@@ -41,6 +108,7 @@ function Archivos() {
       return;
     }
     const destino = valor === 'raiz' ? null : valor;
+    if (operacion.tipo === 'moverSeleccion') return aplicarSeleccion('mover', destino);
     if (operacion.tipo === 'moverArchivo') {
       const { carpeta_id } = await moverArchivo(operacion.id, destino);
       setArchivos(lista => lista.map(a => a.id === operacion.id ? { ...a, carpeta_id } : a));
@@ -149,7 +217,7 @@ function Archivos() {
     <div className="dashboard-page archivos-page">
       <Sidebar />
 
-      <main className="dashboard-content archivos-content">
+      <main className="dashboard-content archivos-content" inert={procesando} aria-busy={procesando}>
         <header className="archivos-header">
           <div className="archivos-navegacion">
           <button type="button" className="archivo-button archivos-regresar" disabled={!actual}
@@ -162,7 +230,10 @@ function Archivos() {
             {rutaDe(actual, indice).map(c => <button key={c.id} onClick={() => abrir(c.id)}> / {c.nombre}</button>)}
           </nav>
           </div>
-          <div className="archivos-actions"><button className="archivo-button" onClick={() => organizar({ tipo: 'crear' })}><Icon icon="lucide:folder-plus" aria-hidden="true" />Nueva carpeta</button>
+          <div className="archivos-actions">
+            {!modoSeleccion && (visibles.length > 0 || hijas.length > 0) &&
+              <button className="archivo-button" onClick={() => iniciarSeleccion()}><Icon icon="lucide:list-checks" aria-hidden="true" />Seleccionar</button>}
+            <button className="archivo-button" onClick={() => organizar({ tipo: 'crear' })}><Icon icon="lucide:folder-plus" aria-hidden="true" />Nueva carpeta</button>
 
           <button
             className="archivo-button primary"
@@ -173,6 +244,16 @@ function Archivos() {
           </button>
           </div>
         </header>
+        {modoSeleccion && <div className="archivos-lote" role="group" aria-label="Acciones de selección">
+          <strong aria-live="polite">{seleccion.length} {seleccion.length === 1 ? 'seleccionado' : 'seleccionados'}</strong>
+          <button className="archivo-button" disabled={!seleccion.length} onClick={() => organizar({
+            tipo: 'moverSeleccion', nombre: `${seleccion.length} elemento(s)`,
+            carpetas: seleccion.filter(i => i.tipo === 'carpeta').map(i => i.id),
+          })}>Mover a…</button>
+          <button className="archivo-button" disabled={!seleccion.length} onClick={() => aplicarSeleccion('eliminar')}>Eliminar selección</button>
+          <button className="archivo-button" onClick={() => { seleccionar([]); setModoSeleccion(false); }}>Cancelar</button>
+        </div>}
+        {resumen && <p role="status">{resumen}</p>}
         <AvisosLimites almacenamiento />
 
         {cargando ? (
@@ -204,8 +285,16 @@ function Archivos() {
             <h2 className="grupo-titulo" id="titulo-carpetas">Carpetas</h2>
             <div className="carpetas-grid">
             {hijas.map(c => <article className="carpeta-fila" key={c.id}>
-              <button className="abrir-carpeta" onClick={() => abrir(c.id)}><Icon icon="lucide:folder" className="carpeta-icono" aria-hidden="true" /><span>{c.nombre}</span></button>
-              <div className="archivo-card-actions">
+              {controlSeleccion({ tipo: 'carpeta', id: c.id, nombre: c.nombre })}
+              <button inert={modoSeleccion} className="abrir-carpeta" onClick={() => abrir(c.id)}><Icon icon="lucide:folder" className="carpeta-icono" aria-hidden="true" /><span>{c.nombre}</span></button>
+              <div className="archivo-card-actions" inert={modoSeleccion}>
+                <details className="carpeta-menu">
+                  <summary aria-label={`Opciones de ${c.nombre}`}>•••</summary>
+                  <button type="button" className="carpeta-menu-opcion accion-seleccionar" onClick={e => {
+                    e.currentTarget.closest('details')?.removeAttribute('open');
+                    iniciarSeleccion({ tipo: 'carpeta', id: c.id, nombre: c.nombre });
+                  }}><Icon icon="lucide:list-checks" aria-hidden="true" />Seleccionar</button>
+                </details>
                 <button title="Renombrar carpeta" onClick={() => organizar({ tipo: 'renombrar', ...c })}><Icon icon="lucide:pencil" /></button>
                 <button title="Mover carpeta" onClick={() => organizar({ tipo: 'moverCarpeta', ...c })}><Icon icon="lucide:arrow-left-right" /></button>
                 <button title="Eliminar carpeta" onClick={() => borrarCarpeta(c)}><Icon icon="lucide:trash-2" /></button>
@@ -218,7 +307,7 @@ function Archivos() {
             <div className="archivos-grid">
             {visibles.map((archivo) => (
               <article className="archivo-card" key={archivo.id}>
-                <div className="archivo-card-top">
+                <div className="archivo-card-top" inert={modoSeleccion}>
                   <button
                     type="button"
                     className={`archivo-badge ${
@@ -230,11 +319,12 @@ function Archivos() {
                     {archivo.es_publica ? "Público" : "Privado"}
                   </button>
 
-                  <DetallesArchivo archivo={archivo} onUpdated={actualizado => setArchivos(actuales => actuales.map(a => a.id === actualizado.id ? actualizado : a))} />
+                  <DetallesArchivo archivo={archivo} onSeleccionar={() => iniciarSeleccion({ tipo: 'archivo', id: archivo.id, nombre: archivo.nombre_original })} onUpdated={actualizado => setArchivos(actuales => actuales.map(a => a.id === actualizado.id ? actualizado : a))} />
                 </div>
 
-                <VistaPrevia archivo={archivo} />
+                <div className="seleccion-previa" inert={modoSeleccion}><VistaPrevia archivo={archivo} /></div>
 
+                {controlSeleccion({ tipo: 'archivo', id: archivo.id, nombre: archivo.nombre_original })}
                 <div className="archivo-card-info">
                   <p title={archivo.nombre_original}>
                     {archivo.nombre_original}
@@ -242,7 +332,7 @@ function Archivos() {
                   <span>{formatoTamano(archivo.tamanio_bytes)}</span>
                 </div>
 
-                <div className="archivo-card-actions">
+                <div className="archivo-card-actions" inert={modoSeleccion}>
                   <button
                     type="button"
                     title="Editar nombre"

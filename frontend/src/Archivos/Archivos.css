@@ -550,3 +550,25 @@
 .organizar-dialogo .organizar-nombre { gap: 7px; margin: 8px 0; font-size: 13px; font-weight: 600; }
 .organizar-nombre input { border: 1px solid var(--cliente-border); border-radius: 8px; background: var(--cliente-surface); color: var(--cliente-text); }
 .organizar-dialogo .organizar-nombre input { padding: 11px 12px; font-size: 15px; font-weight: 400; }
+
+.archivos-lote { position:sticky; top:0; z-index:12; flex-shrink:0; box-shadow:0 3px 12px #34201014; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px; margin-bottom:16px; background:var(--cliente-surface); border:1px solid var(--cliente-border); border-radius:10px; }
+
+.seleccion-previa { display: contents; }
+.carpeta-fila, .archivo-card { position: relative; }
+.seleccion-tarjeta { position: absolute; inset: 0; z-index: 4; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
+.seleccion-tarjeta[aria-pressed=true], .seleccion-tarjeta:focus-visible { outline: 2px solid var(--cliente-accent); outline-offset: -2px; }
+.seleccion-tarjeta span { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; background: var(--cliente-accent); color: var(--cliente-on-accent); }
+.archivo-card-actions[inert], .archivo-card-top[inert] { visibility: hidden; }
+.carpeta-menu { position: relative; }
+.carpeta-menu summary { cursor: pointer; list-style: none; padding: 6px; }
+.carpeta-menu summary::-webkit-details-marker { display: none; }
+.carpeta-menu .carpeta-menu-opcion { position: absolute; right: 0; top: 100%; z-index: 5; width: max-content; padding: 3px 7px; background: var(--cliente-bg); color: var(--cliente-text); border: 1px solid var(--cliente-border); border-radius: 6px; }
+
+.archivos-lote strong { margin-inline-end:auto; }
+.seleccion-previa[inert] .miniatura-accion { visibility:hidden; }
+.detalles-cabecera { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; padding-bottom:9px; border-bottom:1px solid var(--cliente-border); }
+.detalles-cabecera h3 { margin:0; padding:0; border:0; }
+.accion-seleccionar { display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:3px 7px; border:1px solid var(--cliente-border); border-radius:5px; background:var(--cliente-surface); color:var(--cliente-link); font:inherit; font-size:12px; line-height:16px; cursor:pointer; }
+.accion-seleccionar:hover { background:var(--cliente-soft); }
+.accion-seleccionar svg { width:13px; height:13px; }
+.carpeta-menu .carpeta-menu-opcion { width:max-content; height:24px; font-size:12px; box-shadow:0 3px 12px #34201014; }

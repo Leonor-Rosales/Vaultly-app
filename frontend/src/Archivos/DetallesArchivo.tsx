@@ -21,7 +21,7 @@ function tipoArchivo(archivo: Archivo) {
   return tipos[archivo.tipo_mime] || (extension ? `Archivo ${extension.toUpperCase()}` : 'Archivo');
 }
 
-export default function DetallesArchivo({ archivo, onUpdated }: { archivo: Archivo; onUpdated?: (archivo: Archivo) => void }) {
+export default function DetallesArchivo({ archivo, onUpdated, onSeleccionar }: { archivo: Archivo; onSeleccionar?: () => void; onUpdated?: (archivo: Archivo) => void }) {
   const [borrador, setBorrador] = useState(archivo.etiquetas?.map(e => e.nombre) ?? []);
   const [pendiente, setPendiente] = useState('');
   const [error, setError] = useState('');
@@ -78,7 +78,11 @@ export default function DetallesArchivo({ archivo, onUpdated }: { archivo: Archi
     <div ref={panel} id={id} popover="auto" className="archivo-detalles"
       role="region" aria-labelledby={`${id}-titulo`} style={posicion}
       onToggle={event => setAbierto(event.newState === 'open')}>
-      <h3 id={`${id}-titulo`}>Detalles del archivo</h3>
+      <header className="detalles-cabecera"><h3 id={`${id}-titulo`}>Detalles del archivo</h3>
+      {onSeleccionar && <button type="button" className="accion-seleccionar" onClick={() => {
+        panel.current?.hidePopover();
+        onSeleccionar();
+      }}><Icon icon="lucide:list-checks" aria-hidden="true" />Seleccionar</button>}</header>
       <dl>
         <div><dt>Nombre</dt><dd>{archivo.nombre_original}</dd></div>
         <div><dt>Tipo</dt><dd>{tipoArchivo(archivo)}</dd></div>

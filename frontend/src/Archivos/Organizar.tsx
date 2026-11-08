@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import type { Carpeta } from '../services/archivos';
 
-export type Operacion = { tipo: 'crear' } | { tipo: 'renombrar' | 'renombrarArchivo' | 'moverCarpeta' | 'moverArchivo'; id: string; nombre: string };
+export type Operacion = { tipo: 'moverSeleccion'; carpetas: string[]; nombre: string } | { tipo: 'crear' } | { tipo: 'renombrar' | 'renombrarArchivo' | 'moverCarpeta' | 'moverArchivo'; id: string; nombre: string };
 
 export function rutaDe(id: string | null, indice: Map<string, Carpeta>) {
   const ruta: Carpeta[] = [];
@@ -28,13 +28,15 @@ export default function Organizar({ operacion, indice, actual, cerrar, guardar }
   const [valor, setValor] = useState(esArchivo || operacion.tipo === 'renombrar' ? operacion.nombre : '');
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState('');
-  const mover = operacion.tipo === 'moverArchivo' || operacion.tipo === 'moverCarpeta';
+  const mover = operacion.tipo === 'moverArchivo' || operacion.tipo === 'moverCarpeta' || operacion.tipo === 'moverSeleccion';
   const [busqueda, setBusqueda] = useState('');
   const destinos = useMemo(() => {
     if (!mover) return [];
+    const excluidas = new Set(operacion.tipo === 'moverSeleccion' ? operacion.carpetas :
+      operacion.tipo === 'moverCarpeta' ? [operacion.id] : []);
     const opciones = [...indice.values()].flatMap(c => {
       const ruta = rutaDe(c.id, indice);
-      if (c.id === actual || (operacion.tipo === 'moverCarpeta' && ruta.some(p => p.id === operacion.id))) return [];
+      if (c.id === actual || ruta.some(p => excluidas.has(p.id))) return [];
       const padre = ['Mis archivos', ...ruta.slice(0, -1).map(p => p.nombre)].join(' / ');
       return [{ id: c.id, nombre: c.nombre, padre }];
     }).sort((a, b) => a.nombre.localeCompare(b.nombre));

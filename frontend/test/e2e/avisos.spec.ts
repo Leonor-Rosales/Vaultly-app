@@ -471,3 +471,51 @@ test('filtrar conserva las miniaturas de los archivos que siguen en los resultad
   }
   expect(cargas).toBe(inicial);
 });
+
+test('selección mixta mueve a un destino válido y conserva los fallos al eliminar', async ({ page }) => {
+  await preparar(page);
+  const origen = { id: 'a', nombre: 'Apuntes', carpeta_padre_id: null };
+  const destino = { id: 'b', nombre: 'Destino', carpeta_padre_id: null };
+  await page.route('**/api/carpetas', r => r.fulfill({ json: [origen, destino, { id: 'c', nombre: 'Hija', carpeta_padre_id: 'a' }] }));
+  await page.route('**/api/carpetas/a/destino', r => r.fulfill({ json: { ...origen, carpeta_padre_id: r.request().postDataJSON().padre } }));
+  await page.route('**/api/carpetas/archivos/propio/destino', r => r.fulfill({ json: { carpeta_id: r.request().postDataJSON().padre } }));
+  await page.route('**/api/carpetas/a', r => r.fulfill({status:409, json:{error:'Carpeta con contenido'}}));
+  await page.goto('/archivos');
+  async function marcarAmbos() {
+    await page.getByRole('button', { name: 'Seleccionar', exact: true }).click();
+    await page.getByRole('button', { name: 'Seleccionar Apuntes' }).click();
+    await page.getByRole('button', { name: 'Seleccionar informe.pdf' }).click();
+  }
+  await page.getByLabel('Opciones de Apuntes').click();
+  await page.locator('.carpeta-menu[open]').getByRole('button', { name: 'Seleccionar', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Seleccionar Apuntes' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+  await page.getByRole('button', { name: 'Ver detalles de informe.pdf' }).click();
+  await page.getByRole('region', { name: 'Detalles del archivo' }).getByRole('button', { name: 'Seleccionar', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Seleccionar informe.pdf' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Seleccionar Apuntes' }).click();
+  await page.getByRole('button', {name:'Mover a…', exact:true}).click();
+  await expect(page.getByRole('radio')).toHaveCount(1);
+  await page.getByRole('radio', {name:/Destino/}).check();
+  await page.getByRole('button', {name:'Mover aquí'}).click();
+  await expect(page.getByText('Movidos: 2.', {exact:true})).toBeVisible();
+  await page.getByRole('button', {name:'Destino', exact:true}).click();
+  await marcarAmbos();
+  await page.getByRole('button', {name:'Eliminar selección'}).click();
+  await page.getByRole('dialog').getByRole('button', {name:/Eliminar/}).click();
+  await expect(page.getByText(/Eliminados: 1. Pendientes: 1/)).toBeVisible();
+  await expect(page.getByRole('button', {name:'Seleccionar Apuntes'})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', {name:'Seleccionar informe.pdf'})).toHaveCount(0);
+});
+
+test('las acciones siguen visibles al seleccionar al final de Mis archivos', async ({ page }) => {
+  const estado = await preparar(page);
+  estado.archivos = Array.from({ length: 60 }, (_, i) => ({
+    ...archivo(String(i), `Documento ${i}.zip`), tipo_mime: 'application/zip',
+  }));
+  await page.goto('/archivos');
+  await page.getByRole('button', { name: 'Ver detalles de Documento 59.zip', exact: true }).click();
+  await page.getByRole('region', { name: 'Detalles del archivo' }).getByRole('button', { name: 'Seleccionar', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Seleccionar Documento 59.zip' })).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'Eliminar selección' })).toBeInViewport();
+});
