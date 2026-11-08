@@ -42,6 +42,7 @@ export default function AdminLayout() {
       <nav id="admin-navegacion" aria-label="Administración">
         {[
           ['planes', 'lucide:credit-card', 'Planes y facturación'],
+          ['pagos', 'lucide:credit-card', 'Historial de pagos'],
           ['administradores', 'lucide:clipboard-list', 'Administradores'],
           ['configuracion', 'lucide:settings', 'Configuración'],
         ].map(([path, icon, nombre]) => <NavLink key={path} to={`/admin/${path}`} onClick={() => setMenu(false)}><Icon icon={icon} />{nombre}</NavLink>)}

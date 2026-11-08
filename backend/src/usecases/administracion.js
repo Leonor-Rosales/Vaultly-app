@@ -6,6 +6,7 @@ function crearCasosAdministracion({ repo, hashear }) {
     if (usuario?.rol !== 'ADMIN' || usuario.estado_cuenta !== 'ACTIVO') throw new ErrorApp('No tienes permiso para esta acción', 403);
   }
   return {
+    listarPagos: () => repo.listarPagos(),
     listarPlanes: () => repo.listarPlanes(),
     listarAdministradores: () => repo.listarAdministradores(),
     async guardarPlan(actor, id, datos) {

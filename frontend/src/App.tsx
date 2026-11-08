@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AdminLayout from './admin/AdminLayout';
+import HistorialPagos from './admin/HistorialPagos';
 import PlanesAdmin from './admin/PlanesAdmin';
 import PlanForm from './admin/PlanForm';
 import Administradores from './admin/Administradores';
@@ -39,6 +40,7 @@ function App() {
           <Route path="planes" element={<PlanesAdmin key="listado" />} />
           <Route path="planes/nuevo" element={<PlanForm />} />
           <Route path="planes/:id/editar" element={<PlanesAdmin key="editar" editar />} />
+          <Route path="pagos" element={<HistorialPagos />} />
           <Route path="administradores" element={<Administradores />} />
           <Route path="configuracion" element={<Configuracion />} />
           <Route path="*" element={<Navigate to="/admin/planes" replace />} />

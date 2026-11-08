@@ -16,6 +16,7 @@ function crearAdminRoutes(casos, auth) {
     if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(req.params.id)) throw new ErrorApp('Administrador inválido', 400);
     return req.params.id;
   };
+  r.get('/pagos', responder(() => casos.listarPagos()));
   r.get('/planes', responder(() => casos.listarPlanes()));
   r.post('/planes', responder(req => casos.guardarPlan(req.usuario.sub, null, req.body), 201));
   r.put('/planes/:id', responder(req => casos.guardarPlan(req.usuario.sub, idPlan(req), req.body)));

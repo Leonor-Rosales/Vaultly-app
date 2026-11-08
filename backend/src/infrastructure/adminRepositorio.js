@@ -2,6 +2,15 @@ const { ErrorApp } = require('../domain/errores');
 const campos = 'u.id, u.nombre_completo, u.correo_electronico, u.estado_cuenta, u.created_at';
 function crearAdminRepositorio(pool) {
   return {
+    async listarPagos() {
+      const resultado = await pool.query(`
+        SELECT p.id, u.nombre_completo, u.correo_electronico, p.plan_nombre,
+               p.monto, p.estado, p.creado_en
+        FROM pagos p JOIN usuarios u ON u.id = p.usuario_id
+        ORDER BY p.creado_en DESC, p.id DESC
+      `);
+      return resultado.rows;
+    },
     listarPlanes: async () => (await pool.query('SELECT * FROM planes ORDER BY precio_mensual, id')).rows,
     listarAdministradores: async () => (await pool.query(`SELECT ${campos} FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='ADMIN' ORDER BY u.nombre_completo, u.id`)).rows,
     async transaccion(tipo, fn) {
