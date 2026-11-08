@@ -91,7 +91,7 @@ function Dashboard() {
 
       <main className="dashboard-content">
         <div className="dashboard-header">
-          <h1>Dashboard</h1>
+          <h1 className="titulo-pagina">Dashboard</h1>
 
           <button
             className="upload-button"
@@ -136,7 +136,7 @@ function Dashboard() {
 
         <section className="recent-files">
           <div className="recent-files-header">
-            <h2>Archivos recientes</h2>
+            <h2 className="titulo-seccion">Archivos recientes</h2>
             <button
               className="view-all-button"
               onClick={() => navigate("/archivos")}

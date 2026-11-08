@@ -121,3 +121,22 @@ code {
   padding: 15px 18px !important;
   box-shadow: 0 4px 12px rgba(84, 40, 24, 0.12) !important;
 }
+/* Jerarquía compartida de las pantallas de cliente y administración. */
+:is(.cliente-app, .admin-app) h1.titulo-pagina,
+:is(.cliente-app, .admin-app) h2.titulo-seccion {
+  font-family: inherit;
+  font-weight: 650;
+  line-height: 1.25;
+  text-transform: none;
+}
+:is(.cliente-app, .admin-app) h1.titulo-pagina {
+  font-size: clamp(24px, 2.5vw, 28px);
+  letter-spacing: -.025em;
+  margin: 0 0 6px;
+}
+:is(.cliente-app, .admin-app) h2.titulo-seccion {
+  font-size: 18px;
+  letter-spacing: -.015em;
+  margin: 0 0 12px;
+}
+.cliente-app h1.archivos-titulo { margin-bottom: 16px; }

@@ -23,7 +23,7 @@ export default function AdministradorForm({ usuario, propio, cerrar }: { usuario
     try { await guardarAdministrador({ nombre_completo: nombre.trim(), correo_electronico: correo.trim(), activo, ...(!usuario ? { password } : {}) }, usuario?.id); toast.success('Administrador guardado'); cerrar(true); }
     catch (e) { setError(e instanceof Error ? e.message : 'No se pudo guardar'); } finally { setGuardando(false); }
   }}>
-    <h2>{usuario ? 'Editar administrador' : 'Crear administrador'}</h2>
+    <h1 className="titulo-pagina">{usuario ? 'Editar administrador' : 'Crear administrador'}</h1>
     <fieldset disabled={guardando}>
       <label>Nombre completo<input required maxLength={150} autoComplete="name" value={nombre} onChange={e => setNombre(e.target.value)} /></label>
       <label>Correo electrónico<input required readOnly={!!usuario} type="email" maxLength={150} autoComplete="email" value={correo} onChange={e => setCorreo(e.target.value)} /></label>

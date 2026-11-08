@@ -102,7 +102,7 @@ function Contratar() {
       </div>
 
       <form className="ct-card" onSubmit={confirmar} noValidate>
-        <h1>Confirmar contratación</h1>
+        <h1 className="titulo-pagina">Confirmar contratación</h1>
 
         <div className="ct-summary">
           <div>

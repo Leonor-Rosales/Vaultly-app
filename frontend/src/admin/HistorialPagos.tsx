@@ -8,7 +8,7 @@ const fecha = new Intl.DateTimeFormat('es-GT', { dateStyle: 'medium', timeStyle:
 export default function HistorialPagos() {
   const { datos, cargando, error, cargar } = useListado(listarPagos);
   return <section>
-    <header className="admin-heading"><h1>Historial de pagos</h1></header>
+    <header className="admin-heading"><h1 className="titulo-pagina">Historial de pagos</h1></header>
     {cargando ? <p role="status">Cargando pagos…</p>
       : error ? <Aviso variante="error">{error}<button onClick={cargar}>Reintentar</button></Aviso>
       : !datos.length ? <p>Aún no hay pagos registrados.</p>

@@ -28,7 +28,7 @@ export default function PlanForm({ plan }: { plan?: PlanAdmin }) {
     } catch (e) { setError(e instanceof Error ? e.message : 'No se pudo guardar'); }
     finally { setGuardando(false); }
   }}>
-    <h1>{plan ? 'Editar plan' : 'Crear nuevo plan'}</h1><p>Completa la información del {plan ? 'plan' : 'nuevo plan'}</p>
+    <h1 className="titulo-pagina">{plan ? 'Editar plan' : 'Crear nuevo plan'}</h1><p>Completa la información del {plan ? 'plan' : 'nuevo plan'}</p>
     <fieldset disabled={guardando}>
       <label>Nombre del plan<input required maxLength={50} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Premium" /></label>
       <label>Precio mensual (Q)<input required type="number" min="0" max="99999999.99" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="Q 0.00" /></label>

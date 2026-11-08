@@ -40,7 +40,7 @@ function Historial() {
       <main className="dashboard-content">
         <div className="dashboard-header">
           <div>
-            <h1>Historial de pagos</h1>
+            <h1 className="titulo-pagina">Historial de pagos</h1>
             <p className="planes-subtitle">
               Consulta tus pagos y renovaciones anteriores
             </p>
@@ -57,7 +57,7 @@ function Historial() {
         </div>
 
         <div className="pagos-toolbar">
-          <h2>Pagos</h2>
+          <h2 className="titulo-seccion">Pagos</h2>
 
           <label className="pagos-orden">
             <Icon icon="lucide:list-filter" />
