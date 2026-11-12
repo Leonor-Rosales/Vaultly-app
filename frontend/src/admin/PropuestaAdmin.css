@@ -127,6 +127,48 @@
 .admin-app .admin-promocion-resumen { display: block; margin-top: 8px; color: var(--admin-link); font-size: 11px; line-height: 1.6; }
 .admin-app .admin-promocion select { display: block; width: 100%; margin-top: 5px; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: 7px; background: var(--admin-bg); color: var(--admin-text); font: inherit; }
 .admin-app .admin-promocion-previa { margin-top: 18px; line-height: 1.7; }
+.admin-app .admin-form-page > .admin-plan-card { width: 840px; }
+.admin-app .admin-plan-card > fieldset { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+.admin-app .admin-plan-card > fieldset > :is(.admin-ayuda, .admin-check, .admin-promocion, .vaultly-aviso, .admin-form-actions) { grid-column: 1 / -1; }
+.admin-app .admin-plan-card > fieldset > .admin-plan-ayuda-precio { margin-bottom: 8px; }
+.admin-app .admin-plan-card .admin-promocion { padding: 24px; margin-block: 16px 8px; min-width: 0; }
+.admin-app .promo-tipos legend, .admin-app .admin-promocion h2 { font-size: 14px; font-weight: 650; margin: 0; letter-spacing: 0; }
+.admin-app .promo-opciones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.admin-app .promo-opcion { position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0; margin: 0; padding: 18px 14px; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface); cursor: pointer; }
+.admin-app .promo-opcion:has(input:checked) { border-color: var(--admin-accent); box-shadow: inset 0 0 0 1px var(--admin-accent); background: var(--admin-soft); }
+.admin-app .promo-opcion:focus-within { outline: 3px solid var(--admin-focus); outline-offset: 3px; }
+.admin-app .promo-opcion input { position: absolute; right: 14px; top: 16px; width: 16px; height: 16px; margin: 0; accent-color: var(--admin-accent); }
+.admin-app .promo-simbolo { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--admin-bg); color: var(--admin-link); font-size: 19px; font-weight: 600; }
+.admin-app .promo-opcion-texto { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.admin-app .promo-opcion-texto strong { font-size: 13px; line-height: 1.4; }
+.admin-app .promo-opcion-texto > span { color: var(--admin-muted); font-size: 12px; line-height: 1.6; }
+.admin-app .promo-opcion-texto small { margin-top: auto; padding-top: 8px; color: var(--admin-link); font-size: 11px; line-height: 1.5; }
+.admin-app .promo-beneficio, .admin-app .promo-vigencia { margin-top: 26px; }
+.admin-app .promo-beneficio > label { max-width: 300px; }
+.admin-app .promo-resumen { padding: 20px; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface); }
+.admin-app .promo-resumen-etiqueta { display: block; color: var(--admin-link); font-size: 10px; letter-spacing: 1.3px; font-weight: 600; margin-bottom: 14px; }
+.admin-app .promo-resumen > p { color: var(--admin-muted); font-size: 13px; }
+.admin-app .promo-precios { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.admin-app .promo-precios > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.admin-app .promo-precios > div + div { padding-left: 22px; border-left: 1px solid var(--admin-border); }
+.admin-app .promo-precios span, .admin-app .promo-precios small { font-size: 11px; color: var(--admin-muted); line-height: 1.5; }
+.admin-app .promo-precios strong { font-size: clamp(24px, 2.3vw, 32px); letter-spacing: -.7px; overflow-wrap: anywhere; color: var(--admin-text); }
+.admin-app .promo-precios > div:first-child strong { color: var(--admin-link); }
+.admin-app .promo-fechas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.admin-app .promo-fechas label { min-width: 0; }
+@media (max-width: 1050px) and (min-width: 761px), (max-width: 600px) {
+  .admin-app .admin-plan-card > fieldset, .admin-app .promo-fechas { grid-template-columns: minmax(0, 1fr); }
+  .admin-app .promo-opciones { grid-template-columns: minmax(0, 1fr); }
+  .admin-app .promo-opcion { padding-right: 42px; flex-direction: row; }
+  .admin-app .promo-simbolo { flex-shrink: 0; }
+  .admin-app .promo-opcion-texto small { padding-top: 0; }
+}
+@media (max-width: 480px) {
+  .admin-app .admin-plan-card .admin-promocion { padding: 18px 14px; }
+  .admin-app .promo-resumen { padding: 16px; }
+  .admin-app .promo-precios { gap: 10px; }
+  .admin-app .promo-precios > div + div { padding-left: 12px; }
+}
 .admin-app .admin-auditoria-filtros { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin-bottom: 28px; }
 .admin-app .admin-auditoria-filtros label { flex: 1 1 230px; margin: 0; }
 .admin-app .admin-auditoria-filtros select { display: block; width: 100%; height: 41px; margin-top: 5px; padding: 8px 12px; border: 1px solid var(--admin-border); border-radius: 7px; background: var(--admin-bg); color: var(--admin-text); font: inherit; }

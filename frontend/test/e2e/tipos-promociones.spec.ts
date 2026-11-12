@@ -22,14 +22,25 @@ for(const [tipo,final] of [['PORCENTAJE',150],['FIJO',49],['GRATIS',0]] as const
   await page.getByLabel('Nombre del plan').fill('Max'); await page.getByLabel('Precio mensual').fill('200');
   await page.getByLabel('Almacenamiento (GB)').fill('100'); await page.getByLabel('Descargas ilimitadas',{exact:true}).check();
   await page.getByRole('checkbox',{name:'Promoción temporal'}).check();
-  await page.getByLabel('Tipo de promoción',{exact:true}).selectOption(tipo);
+  const nombres = { FIJO: 'Precio fijo', PORCENTAJE: 'Porcentaje de descuento', GRATIS: 'Período gratis' };
+  if(tipo === 'PORCENTAJE') {
+    await page.getByRole('radio',{name:'Precio fijo',exact:true}).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('radio',{name:nombres[tipo],exact:true})).toBeChecked();
+  } else await page.getByRole('radio',{name:nombres[tipo],exact:true}).check();
+  await expect(page.getByRole('radio',{checked:true})).toHaveCount(1);
   if(tipo==='PORCENTAJE') await page.getByLabel('Descuento (%)').fill('25');
   if(tipo==='FIJO') await page.getByLabel('Precio promocional (Q)').fill('49');
   if(tipo==='GRATIS') await expect(page.getByLabel('Precio promocional (Q)')).toHaveCount(0);
   await expect(page.locator('.admin-promocion-previa')).toContainText(`Q${final.toFixed(2)}`);
   await page.getByLabel('Inicio de promoción (Guatemala)').fill('2030-11-01T00:00');
   await page.getByLabel('Fin de promoción (Guatemala)').fill('2030-11-20T00:00');
-  if(tipo==='PORCENTAJE') await page.screenshot({path:info.outputPath('promocion-porcentaje.png'),fullPage:true});
+  if(tipo==='PORCENTAJE') {
+    await page.screenshot({path:info.outputPath('promocion-porcentaje.png'),fullPage:true});
+    await page.setViewportSize({width:390,height:1000});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+    await page.screenshot({path:info.outputPath('promocion-tarjetas-movil.png'),fullPage:true});
+  }
   await page.getByRole('button',{name:'Crear plan',exact:true}).click();
   await expect(page).toHaveURL(/\/admin\/planes$/);
   expect(enviado).toMatchObject({promocion_tipo:tipo,promocion_porcentaje:tipo==='PORCENTAJE'?25:null,promocion_precio:final,precio_mensual:200});

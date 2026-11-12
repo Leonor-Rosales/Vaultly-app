@@ -2,9 +2,12 @@
 
 ## Tipos de promoción (migración 15)
 
-El selector **Tipo de promoción** permite **Porcentaje de descuento**, **Precio
-promocional fijo** o **Período gratis**. Solo se aplica un tipo por plan; no se
-acumulan descuentos. El formulario muestra el precio final del primer período.
+Las tres tarjetas permiten elegir **Porcentaje de descuento**, **Precio fijo** o
+**Período gratis**. Solo una queda seleccionada y cada una incluye explicación y
+ejemplo. Se pueden recorrer con las flechas del teclado. El campo del beneficio
+cambia según la opción elegida y la vista previa separa **Primer período** de
+**Renovaciones**. Si falta el precio habitual se pide completarlo, sin mostrar un
+importe de renovación ficticio. No se acumulan descuentos.
 
 En porcentaje se admiten valores mayores a 0 y hasta 100, con dos decimales.
 Ejemplo: Q200 con 25 % de descuento queda en Q150. El servidor calcula en centavos
