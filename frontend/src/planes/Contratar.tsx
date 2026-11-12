@@ -8,6 +8,8 @@ import { formatPrecio, textoDescargas, type Plan } from "./planesData";
 import "./Contratar.css";
 import "./Renovacion.css";
 import { obtenerCatalogo } from "../services/consumo";
+import { ApiError } from '../services/auth';
+import Aviso from '../components/Aviso';
 
 const soloDigitos = (valor: string): string => valor.replace(/\D/g, "");
 
@@ -48,6 +50,8 @@ function Contratar() {
 
   const [intentado, setIntentado] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [cambioPlan, setCambioPlan] = useState(false);
+  const [avisoPlan, setAvisoPlan] = useState('');
 
   // Tarjeta
   const [numero, setNumero] = useState("");
@@ -78,16 +82,19 @@ function Contratar() {
   const confirmar = async (e: FormEvent) => {
     e.preventDefault();
     setIntentado(true);
-    if (!formularioValido) return;
+    if (!formularioValido || enviando || cambioPlan) return;
 
     setEnviando(true);
     try {
       // Solo se envían el plan y el método, nunca los datos de la tarjeta.
-      await contratarPlan({ planId: plan.id, metodo: METODO, renovar });
+      await contratarPlan({ planId: plan.id, metodo: METODO, renovar, versionPlan: plan.version });
       toast.success(`Plan ${plan.nombre} contratado${renovar ? " con renovación automática" : ""}`);
       navigate("/planes/historial");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "No se pudo completar la contratación.");
+      if (error instanceof ApiError && ['PLAN_DESACTUALIZADO', 'PLAN_NO_ENCONTRADO'].includes(error.code ?? '')) {
+        setCambioPlan(true);
+        setAvisoPlan('El precio o las condiciones del plan cambiaron. No se realizó ningún cobro. Actualiza el resumen y revísalo antes de volver a confirmar.');
+      } else toast.error(error instanceof Error ? error.message : "No se pudo completar la contratación.");
     } finally {
       setEnviando(false);
     }
@@ -109,6 +116,17 @@ function Contratar() {
         </header>
 
         <AvisoPlanRetirado />
+        {avisoPlan && <Aviso variante="advertencia">{avisoPlan}{cambioPlan && <button type="button" className="ct-secondary" disabled={enviando} onClick={async () => {
+          setEnviando(true);
+          try {
+            const nuevos = await obtenerCatalogo();
+            if (!nuevos.some(p => p.id === plan.id)) toast.error('El plan ya no está disponible. Elige otro plan.');
+            setPlanes(nuevos);
+            setCambioPlan(false);
+            setAvisoPlan('Resumen actualizado. Revisa el precio y los beneficios antes de confirmar el pago.');
+          } catch { setAvisoPlan('No se pudo actualizar el resumen. Inténtalo de nuevo antes de confirmar.'); }
+          finally { setEnviando(false); }
+        }}>Actualizar resumen del plan</button>}</Aviso>}
         <div className="ct-checkout-grid">
         <aside className="ct-summary" aria-label="Resumen de contratación">
           <div>
@@ -236,7 +254,7 @@ function Contratar() {
         </label>
 
         <div className="ct-actions">
-          <button type="submit" className="ct-primary" disabled={enviando}>
+          <button type="submit" className="ct-primary" disabled={enviando || cambioPlan}>
             {enviando ? "Procesando..." : "Confirmar Pago"}
           </button>
           <button

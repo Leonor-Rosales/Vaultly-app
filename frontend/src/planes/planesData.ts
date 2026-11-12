@@ -1,4 +1,5 @@
 export interface Plan {
+  version: number;
   id: string;
   nombre: string;
   precio: number; // quetzales por mes

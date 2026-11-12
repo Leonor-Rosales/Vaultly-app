@@ -19,7 +19,7 @@ function crearPagosRepositorio(pool) {
         const tx = {
           ahora: tiempo.ahora,
           cliente: existe.rows[0],
-          plan: (id) => one('SELECT * FROM planes WHERE id=$1 AND activo', [id]),
+          plan: (id) => one('SELECT * FROM planes WHERE id=$1 AND activo FOR SHARE', [id]),
           activa: () => one("SELECT * FROM suscripciones WHERE usuario_id=$1 AND estado='ACTIVA'", [usuarioId]),
           cerrarSuscripcion: (id) => client.query(
             "UPDATE suscripciones SET estado='VENCIDA' WHERE id=$1 AND usuario_id=$2", [id, usuarioId]),

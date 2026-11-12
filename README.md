@@ -4,6 +4,9 @@ Plataforma de almacenamiento en la nube
 La propuesta de comprobantes con datos históricos requiere `12_comprobantes_pago.sql`.
 Consulta [Comprobantes de pago](docs/comprobantes-pago.md) para la actualización y pruebas.
 
+La protección frente a cambios concurrentes del catálogo requiere `13_seguridad_planes.sql`.
+Consulta [Seguridad de planes](docs/seguridad-planes.md) para los contratos de versión y auditoría.
+
 La administración de planes y usuarios está documentada en [Administración](docs/administracion.md),
 incluidas las reglas de suscripciones existentes y las pruebas del panel.
 

@@ -24,15 +24,17 @@ const presentar = (p) => ({
  */
 function crearCasosPagos({ repo }) {
   return {
-    contratar: (usuarioId, { planId, metodo, renovar } = {}) => {
+    contratar: (usuarioId, { planId, metodo, renovar, versionPlan } = {}) => {
       const id = Number(planId);
       if (!Number.isInteger(id) || id <= 0) throw new ErrorApp('Plan inválido.', 400, 'PLAN_INVALIDO');
       const metodoDb = Object.hasOwn(METODOS, metodo) ? METODOS[metodo] : undefined;
       if (!metodoDb) throw new ErrorApp('Método de pago inválido.', 400, 'METODO_INVALIDO');
+      if (!Number.isInteger(versionPlan) || versionPlan <= 0) throw new ErrorApp('Actualiza el resumen del plan antes de confirmar.', 409, 'PLAN_DESACTUALIZADO');
 
       return repo.conUsuario(usuarioId, async (tx) => {
         const plan = await tx.plan(id);
         if (!plan) throw new ErrorApp('El plan no existe o no está disponible.', 404, 'PLAN_NO_ENCONTRADO');
+        if (versionPlan !== plan.version) throw new ErrorApp('El precio o las condiciones del plan cambiaron. Actualiza el resumen y vuelve a confirmar. No se realizó ningún cobro.', 409, 'PLAN_DESACTUALIZADO');
         const monto = Number(plan.precio_mensual);
         if (monto <= 0) throw new ErrorApp('El plan Free no requiere pago.', 400, 'PLAN_GRATUITO');
 

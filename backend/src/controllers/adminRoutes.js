@@ -6,7 +6,7 @@ function crearAdminRoutes(casos, auth) {
   r.use(auth, requiereRol('ADMIN'));
   const responder = (fn, status = 200) => async (req, res) => {
     try { res.status(status).json(await fn(req)); }
-    catch (e) { res.status(e instanceof ErrorApp ? e.estado : 500).json({ error: e instanceof ErrorApp ? e.message : 'No se pudo completar la operación' }); }
+    catch (e) { res.status(e instanceof ErrorApp ? e.estado : 500).json({ error: e instanceof ErrorApp ? e.message : 'No se pudo completar la operación', ...(e instanceof ErrorApp && e.codigo ? { codigo: e.codigo } : {}) }); }
   };
   const idPlan = req => {
     if (!/^[1-9]\d*$/.test(req.params.id) || Number(req.params.id) > 2147483647) throw new ErrorApp('Plan inválido', 400);

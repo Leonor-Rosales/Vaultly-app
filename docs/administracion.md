@@ -36,6 +36,8 @@ HTTP de autenticación. No hay SQL ni políticas de suscripciones en componentes
 
 API bajo `/api/admin`: GET/POST `/planes`, PUT `/planes/:id`, GET/POST
 `/administradores`, PUT `/administradores/:id`. PUT recibe el formulario completo.
+La edición de planes exige además la `version` recibida al consultar el plan;
+si falta o cambió, responde 409 `PLAN_DESACTUALIZADO` sin aplicar cambios.
 Los identificadores y campos se validan; errores de dominio retornan 400/403/404/409.
 No existe DELETE. Se omiten hashes y contraseñas de todas las respuestas.
 
@@ -43,6 +45,10 @@ Planes: `nombre`, `precio_mensual` numérico en quetzales (hasta dos decimales),
 `cuota_storage_gb` entero positivo en GB decimales (1 GB = 1 000 000 000 bytes,
 según `shared/usage-policy.json`), `limite_descargas` entero no negativo o `null`
 para ilimitadas, `permite_carpetas_publicas` y `activo` booleanos independientes.
+Solo `Free` admite precio cero. Los planes nuevos restantes requieren precio positivo.
+Los cambios administrativos se registran en la tabla `auditoria` junto con el plan,
+el responsable, la fecha y los valores anteriores y nuevos. Consulta
+[Seguridad de planes](seguridad-planes.md) para la migración 13 y sus pruebas.
 
 Administradores: `nombre_completo`, `correo_electronico`, `activo`; `password` solo
 en creación. Se reutiliza la política compartida y bcrypt del proyecto. El correo

@@ -40,13 +40,13 @@ test('PostgreSQL: persistencia, unicidad, hash, suscripciones y concurrencia adm
   await assert.rejects(casos.guardarAdministrador(ultimo.id, ultimo.id, { ...datos, correo_electronico: ultimo.correo_electronico, activo: false }), /último/);
   const p = { nombre: 'Temporal', precio_mensual: 12.5, cuota_storage_gb: 20, limite_descargas: null, permite_carpetas_publicas: true, activo: true };
   const creado = await casos.guardarPlan(ultimo.id, null, p);
-  await casos.guardarPlan(ultimo.id, creado.id, { ...p, cuota_storage_gb: 30 });
+  await casos.guardarPlan(ultimo.id, creado.id, { ...p, version: creado.version, cuota_storage_gb: 30 });
   const guardado = (await repo.listarPlanes()).find(x => x.id === creado.id);
   assert.equal(guardado.cuota_storage_gb, 30); assert.equal(guardado.limite_descargas, null);
   await pool.query("UPDATE suscripciones SET estado='VENCIDA' WHERE usuario_id=$1", [ultimo.id]);
   await pool.query("INSERT INTO suscripciones(usuario_id,plan_id,fecha_inicio,fecha_fin,estado) VALUES($1,$2,now(),now()+interval '30 days','ACTIVA')", [ultimo.id, creado.id]);
   const foto = (await pool.query('SELECT * FROM suscripciones')).rows;
-  await assert.rejects(casos.guardarPlan(ultimo.id, creado.id, { ...p, precio_mensual: 40 }), /suscripciones/);
+  await assert.rejects(casos.guardarPlan(ultimo.id, creado.id, { ...p, version: guardado.version, precio_mensual: 40 }), /suscripciones/);
   await casos.guardarPlan(ultimo.id, creado.id, { ...guardado, precio_mensual: Number(guardado.precio_mensual), activo: false });
   assert.deepEqual((await pool.query('SELECT * FROM suscripciones')).rows, foto);
   assert.equal((await repo.listarPlanes()).find(x => x.id === creado.id).activo, false);

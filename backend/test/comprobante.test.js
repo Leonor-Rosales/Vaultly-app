@@ -4,7 +4,7 @@ const { crearCasosPagos } = require('../src/usecases/pagos');
 
 test('contratación conserva cliente, beneficios y vigencia aunque cambien perfil y catálogo', async () => {
   const cliente = { nombre_completo: 'Ana original', correo_electronico: 'original@example.test' };
-  const plan = { id: 2, nombre: 'Pro', precio_mensual: 49, cuota_storage_gb: 50, limite_descargas: null };
+  const plan = { id: 2, version: 1, nombre: 'Pro', precio_mensual: 49, cuota_storage_gb: 50, limite_descargas: null };
   const pagos = [];
   const ahora = new Date('2026-11-11T18:00:00Z');
   let suscripcion;
@@ -15,7 +15,7 @@ test('contratación conserva cliente, beneficios y vigencia aunque cambien perfi
     listarPagos: async () => pagos,
   };
   const casos = crearCasosPagos({ repo: { conUsuario: (_id, fn) => fn(tx) } });
-  const compra = await casos.contratar('cliente', { planId: 2, metodo: 'tarjeta', comprobante: { moneda: 'USD' } });
+  const compra = await casos.contratar('cliente', { planId: 2, versionPlan: 1, metodo: 'tarjeta', comprobante: { moneda: 'USD' } });
   assert.equal(compra.comprobante.moneda, 'GTQ');
   assert.equal(compra.comprobante.inicio, suscripcion.inicio.toISOString());
   assert.equal(compra.comprobante.fin, suscripcion.fin.toISOString());

@@ -40,6 +40,7 @@ export const adaptarPago = (p: PagoApi): Pago => ({
 });
 
 export interface PlanApi {
+  version: number;
   id: number;
   nombre: string;
   cuota_storage_gb: number;
@@ -49,6 +50,7 @@ export interface PlanApi {
 
 export function adaptarPlan(p: PlanApi): Plan {
   return {
+    version: p.version,
     id: String(p.id),
     nombre: p.nombre,
     precio: Number(p.precio_mensual),

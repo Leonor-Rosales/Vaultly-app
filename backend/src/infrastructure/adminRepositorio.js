@@ -28,10 +28,16 @@ function crearAdminRepositorio(pool) {
           actor: id => one(`SELECT u.estado_cuenta, r.nombre AS rol FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE u.id=$1`, [id]),
           plan: id => one('SELECT * FROM planes WHERE id=$1 FOR UPDATE', [id]),
           usado: async id => !!(await one('SELECT 1 FROM suscripciones WHERE plan_id=$1 LIMIT 1', [id])),
-          guardarPlan: (id, d) => {
+          guardarPlan: (id, d, version) => {
             const v = [d.nombre, d.precio_mensual, d.cuota_storage_gb, d.limite_descargas, d.permite_carpetas_publicas, d.activo];
-            return id ? one('UPDATE planes SET nombre=$1, precio_mensual=$2, cuota_storage_gb=$3, limite_descargas=$4, permite_carpetas_publicas=$5, activo=$6 WHERE id=$7 RETURNING *', [...v, id])
+            return id ? one('UPDATE planes SET nombre=$1, precio_mensual=$2, cuota_storage_gb=$3, limite_descargas=$4, permite_carpetas_publicas=$5, activo=$6 WHERE id=$7 AND version=$8 RETURNING *', [...v, id, version])
               : one('INSERT INTO planes(nombre, precio_mensual, cuota_storage_gb, limite_descargas, permite_carpetas_publicas, activo) VALUES($1,$2,$3,$4,$5,$6) RETURNING *', v);
+          },
+          auditarPlan: (actor, accion, anterior, nuevo) => {
+            const foto = p => p ? Object.fromEntries(['id','version','nombre','precio_mensual','cuota_storage_gb','limite_descargas','permite_carpetas_publicas','activo'].map(k => [k, p[k]])) : null;
+            return c.query(`INSERT INTO auditoria(usuario_id,tipo_accion_id,modulo_afectado,detalles_json)
+              VALUES($1,(SELECT id FROM tipos_accion WHERE codigo=$2),'planes',$3)`,
+              [actor, accion, { plan_id: nuevo.id, anterior: foto(anterior), nuevo: foto(nuevo) }]);
           },
           administrador: id => one(`SELECT ${campos} FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE u.id=$1 AND r.nombre='ADMIN'`, [id]),
           activos: async () => Number((await one("SELECT count(*) AS n FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='ADMIN' AND u.estado_cuenta='ACTIVO'")).n),

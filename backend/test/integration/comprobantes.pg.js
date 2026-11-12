@@ -26,7 +26,7 @@ test('PostgreSQL: migra sin inventar datos antiguos y conserva compras y renovac
   await migrar(pool, () => {});
   const casos = crearCasosPagos({ repo: crearPagosRepositorio(pool) });
   assert.equal((await casos.historial(usuario))[0].comprobante, null);
-  const compra = await casos.contratar(usuario, { planId: plan.id, metodo: 'tarjeta', renovar: true });
+  const compra = await casos.contratar(usuario, { planId: plan.id, versionPlan: 1, metodo: 'tarjeta', renovar: true });
   const { rows: [suscripcion] } = await pool.query("SELECT * FROM suscripciones WHERE usuario_id=$1 AND estado='ACTIVA'", [usuario]);
   assert.equal(compra.comprobante.inicio, suscripcion.fecha_inicio.toISOString());
   assert.equal(compra.comprobante.fin, suscripcion.fecha_fin.toISOString());
