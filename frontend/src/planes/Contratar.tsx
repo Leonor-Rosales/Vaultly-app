@@ -103,10 +103,14 @@ function Contratar() {
       </div>
 
       <form className="ct-card" onSubmit={confirmar} noValidate>
+        <header className="ct-heading">
         <h1 className="titulo-pagina">Confirmar contratación</h1>
+        <p>Revisa tu plan y completa los datos para activar tu suscripción.</p>
+        </header>
 
         <AvisoPlanRetirado />
-        <div className="ct-summary">
+        <div className="ct-checkout-grid">
+        <aside className="ct-summary" aria-label="Resumen de contratación">
           <div>
             <span className="ct-label">Plan seleccionado</span>
             <div className="ct-box">
@@ -129,11 +133,16 @@ function Contratar() {
                 Tarjeta simulada
               </label>
               <div className="ct-total">
-                Total a pagar {formatPrecio(plan.precio).replace("Q", "Q ")}
+                <span>Total a pagar</span>
+                <strong>{formatPrecio(plan.precio).replace("Q", "Q ")}</strong>
               </div>
             </div>
           </div>
-        </div>
+        </aside>
+
+        <section className="ct-payment" aria-labelledby="ct-payment-title">
+        <h2 id="ct-payment-title">Datos de la tarjeta</h2>
+        <p className="ct-payment-intro">Pago simulado: utiliza datos ficticios para completar la contratación.</p>
 
         <div className="ct-field">
           <label htmlFor="ct-numero">Número de tarjeta</label>
@@ -242,6 +251,8 @@ function Contratar() {
         <p className="ct-note">
           Pago simulado. No se realizará ningún cobro real ni se guardan los datos de la tarjeta.
         </p>
+        </section>
+        </div>
       </form>
     </div>
   );

@@ -157,6 +157,55 @@
 .cliente-app .file-icon { width: 38px; height: 38px; border-radius: 10px; }
 .cliente-app .dashboard-empty { border: 0; background: var(--cliente-bg); border-radius: 12px; min-height: 240px; }
 
+/* Contratación: resumen de compra y formulario, con lectura en ese orden en móvil. */
+.cliente-app .ct-page { padding: 32px 24px 48px; }
+.cliente-app .ct-logo { align-self: center; margin-bottom: 26px; }
+.cliente-app .ct-logo-icon { border-radius: 10px; width: 34px; height: 34px; font-size: 21px; }
+.cliente-app .ct-logo span { font-size: 26px; font-weight: 600; letter-spacing: -.8px; }
+.cliente-app .ct-card { width: 1040px; padding: 36px; border-radius: 20px; }
+.cliente-app .ct-heading { margin-bottom: 30px; }
+.cliente-app .ct-heading h1 { margin: 0 0 10px; }
+.cliente-app .ct-heading p { color: var(--cliente-muted); font-size: 13px; line-height: 1.6; }
+.cliente-app .ct-checkout-grid { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); gap: 36px; align-items: start; }
+.cliente-app .ct-summary { grid-template-columns: minmax(0, 1fr); gap: 24px; margin: 0; padding: 24px; border-radius: 16px; background: var(--cliente-soft); }
+.cliente-app .ct-label { font-size: 12px; margin-bottom: 12px; }
+.cliente-app .ct-box { height: auto; padding: 0; border: 0; background: transparent; font-size: 13px; line-height: 1.7; }
+.cliente-app .ct-box-title { color: var(--cliente-text); font-size: 23px; font-weight: 600; padding-bottom: 16px; margin-bottom: 16px; overflow-wrap: anywhere; }
+.cliente-app .ct-box-detail { color: var(--cliente-text); margin-top: 6px; }
+.cliente-app .ct-radio { color: var(--cliente-text); }
+.cliente-app .ct-total { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 20px; padding-top: 20px; align-items: baseline; }
+.cliente-app .ct-total strong { font-size: 25px; letter-spacing: -.6px; }
+.cliente-app .ct-payment { min-width: 0; }
+.cliente-app .ct-payment h2 { font-size: 19px; margin: 0 0 8px; }
+.cliente-app .ct-payment-intro { margin: 0 0 24px; font-size: 12px; line-height: 1.6; color: var(--cliente-muted); }
+.cliente-app .ct-field { margin-bottom: 20px; }
+.cliente-app .ct-field label { font-size: 12px; margin-bottom: 8px; }
+.cliente-app .ct-input { height: 46px; border-radius: 9px; font: 14px Arial, sans-serif; padding-inline: 12px; }
+.cliente-app .ct-number .ct-input { padding-right: 155px; }
+.cliente-app .ct-number-extras { display: flex; height: 46px; }
+.cliente-app .ct-eye { display: grid; place-items: center; width: 30px; height: 32px; font-size: 18px; }
+.cliente-app .ct-error { color: var(--cuenta-error); font-size: 12px; }
+.cliente-app .ct-input.invalid { border-color: var(--cuenta-error); }
+.cliente-app .ct-renovar { padding: 18px; border: 1px solid var(--cliente-border); border-radius: 12px; background: var(--cliente-bg); }
+.cliente-app .ct-renovar input { accent-color: var(--cliente-accent); }
+.cliente-app .ct-renovar small { color: var(--cliente-muted); opacity: 1; margin-top: 6px; }
+.cliente-app .ct-actions { padding-top: 24px; border-top: 1px solid var(--cliente-border); margin-top: 24px; }
+.cliente-app :is(.ct-primary, .ct-secondary) { height: 44px; border-radius: 8px; font-size: 13px; }
+.cliente-app .ct-note { font-size: 11px; line-height: 1.6; margin-top: 18px; }
+@media (max-width: 800px) {
+  .cliente-app .ct-card { padding: 26px; }
+  .cliente-app .ct-checkout-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .cliente-app .ct-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+}
+@media (max-width: 480px) {
+  .cliente-app .ct-page { padding: 24px 18px 32px; }
+  .cliente-app .ct-card { padding: 24px 18px; }
+  .cliente-app .ct-summary { grid-template-columns: minmax(0, 1fr); padding: 20px; }
+  .cliente-app .ct-number .ct-input { padding-right: 48px; }
+  .cliente-app .ct-number-extras .ct-badge { display: none; }
+  .cliente-app .ct-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}
+
 /* La misma geometría acompaña las otras pantallas del cliente. */
 .cliente-app .archivos-header {
   padding: 18px 0 24px;
