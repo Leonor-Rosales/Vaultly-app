@@ -1,8 +1,9 @@
 # Vaultly-app
 Plataforma de almacenamiento en la nube
 
-El plan de adaptación a Vercel, Neon y Cloudflare R2, con conservación de todas
-las vistas previas, está en [Plan de despliegue](docs/despliegue-vercel-neon-r2.md).
+El despliegue activo usa Oracle Cloud con Docker Compose:
+[instalación y configuración](docs/despliegue-oracle.md).
+El [plan Vercel, Neon y R2](docs/despliegue-vercel-neon-r2.md) queda como alternativa.
 
 La propuesta de comprobantes con datos históricos requiere `12_comprobantes_pago.sql`.
 Consulta [Comprobantes de pago](docs/comprobantes-pago.md) para la actualización y pruebas.

@@ -14,7 +14,9 @@ let detener = false;
 process.on('SIGTERM', () => { detener = true; });
 process.on('SIGINT', () => { detener = true; });
 async function ejecutar() {
-  await require('../infrastructure/migraciones').migrar(pool);
+  if (process.env.MIGRATE_ON_STARTUP !== 'false') {
+    await require('../infrastructure/migraciones').migrar(pool);
+  }
   console.log('Procesador de vistas previas iniciado');
   while (!detener) {
     try { await casos.procesarSiguiente(); }

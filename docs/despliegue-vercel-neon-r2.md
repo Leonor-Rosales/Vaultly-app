@@ -1,5 +1,8 @@
 # Plan de adaptación a Vercel, Neon y Cloudflare R2
 
+> Alternativa histórica. El usuario eligió continuar con Oracle Cloud y Docker;
+> consultar [el despliegue activo](despliegue-oracle.md).
+
 Fecha de revisión: 12 de noviembre de 2026.
 Rama de trabajo: `feature/adaptaciones`, creada desde `feature/propuesta`.
 

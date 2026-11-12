@@ -1,0 +1,162 @@
+# Archivo independiente: no combinar con el Compose/override de desarrollo.
+x-backend: &backend
+  image: vaultly-backend:produccion
+  build:
+    context: .
+    dockerfile: backend/Dockerfile
+
+x-entorno: &entorno
+  NODE_ENV: production
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_NAME: ${POSTGRES_DB:?Falta POSTGRES_DB}
+  DB_USER: ${POSTGRES_USER:?Falta POSTGRES_USER}
+  DB_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}
+  MINIO_ENDPOINT: minio
+  MINIO_PORT: 9000
+  MINIO_USE_SSL: "false"
+  MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Falta MINIO_ROOT_USER}
+  MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Falta MINIO_ROOT_PASSWORD}
+  MINIO_BUCKET: ${MINIO_BUCKET:?Falta MINIO_BUCKET}
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: &logs
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  minio:
+    image: pgsty/minio:latest@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - miniodata:/data
+    logging: *logs
+
+  minio-init:
+    image: pgsty/mc:latest@sha256:b532278b7a3747dbab6fe45eebb40a653efa704e6758e24e9d9ec54fc96c1800
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_started
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET}
+    entrypoint: [/bin/sh, -c]
+    command:
+      - |
+        set -eu
+        intentos=0
+        until mc alias set vaultly http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" >/dev/null 2>&1 && mc ls vaultly >/dev/null 2>&1; do
+          intentos=$$((intentos + 1))
+          if [ "$$intentos" -ge 60 ]; then echo 'No se pudo conectar a MinIO'; exit 1; fi
+          sleep 2
+        done
+        mc mb --ignore-existing "vaultly/$$MINIO_BUCKET"
+        mc anonymous set none "vaultly/$$MINIO_BUCKET"
+    logging: *logs
+
+  migrar:
+    <<: *backend
+    restart: "no"
+    environment: *entorno
+    command: [node, scripts/migrar.js]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *logs
+
+  backend:
+    <<: *backend
+    restart: unless-stopped
+    init: true
+    environment:
+      <<: *entorno
+      PORT: 3000
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET}
+      FRONTEND_URL: ${PUBLIC_URL:?Falta PUBLIC_URL}
+      BACKEND_URL: ${PUBLIC_URL}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASS: ${MAIL_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+    depends_on:
+      migrar:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging: *logs
+
+  vistas-previas:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.vistas-previas
+    restart: unless-stopped
+    init: true
+    environment:
+      <<: *entorno
+      HOME: /tmp
+      MIGRATE_ON_STARTUP: "false"
+    mem_limit: 2g
+    cpus: 1.0
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    stop_grace_period: 120s
+    depends_on:
+      migrar:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+    logging: *logs
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "${WEB_BIND_IP:-127.0.0.1}:${HTTP_PORT:-8080}:80"
+      - "${WEB_BIND_IP:-127.0.0.1}:${HTTPS_PORT:-8443}:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging: *logs
+
+volumes:
+  pgdata:
+  miniodata:
+  caddy_data:
+  caddy_config:

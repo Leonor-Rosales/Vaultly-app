@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+**/*.key
+.git
+backend
+output
+tmp
+backups

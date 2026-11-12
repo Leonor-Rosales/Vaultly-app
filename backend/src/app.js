@@ -58,6 +58,17 @@ const app = express();
 app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
 
+// Comprobación de disponibilidad sin exponer configuración ni datos de usuarios.
+app.get('/api/health', async (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  try {
+    await pool.query({ text: 'SELECT 1', query_timeout: 3000 });
+    res.json({ estado: 'OK' });
+  } catch {
+    res.status(503).json({ estado: 'NO_DISPONIBLE' });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 const { crearCambioCorreoRoutes } = require('./controllers/cambioCorreoRoutes');
 const { crearCasosCambioCorreo } = require('./usecases/cambioCorreo');
