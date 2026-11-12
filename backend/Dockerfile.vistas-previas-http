@@ -1,0 +1,12 @@
+FROM node:24-bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends     libreoffice-writer libreoffice-calc poppler-utils fonts-liberation fonts-crosextra-carlito fonts-crosextra-caladea     && rm -rf /var/lib/apt/lists/*
+WORKDIR /app/backend
+COPY backend/package*.json ./
+RUN npm ci --omit=dev
+COPY backend/src ./src
+COPY backend/scripts ./scripts
+COPY shared /app/shared
+USER node
+ENV HOME=/tmp PORT=8080
+EXPOSE 8080
+CMD ["node", "src/workers/vistasPreviasHttp.js"]

@@ -199,6 +199,78 @@ La disponibilidad documentada de contenedores permite proponer la prueba de
 LibreOffice en Vercel. No equivale a una prueba de conversión desplegada ni confirma
 costo cero. Esos resultados se registrarán cuando se ejecute el ensayo real.
 
+### Ensayo local del conversor HTTP
+
+Se agregó `backend/Dockerfile.vistas-previas-http`, con LibreOffice, Poppler y un
+servidor HTTP que revisa como máximo un trabajo por petición. El worker continuo
+existente se conserva. El nuevo servicio sigue usando PostgreSQL/MinIO y debe
+adaptarse a Neon/R2 antes del ensayo cloud; no crea el esquema automáticamente.
+
+- `GET /health`: comprobación de vida del proceso; no comprueba dependencias.
+- `POST /internal/procesar-vista-previa`: requiere `Authorization: Bearer ...`
+  con `VISTAS_PREVIAS_SECRET` de al menos 32 caracteres, generado aleatoriamente.
+- Devuelve 409 si otra petición ocupa la misma instancia y 503 si no puede revisar
+  la cola. El estado de conversión se consulta en PostgreSQL; un HTTP 200 no
+  significa que se haya convertido un archivo o que la cola esté vacía.
+- La exclusión entre instancias continúa dependiendo del bloqueo de sesión del
+  repositorio. No usar la conexión agrupada de Neon para ese repositorio actual.
+
+Reproducción del ensayo desde la raíz del repositorio (Python 3 y Docker):
+
+```powershell
+python backend/scripts/crear-fixtures-office.py ../tmp/vaultly-office-adaptaciones
+docker build -f backend/Dockerfile.vistas-previas-http -t vaultly-office-http-prueba .
+$fixturesOffice = (Resolve-Path ../tmp/vaultly-office-adaptaciones).Path
+docker run --rm --network none --read-only --memory 2g --cpus 1 --pids-limit 128 --tmpfs /tmp:size=512m,mode=1777 --mount "type=bind,source=$fixturesOffice,target=/ensayo,readonly" vaultly-office-http-prueba node scripts/probar-office-contenedor.js /ensayo
+```
+
+Resultado del 12 de noviembre: ambos documentos sintéticos generaron PDF con el
+texto esperado y miniatura PNG; no quedaron directorios temporales del conversor.
+La solicitud sin secreto fue rechazada antes de convertir.
+
+| Formato | Duración local | PDF | Miniatura |
+| --- | --- | --- | --- |
+| DOCX | 1772 ms | 7103 bytes | 3060 bytes, 495 × 640 |
+| XLSX | 1668 ms | 9337 bytes | 3140 bytes, 453 × 640 |
+
+Imagen local: 1010252870 bytes sin comprimir, arquitectura amd64. No confundir ese
+tamaño con el tamaño comprimido facturable de VCR. La ejecución limitó el contenedor
+a 2 GiB de memoria y un CPU; no midió el pico total de LibreOffice. El RSS que
+imprime el script corresponde a Node, no a todos sus subprocesos. El ensayo aisló
+la conversión de Neon, MinIO y R2; no modifica archivos de usuarios.
+
+Se aprobaron 132 pruebas de backend, incluidas autorización HTTP, rechazo de
+solapamientos, espera de finalización y reintento después de un error de dependencia.
+El proceso HTTP, su imagen y esta prueba todavía no equivalen a un despliegue en
+Vercel ni a una prueba completa de la cola en Neon.
+
+### Preparación de cuentas para el ensayo cloud
+
+El usuario indicó que aún no tiene las cuentas. El código puede seguir preparándose
+localmente; las verificaciones en proveedores necesitan estos pasos:
+
+1. Crear una cuenta personal en [Vercel](https://vercel.com/signup), preferentemente
+   con GitHub. Usar Hobby para el ensayo académico. Al importar el repositorio,
+   trabajar exclusivamente con `feature/adaptaciones`; revisar la rama de producción
+   antes de conectar un proyecto. La configuración de publicación se definirá
+   después de adaptar los servicios.
+2. Crear una cuenta en [Neon](https://console.neon.tech/) y un proyecto de ensayo
+   `vaultly-adaptaciones` en Free. Guardar de forma privada las conexiones agrupada
+   y directa. No ejecutar migraciones sobre otra base ni poner conexiones en Git.
+3. Crear una cuenta en [Cloudflare](https://dash.cloudflare.com/), abrir
+   Storage & databases > R2 > Overview y completar la activación de R2. El flujo
+   incluye una suscripción y puede solicitar datos de facturación; comprobar las
+   cuotas gratuitas y cargos por exceso antes de completarlo.
+4. Crear un bucket de ensayo `vaultly-adaptaciones` en almacenamiento Standard,
+   sin acceso público. Las credenciales y CORS se configurarán al integrar R2.
+5. Introducir los secretos en los ajustes de los proveedores o en archivos locales
+   ignorados por Git. No compartir claves, conexiones ni contraseñas en el chat.
+
+Antes de publicar se revisarán también los avisos de dependencias: la compilación
+actual de la imagen informó nueve vulnerabilidades (seis altas). Ese resumen de
+`npm ci` requiere revisar el informe detallado; no se aplicará `audit fix --force`
+sin evaluar sus cambios. Aún no se ha expuesto este servicio públicamente.
+
 ### Verificaciones del primer cambio
 
 - `npm --prefix backend test`: 129 pruebas aprobadas, cero fallos. Incluye pruebas

@@ -17,7 +17,8 @@
     "test:integration": "node --test test/integration/*.test.js",
     "test": "node --test test/*.test.js",
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "start:vistas-previas:http": "node src/workers/vistasPreviasHttp.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
