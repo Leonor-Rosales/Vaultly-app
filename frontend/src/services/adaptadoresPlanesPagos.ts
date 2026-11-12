@@ -1,10 +1,11 @@
-import type { Pago, EstadoPago, MetodoPago } from './pagos';
+import type { Pago, EstadoPago, MetodoPago, DatosComprobante } from './pagos';
 import type { Plan } from '../planes/planesData';
 
 // Contratos externos: los servicios HTTP los convierten antes de entregar datos a las vistas.
 type MetodoApi = MetodoPago | "transferencia";
 // Respuesta del backend (/api/planes/pagos y /api/planes/contratar)
 export interface PagoApi {
+  comprobante?: DatosComprobante | null;
   id: string;
   fecha: string; // ISO
   codigo: string;
@@ -27,6 +28,8 @@ const formatoFecha = (iso: string): string =>
   });
 
 export const adaptarPago = (p: PagoApi): Pago => ({
+  comprobante: p.comprobante ?? null,
+  fechaISO: p.fecha,
   id: p.id,
   fecha: formatoFecha(p.fecha),
   codigo: p.codigo,

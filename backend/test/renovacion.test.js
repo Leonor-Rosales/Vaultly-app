@@ -12,6 +12,7 @@ function crearRepo({ suscripcion, planes = [FREE, PRO] }) {
   const estado = { suscripcion, cerradas: [], creadas: [], pagos: [] };
   const tx = {
     ahora: AHORA,
+    cliente: { nombre_completo: 'Ana López', correo_electronico: 'ana@example.test' },
     activa: async () => estado.suscripcion,
     planActivo: async (id) => planes.find(p => p.id === id) || null,
     free: async () => FREE,
@@ -61,6 +62,10 @@ test('vencida con renovación: crea otro mes del mismo plan y registra un pago s
   assert.equal(estado.pagos[0].monto, 150);
   assert.equal(estado.pagos[0].metodo, 'TARJETA');
   assert.equal(estado.pagos[0].estado, 'COMPLETADO');
+  assert.equal(estado.pagos[0].comprobante.cliente.nombre, 'Ana López');
+  assert.equal(estado.pagos[0].comprobante.descargasMensuales, null);
+  assert.equal(estado.pagos[0].comprobante.inicio, AHORA.toISOString());
+  assert.equal(estado.pagos[0].comprobante.fin, sumarMes(AHORA).toISOString());
   assert.match(estado.pagos[0].codigo, /^VLT-[0-9A-F]{10}$/);
   assert.equal(+new Date(r.suscripcion.fecha_fin), +sumarMes(AHORA));
   // Una segunda consulta ya no vuelve a cobrar.

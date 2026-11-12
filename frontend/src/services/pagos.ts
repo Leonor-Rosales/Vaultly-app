@@ -6,7 +6,19 @@ import { actualizarConsumo } from "./consumo";
 export type MetodoPago = "tarjeta";
 export type EstadoPago = "Completado" | "Pendiente";
 
+export interface DatosComprobante {
+  version: 1;
+  moneda: 'GTQ';
+  cliente: { nombre: string; correo: string };
+  almacenamientoGb: number;
+  descargasMensuales: number | null;
+  inicio: string;
+  fin: string;
+}
+
 export interface Pago {
+  comprobante?: DatosComprobante | null;
+  fechaISO?: string;
   id: string;
   fecha: string; // dd/mm/aaaa
   codigo: string;

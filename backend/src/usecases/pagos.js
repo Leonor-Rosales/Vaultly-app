@@ -2,6 +2,7 @@ const { randomUUID } = require('crypto');
 const { ErrorApp } = require('../domain/errores');
 const { policy, vigente } = require('../domain/cuotas');
 const { codigoTransaccion, sumarMes } = require('../domain/renovacion');
+const { datosComprobante } = require('../domain/comprobante');
 
 const METODOS = { tarjeta: 'TARJETA' }; // solo tarjeta simulada; pagos viejos con transferencia se siguen mostrando
 
@@ -13,6 +14,7 @@ const presentar = (p) => ({
   monto: Number(p.monto),
   metodo: p.metodo === 'TARJETA' ? 'tarjeta' : 'transferencia',
   estado: p.estado === 'COMPLETADO' ? 'Completado' : 'Pendiente',
+  comprobante: p.comprobante ?? null,
 });
 
 /**
@@ -44,10 +46,12 @@ function crearCasosPagos({ repo }) {
         }
 
         if (activa) await tx.cerrarSuscripcion(activa.id);
-        await tx.crearSuscripcion(plan.id, tx.ahora, sumarMes(tx.ahora), renovar === true);
+        const fin = sumarMes(tx.ahora);
+        await tx.crearSuscripcion(plan.id, tx.ahora, fin, renovar === true);
         const pago = await tx.registrarPago({
           id: randomUUID(), planId: plan.id, planNombre: plan.nombre, monto,
           metodo: metodoDb, estado: 'COMPLETADO', codigo: codigoTransaccion(), fecha: tx.ahora,
+          comprobante: datosComprobante(tx.cliente, plan, tx.ahora, fin),
         });
         return presentar(pago);
       });

@@ -12,12 +12,13 @@ function crearPagosRepositorio(pool) {
       try {
         await client.query('BEGIN');
         await client.query("SET LOCAL lock_timeout = '30s'");
-        const existe = await client.query('SELECT id FROM usuarios WHERE id=$1 FOR UPDATE', [usuarioId]);
+        const existe = await client.query('SELECT id, nombre_completo, correo_electronico FROM usuarios WHERE id=$1 FOR UPDATE', [usuarioId]);
         if (!existe.rowCount) throw new ErrorApp('Usuario no encontrado', 404);
         const { rows: [tiempo] } = await client.query('SELECT clock_timestamp() AS ahora');
         const one = async (sql, values = []) => (await client.query(sql, values)).rows[0] || null;
         const tx = {
           ahora: tiempo.ahora,
+          cliente: existe.rows[0],
           plan: (id) => one('SELECT * FROM planes WHERE id=$1 AND activo', [id]),
           activa: () => one("SELECT * FROM suscripciones WHERE usuario_id=$1 AND estado='ACTIVA'", [usuarioId]),
           cerrarSuscripcion: (id) => client.query(
@@ -31,9 +32,9 @@ function crearPagosRepositorio(pool) {
             RETURNING s.fecha_fin, s.renovacion_automatica`, [usuarioId, renovar, tiempo.ahora]),
           usados: async () => Number((await one('SELECT COALESCE(SUM(tamanio_bytes),0) AS n FROM archivos WHERE usuario_id=$1', [usuarioId])).n),
           reservados: async () => Number((await one('SELECT COALESCE(SUM(bytes),0) AS n FROM reservas_subida WHERE usuario_id=$1', [usuarioId])).n),
-          registrarPago: (p) => one(`INSERT INTO pagos(id,usuario_id,plan_id,plan_nombre,monto,metodo,estado,codigo,creado_en)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-          [p.id, usuarioId, p.planId, p.planNombre, p.monto, p.metodo, p.estado, p.codigo, p.fecha]),
+          registrarPago: (p) => one(`INSERT INTO pagos(id,usuario_id,plan_id,plan_nombre,monto,metodo,estado,codigo,creado_en,comprobante)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+          [p.id, usuarioId, p.planId, p.planNombre, p.monto, p.metodo, p.estado, p.codigo, p.fecha, p.comprobante]),
           listarPagos: async () => (await client.query(
             'SELECT * FROM pagos WHERE usuario_id=$1 ORDER BY creado_en DESC, id LIMIT 200', [usuarioId])).rows,
         };

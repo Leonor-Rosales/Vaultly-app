@@ -6,6 +6,7 @@
   "scripts": {
     "migrate:check": "node scripts/validar-migraciones.js",
     "test:migrations": "node --test test/integration/migraciones.pg.js",
+    "test:comprobantes": "node --test test/integration/comprobantes.pg.js",
     "test:admin": "node --test test/integration/admin.pg.js",
     "test:admin-configuracion": "node --test test/integration/cambioCorreo.pg.js",
     "migrate": "node scripts/migrar.js",

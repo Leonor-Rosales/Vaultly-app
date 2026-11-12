@@ -12,12 +12,13 @@ function crearCuotasRepositorio(pool) {
       try {
         await client.query('BEGIN');
         await client.query("SET LOCAL lock_timeout = '30s'");
-        const existe = await client.query('SELECT id FROM usuarios WHERE id=$1 FOR UPDATE', [usuarioId]);
+        const existe = await client.query('SELECT id, nombre_completo, correo_electronico FROM usuarios WHERE id=$1 FOR UPDATE', [usuarioId]);
         if (!existe.rowCount) throw new ErrorApp('Usuario no encontrado', 404);
         const { rows: [tiempo] } = await client.query('SELECT clock_timestamp() AS ahora');
         const one = async (sql, values = []) => (await client.query(sql, values)).rows[0] || null;
         const tx = {
           ahora: tiempo.ahora,
+          cliente: existe.rows[0],
           archivos: crearArchivoRepositorio(client, true),
           activa: () => one(`SELECT s.*, p.activo AS plan_disponible, p.nombre, p.cuota_storage_gb, p.limite_descargas, p.precio_mensual
             FROM suscripciones s JOIN planes p ON p.id=s.plan_id WHERE s.usuario_id=$1 AND s.estado='ACTIVA'`, [usuarioId]),
@@ -28,9 +29,9 @@ function crearCuotasRepositorio(pool) {
           planActivo: (id) => one('SELECT * FROM planes WHERE id=$1 AND activo', [id]),
           crearSuscripcion: (planId, inicio, fin, renovar = false) => one(`INSERT INTO suscripciones(usuario_id,plan_id,fecha_inicio,fecha_fin,estado,renovacion_automatica)
             VALUES($1,$2,$3,$4,'ACTIVA',$5) RETURNING *`, [usuarioId, planId, inicio, fin, renovar]),
-          registrarPago: (p) => one(`INSERT INTO pagos(id,usuario_id,plan_id,plan_nombre,monto,metodo,estado,codigo,creado_en)
-            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-          [p.id, usuarioId, p.planId, p.planNombre, p.monto, p.metodo, p.estado, p.codigo, p.fecha]),
+          registrarPago: (p) => one(`INSERT INTO pagos(id,usuario_id,plan_id,plan_nombre,monto,metodo,estado,codigo,creado_en,comprobante)
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+          [p.id, usuarioId, p.planId, p.planNombre, p.monto, p.metodo, p.estado, p.codigo, p.fecha, p.comprobante]),
           async ciclo(inicio, fin) {
             await client.query('INSERT INTO ciclos_descargas(usuario_id,inicio,fin) VALUES($1,$2,$3) ON CONFLICT DO NOTHING', [usuarioId, inicio, fin]);
             return one('SELECT * FROM ciclos_descargas WHERE usuario_id=$1 AND inicio=$2', [usuarioId, inicio]);

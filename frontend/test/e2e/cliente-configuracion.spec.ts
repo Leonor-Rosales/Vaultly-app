@@ -13,7 +13,7 @@ async function preparar(page: Page) {
     if (path === '/api/archivos') return route.fulfill({json:archivos});
     if (path.startsWith('/api/biblioteca')) return route.fulfill({json:{items:path.endsWith('/archivos') ? recursos : [],total:recursos.length,pagina:1,por_pagina:12}});
     if (path === '/api/planes') return route.fulfill({json:[{id:1,nombre:'Free',precio_mensual:0,cuota_storage_gb:5,limite_descargas:2}]});
-    if (path === '/api/planes/pagos') return route.fulfill({json:[{id:'pago',fecha:'2026-10-01',codigo:'TEST-001',plan:'Free',monto:0,metodo:'tarjeta',estado:'Completado'}]});
+    if (path === '/api/planes/pagos') return route.fulfill({json:[{id:'pago',fecha:'2026-10-01',codigo:'TEST-001',plan:'Free',monto:0,metodo:'tarjeta',estado:'Completado',comprobante:{version:1,moneda:'GTQ',cliente:{nombre:'Ana López',correo:'ana@example.test'},almacenamientoGb:5,descargasMensuales:2,inicio:'2026-10-01T12:00:00Z',fin:'2026-11-01T12:00:00Z'}}]});
     if (path === '/api/admin/planes') return route.fulfill({ json: [{ id: 1, nombre: 'Equipo', precio_mensual: 50, cuota_storage_gb: 20, limite_descargas: null, activo: true, permite_carpetas_publicas: false }] });
     if (path === '/api/cuenta/perfil' && method === 'PATCH') { usuario.nombre_completo = d.nombre_completo; return route.fulfill({ json: { usuario } }); }
     if (path === '/api/admin/administradores') return route.fulfill({ json: [{ ...usuario, estado_cuenta: 'ACTIVO', created_at: '2026-01-01' }] });

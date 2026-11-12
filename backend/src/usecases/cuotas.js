@@ -2,6 +2,7 @@ const { randomUUID } = require('crypto');
 const { ErrorApp } = require('../domain/errores');
 const { policy, cicloMensual, vigente, comprobarEspacio, resumen } = require('../domain/cuotas');
 const { codigoTransaccion, sumarMes, debeRenovar } = require('../domain/renovacion');
+const { datosComprobante } = require('../domain/comprobante');
 
 /**
  * Puerto repo: listarPlanes(), usuariosConReservasVencidas(), conUsuario(id, fn).
@@ -21,10 +22,12 @@ function crearCasosCuotas({ repo, almacenamiento }) {
     const planActivo = await tx.planActivo(vencida.plan_id);
     if (!debeRenovar(vencida, planActivo, tx.ahora)) return null;
     await tx.cerrarSuscripcion(vencida.id, 'VENCIDA');
-    const suscripcion = await tx.crearSuscripcion(planActivo.id, tx.ahora, sumarMes(tx.ahora), true);
+    const fin = sumarMes(tx.ahora);
+    const suscripcion = await tx.crearSuscripcion(planActivo.id, tx.ahora, fin, true);
     await tx.registrarPago({
       id: randomUUID(), planId: planActivo.id, planNombre: planActivo.nombre, monto: Number(planActivo.precio_mensual),
       metodo: 'TARJETA', estado: 'COMPLETADO', codigo: codigoTransaccion(), fecha: tx.ahora,
+      comprobante: datosComprobante(tx.cliente, planActivo, tx.ahora, fin),
     });
     return { plan: planActivo, suscripcion };
   }
