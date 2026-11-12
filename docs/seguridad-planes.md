@@ -1,5 +1,9 @@
 # Seguridad de planes
 
+La migración 14 permite precio promocional Q0 conservando un precio habitual
+positivo y añade una pantalla de auditoría. Consulta [Promociones y auditoría](promociones-auditoria.md).
+La restricción de precio cero descrita aquí se refiere al precio habitual.
+
 ## Actualización
 
 Aplicar `13_seguridad_planes.sql` con el migrador antes de iniciar la API nueva;
@@ -36,7 +40,7 @@ La migración añade `planes.version`, su trigger y los tipos de acción para la
   `PLAN_DESACTIVADO`. Incluye responsable, fecha, ID del plan y fotos anterior/nueva
   con los campos del catálogo y sus versiones. No guarda tokens ni tarjetas.
   Plan y auditoría se confirman o revierten juntos. Los rechazos no producen
-  registros falsos de cambios exitosos. No se añade una pantalla de auditoría.
+  registros falsos de cambios exitosos. La pantalla de consulta se incorpora con la migración 14.
 - Solo el plan canónico `Free` admite precio cero y debe continuar activo.
   Los nombres equivalentes como `FREE` no permiten eludir la reserva. El servidor
   rechaza crear planes adicionales de precio cero y el formulario requiere precio

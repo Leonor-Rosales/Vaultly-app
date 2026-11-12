@@ -45,6 +45,7 @@ export default function AdminLayout() {
           ['planes', 'lucide:credit-card', 'Planes y facturación'],
           ['pagos', 'lucide:credit-card', 'Historial de pagos'],
           ['administradores', 'lucide:clipboard-list', 'Administradores'],
+          ['auditoria', 'lucide:history', 'Auditoría'],
           ['configuracion', 'lucide:settings', 'Configuración'],
         ].map(([path, icon, nombre]) => <NavLink key={path} to={`/admin/${path}`} onClick={() => setMenu(false)}><Icon icon={icon} />{nombre}</NavLink>)}
         <button onClick={() => { logout(); navigate('/login', { replace: true }); }}><Icon icon="lucide:log-out" />Cerrar sesión</button>

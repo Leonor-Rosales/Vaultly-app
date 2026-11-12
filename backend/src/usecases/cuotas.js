@@ -3,6 +3,7 @@ const { ErrorApp } = require('../domain/errores');
 const { policy, cicloMensual, vigente, comprobarEspacio, resumen } = require('../domain/cuotas');
 const { codigoTransaccion, sumarMes, debeRenovar } = require('../domain/renovacion');
 const { datosComprobante } = require('../domain/comprobante');
+const { precioContratacion } = require('../domain/promociones');
 
 /**
  * Puerto repo: listarPlanes(), usuariosConReservasVencidas(), conUsuario(id, fn).
@@ -52,7 +53,10 @@ function crearCasosCuotas({ repo, almacenamiento }) {
     return { plan, suscripcion, ciclo: await tx.ciclo(ciclo.inicio, ciclo.fin) };
   }
   const casos = {
-    catalogo: () => repo.listarPlanes(),
+    catalogo: async () => (await repo.listarPlanes()).map(p => ({ ...p,
+      precio_vigente: precioContratacion(p, new Date(p.consultado_en ?? Date.now())).precio,
+      promocion_vigente: precioContratacion(p, new Date(p.consultado_en ?? Date.now())).promocion,
+    })),
     consultar: (usuarioId) => repo.conUsuario(usuarioId, async tx => {
       const { plan, ciclo, suscripcion } = await contexto(tx);
       return resumen(plan, ciclo, await tx.usados(), await tx.reservados(), suscripcion);

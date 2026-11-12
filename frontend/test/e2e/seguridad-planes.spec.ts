@@ -99,5 +99,5 @@ test('el formulario de creación exige precio positivo para un plan nuevo', asyn
   await page.getByLabel('Nombre del plan').fill('Otro gratuito');
   await page.getByLabel('Precio mensual').fill('0');
   expect(await page.getByLabel('Precio mensual').evaluate((el: HTMLInputElement) => el.validity.rangeUnderflow)).toBe(true);
-  await expect(page.getByText('Solo el plan Free puede tener precio cero.')).toBeVisible();
+  await expect(page.getByText(/Precio habitual para las renovaciones/)).toBeVisible();
 });

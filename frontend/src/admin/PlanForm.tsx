@@ -19,13 +19,22 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [desactualizado, setDesactualizado] = useState(false);
+  const aLocal = (iso?: string | null) => iso ? new Date(new Date(iso).getTime() - 6 * 3600000).toISOString().slice(0, 16) : '';
+  const [promocion, setPromocion] = useState(plan?.promocion_precio != null);
+  const [precioPromo, setPrecioPromo] = useState(String(plan?.promocion_precio ?? 0));
+  const [inicioPromo, setInicioPromo] = useState(aLocal(plan?.promocion_inicio));
+  const [finPromo, setFinPromo] = useState(aLocal(plan?.promocion_fin));
   return <section className="admin-form-page"><Marca /><form className="admin-card" onSubmit={async e => {
     e.preventDefault(); setError('');
     if (!nombre.trim()) { setError('Escribe un nombre para el plan'); return; }
     if (plan && activo !== plan.activo && !(await confirmar(mensajeEstadoPlan(plan)))) return;
     setGuardando(true);
     try {
-      await guardarPlan({ version: plan?.version, nombre: nombre.trim(), precio_mensual: Number(precio), cuota_storage_gb: Number(gb), limite_descargas: ilimitadas ? null : Number(limite), permite_carpetas_publicas: publicas, activo }, plan?.id);
+      await guardarPlan({ version: plan?.version, nombre: nombre.trim(), precio_mensual: Number(precio), cuota_storage_gb: Number(gb), limite_descargas: ilimitadas ? null : Number(limite), permite_carpetas_publicas: publicas, activo,
+        promocion_precio: promocion ? Number(precioPromo) : null,
+        promocion_inicio: promocion ? new Date(`${inicioPromo}:00-06:00`).toISOString() : null,
+        promocion_fin: promocion ? new Date(`${finPromo}:00-06:00`).toISOString() : null,
+      }, plan?.id);
       toast.success(plan ? 'Plan actualizado' : 'Plan creado'); navigate('/admin/planes');
     } catch (e) { setDesactualizado(e instanceof ApiError && e.code === 'PLAN_DESACTUALIZADO'); setError(e instanceof Error ? e.message : 'No se pudo guardar'); }
     finally { setGuardando(false); }
@@ -34,7 +43,16 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
     <fieldset disabled={guardando}>
       <label>Nombre del plan<input required maxLength={50} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Premium" /></label>
       <label>Precio mensual (Q)<input required type="number" min={plan?.nombre === 'Free' || (plan && Number(plan.precio_mensual) === 0 && !activo) ? '0' : '0.01'} max="99999999.99" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="Q 0.00" /></label>
-      <p className="admin-ayuda">Solo el plan Free puede tener precio cero.</p>
+      <p className="admin-ayuda">Precio habitual para las renovaciones. Para ofrecerlo gratis temporalmente, configura una promoción a Q0.00.</p>
+      {plan?.nombre !== 'Free' && <>
+        <label className="admin-check"><input type="checkbox" checked={promocion} onChange={e => setPromocion(e.target.checked)} />Promoción temporal</label>
+        {promocion && <div className="admin-promocion">
+          <label>Precio promocional (Q)<input required type="number" min="0" max={Math.max(0, Number(precio) - .01)} step="0.01" value={precioPromo} onChange={e => setPrecioPromo(e.target.value)} /></label>
+          <label>Inicio de promoción (Guatemala)<input required type="datetime-local" value={inicioPromo} onChange={e => setInicioPromo(e.target.value)} /></label>
+          <label>Fin de promoción (Guatemala)<input required type="datetime-local" min={inicioPromo} value={finPromo} onChange={e => setFinPromo(e.target.value)} /></label>
+          <Aviso variante="informacion">El precio promocional cubre un período mensual completo. La siguiente renovación automática será al precio habitual, solo si el cliente la acepta.</Aviso>
+        </div>}
+      </>}
       <label>Almacenamiento (GB)<input required type="number" min="1" max="9007199" step="1" value={gb} onChange={e => setGb(e.target.value)} placeholder="20" /></label>
       <label>Límite de descargas<input required={!ilimitadas} disabled={ilimitadas} type="number" min="0" max="2147483647" step="1" value={limite} onChange={e => setLimite(e.target.value)} placeholder="20" /></label>
       <label className="admin-check"><input type="checkbox" checked={ilimitadas} onChange={e => setIlimitadas(e.target.checked)} />Descargas ilimitadas</label>

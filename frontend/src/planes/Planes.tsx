@@ -69,7 +69,7 @@ function Planes() {
         {!retirado && planActual && actual?.venceEl && <section className="planes-renovacion" aria-label="Renovación del plan">
           <div>
             <strong>{actual.renovacionAutomatica ? 'Renovación automática activada' : 'Renovación automática desactivada'}</strong>
-            <span>{actual.renovacionAutomatica ? `Tu plan se renovará el ${actual.venceEl} con un pago simulado.` : `Si no lo renuevas, el ${actual.venceEl} volverás al plan Free.`}</span>
+            <span>{actual.renovacionAutomatica ? `Tu plan se renovará el ${actual.venceEl} por ${formatPrecio(planActual.precioHabitual ?? planActual.precio)} con un pago simulado.` : `Si no lo renuevas, el ${actual.venceEl} volverás al plan Free. La renovación cuesta ${formatPrecio(planActual.precioHabitual ?? planActual.precio)} / mes.`}</span>
           </div>
           <button type="button" className="planes-history" disabled={guardando} onClick={() => void cambiarRenovacion()}>
             {actual.renovacionAutomatica ? 'No renovar' : 'Renovar automáticamente'}
@@ -86,13 +86,14 @@ function Planes() {
               return <article key={plan.id} className={`plan-card${esActual ? ' current' : ''}`}>
                 <div className="plan-card-heading"><h2 className="plan-name">{plan.nombre}</h2>{esActual && <span className="plan-badge">Tu plan</span>}</div>
                 <div className="plan-price"><strong>{formatPrecio(plan.precio)}</strong><span>/ mes</span></div>
+                {plan.promocionHasta && <p className="planes-subtitle">Promoción: un período mensual a este precio. Después, {formatPrecio(plan.precioHabitual!)} / mes si aceptas renovar. Disponible hasta {new Date(plan.promocionHasta).toLocaleDateString('es-GT', { timeZone: 'America/Guatemala' })}.</p>}
                 <p className="plan-caption">{plan.precio === 0 ? 'Un espacio para comenzar.' : 'Espacio para seguir creando.'}</p>
                 <ul className="plan-features">
                   <li><span className="plan-feature-icon"><Icon icon="lucide:hard-drive" aria-hidden="true" /></span><div><strong>{plan.almacenamientoGb} GB</strong><span>de almacenamiento</span></div></li>
                   <li><span className="plan-feature-icon"><Icon icon="lucide:download" aria-hidden="true" /></span><div><strong>{textoDescargas(plan)}</strong><span>{plan.descargasMensuales === null ? 'Descargas sin límite mensual' : 'Desde la biblioteca pública'}</span></div></li>
                 </ul>
                 <button type="button" className={`plan-button${esActual ? ' current' : ''}`} disabled={esActual} onClick={() => navigate(`/planes/contratar?plan=${plan.id}`)}>
-                  {esActual ? 'Plan Actual' : 'Contratar Plan'}<Icon icon={esActual ? 'lucide:check' : 'lucide:arrow-right'} aria-hidden="true" />
+                  {esActual ? 'Plan Actual' : plan.precio === 0 && plan.promocionHasta ? 'Activar plan gratis' : 'Contratar Plan'}<Icon icon={esActual ? 'lucide:check' : 'lucide:arrow-right'} aria-hidden="true" />
                 </button>
                 {esActual && actual && <span className="plan-renewal">{actual.venceEl ? 'Vence el' : 'Fin del ciclo'}: {actual.venceEl ?? actual.renovacion}</span>}
               </article>;

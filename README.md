@@ -7,6 +7,9 @@ Consulta [Comprobantes de pago](docs/comprobantes-pago.md) para la actualizació
 La protección frente a cambios concurrentes del catálogo requiere `13_seguridad_planes.sql`.
 Consulta [Seguridad de planes](docs/seguridad-planes.md) para los contratos de versión y auditoría.
 
+Las promociones temporales a Q0 y la pantalla de auditoría requieren
+`14_promociones_auditoria.sql`; consulta [Promociones y auditoría](docs/promociones-auditoria.md).
+
 La administración de planes y usuarios está documentada en [Administración](docs/administracion.md),
 incluidas las reglas de suscripciones existentes y las pruebas del panel.
 

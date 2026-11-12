@@ -9,6 +9,10 @@ function crearCasosAdministracion({ repo, hashear }) {
     listarPagos: () => repo.listarPagos(),
     listarPlanes: () => repo.listarPlanes(),
     listarAdministradores: () => repo.listarAdministradores(),
+    listarAuditoria: ({ pagina = '1', accion = '', q = '' } = {}) => {
+      if (typeof pagina !== 'string' || !/^[1-9]\d{0,5}$/.test(pagina) || typeof q !== 'string' || q.length > 100 || typeof accion !== 'string' || (accion && !/^(PLAN|ADMIN)_(CREADO|EDITADO|ACTIVADO|DESACTIVADO)$/.test(accion))) throw new ErrorApp('Filtros de auditoría inválidos', 400);
+      return repo.listarAuditoria({ pagina: Number(pagina), accion, q: q.trim() });
+    },
     async guardarPlan(actor, id, datos) {
       const d = validarPlan(datos);
       return repo.transaccion('plan', async tx => {
@@ -22,6 +26,9 @@ function crearCasosAdministracion({ repo, hashear }) {
           }
           protegerPlan(anterior, d, await tx.usado(id));
         }
+        // Un cliente antiguo que no envía estos campos no debe borrar una promoción.
+        for (const campo of ['promocion_precio','promocion_inicio','promocion_fin']) if (d[campo] === undefined) d[campo] = anterior?.[campo] == null ? null : campo === 'promocion_precio' ? Number(anterior[campo]) : new Date(anterior[campo]).toISOString();
+        validarPlan(d);
         // Se permite retirar un plan gratuito antiguo, sin cambiar sus condiciones.
         const legadoRetirado = anterior && Number(anterior.precio_mensual) === 0 && !d.activo
           && ['nombre','cuota_storage_gb','limite_descargas','permite_carpetas_publicas'].every(k => anterior[k] === d[k]);
@@ -43,13 +50,17 @@ function crearCasosAdministracion({ repo, hashear }) {
       const hash = id ? undefined : await hashear(datos.password);
       return repo.transaccion('administrador', async tx => {
         await autorizado(tx, actor);
+        let anterior = null;
         if (id) {
-          const anterior = await tx.administrador(id);
+          anterior = await tx.administrador(id);
           if (!anterior) throw new ErrorApp('Administrador no encontrado', 404);
           if (d.correo_electronico !== anterior.correo_electronico.trim().toLowerCase()) throw new ErrorApp('El titular debe verificar el nuevo correo desde Configuración', 409);
           if (anterior.estado_cuenta === 'ACTIVO') protegerAcceso(actor, id, datos.activo, await tx.activos());
         }
-        return tx.guardarAdministrador(id, d, hash);
+        const nuevo = await tx.guardarAdministrador(id, d, hash);
+        const accion = !anterior ? 'ADMIN_CREADO' : anterior.estado_cuenta !== nuevo.estado_cuenta ? (nuevo.estado_cuenta === 'ACTIVO' ? 'ADMIN_ACTIVADO' : 'ADMIN_DESACTIVADO') : 'ADMIN_EDITADO';
+        await tx.auditarAdministrador(actor, accion, anterior, nuevo);
+        return nuevo;
       });
     },
   };

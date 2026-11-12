@@ -1,4 +1,6 @@
 export interface Plan {
+  precioHabitual?: number;
+  promocionHasta?: string;
   version: number;
   id: string;
   nombre: string;

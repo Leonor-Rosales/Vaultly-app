@@ -66,6 +66,7 @@ function Contratar() {
   // Sin un plan válido en la URL no hay nada que contratar.
   if (planes === null) return <p>Cargando plan…</p>;
   if (!plan) return <Navigate to="/planes" replace />;
+  const gratis = plan.precio === 0 && Boolean(plan.promocionHasta);
 
   const errores = {
     numero: soloDigitos(numero).length !== 16,
@@ -75,7 +76,7 @@ function Contratar() {
   };
 
   const formularioValido =
-    !errores.numero && !errores.titularTarjeta && !errores.vencimiento && !errores.cvv;
+    gratis || (!errores.numero && !errores.titularTarjeta && !errores.vencimiento && !errores.cvv);
 
   const mostrar = (hayError: boolean): boolean => intentado && hayError;
 
@@ -87,7 +88,7 @@ function Contratar() {
     setEnviando(true);
     try {
       // Solo se envían el plan y el método, nunca los datos de la tarjeta.
-      await contratarPlan({ planId: plan.id, metodo: METODO, renovar, versionPlan: plan.version });
+      await contratarPlan({ planId: plan.id, metodo: METODO, renovar, versionPlan: plan.version, precioConfirmado: plan.precio });
       toast.success(`Plan ${plan.nombre} contratado${renovar ? " con renovación automática" : ""}`);
       navigate("/planes/historial");
     } catch (error) {
@@ -134,6 +135,7 @@ function Contratar() {
             <div className="ct-box">
               <div className="ct-box-title">{plan.nombre}</div>
               <div className="ct-box-detail">{formatPrecio(plan.precio)} / mes</div>
+              {plan.promocionHasta && <div className="ct-box-detail">Promoción para un período mensual. Precio habitual: {formatPrecio(plan.precioHabitual!)} / mes. Disponible hasta {new Date(plan.promocionHasta).toLocaleString('es-GT', { timeZone: 'America/Guatemala' })} (Guatemala).</div>}
               <div className="ct-box-detail">{plan.almacenamientoGb} GB Almacenamiento</div>
               <div className="ct-box-detail">
                 {plan.descargasMensuales === null
@@ -148,7 +150,7 @@ function Contratar() {
             <div className="ct-box">
               <label className="ct-radio">
                 <input type="radio" name="metodo" checked onChange={() => undefined} />
-                Tarjeta simulada
+                {gratis ? 'Activación sin cobro' : 'Tarjeta simulada'}
               </label>
               <div className="ct-total">
                 <span>Total a pagar</span>
@@ -159,7 +161,8 @@ function Contratar() {
         </aside>
 
         <section className="ct-payment" aria-labelledby="ct-payment-title">
-        <h2 id="ct-payment-title">Datos de la tarjeta</h2>
+        <h2 id="ct-payment-title">{gratis ? 'Activa tu promoción' : 'Datos de la tarjeta'}</h2>
+        {gratis ? <Aviso variante="informacion">Pagarás Q0.00 por un período mensual completo desde la activación, aunque la promoción termine antes. Sin renovación automática volverás a Free al vencer.</Aviso> : <>
         <p className="ct-payment-intro">Pago simulado: utiliza datos ficticios para completar la contratación.</p>
 
         <div className="ct-field">
@@ -245,17 +248,18 @@ function Contratar() {
           </div>
         </div>
 
+        </>}
         <label className="ct-renovar">
           <input type="checkbox" checked={renovar} onChange={(e) => setRenovar(e.target.checked)} />
           <span>
-            <strong>Renovar automáticamente cada mes</strong>
+            <strong>Renovar automáticamente cada mes{plan.promocionHasta ? ` por ${formatPrecio(plan.precioHabitual!)} al terminar el período promocional` : ''}</strong>
             <small>Si no la marcas, al vencer tu plan volverás al plan Free. Puedes cambiarlo cuando quieras desde Planes.</small>
           </span>
         </label>
 
         <div className="ct-actions">
           <button type="submit" className="ct-primary" disabled={enviando || cambioPlan}>
-            {enviando ? "Procesando..." : "Confirmar Pago"}
+            {enviando ? "Procesando..." : gratis ? 'Activar plan gratis' : "Confirmar Pago"}
           </button>
           <button
             type="button"

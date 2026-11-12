@@ -7,6 +7,8 @@ export type MetodoPago = "tarjeta";
 export type EstadoPago = "Completado" | "Pendiente";
 
 export interface DatosComprobante {
+  renovacionAutomatica?: boolean;
+  promocion?: { precioHabitual: number; finOferta: string };
   version: 1;
   moneda: 'GTQ';
   cliente: { nombre: string; correo: string };
@@ -36,6 +38,7 @@ export interface PlanActual {
 }
 
 export interface ContratarPlanData {
+  precioConfirmado?: number;
   versionPlan: number;
   planId: string;
   metodo: MetodoPago;
@@ -101,7 +104,7 @@ export const configurarRenovacion = async (renovar: boolean): Promise<void> => {
 export const contratarPlan = async (data: ContratarPlanData): Promise<Pago> => {
   const pago = await pedir<PagoApi>("/api/planes/contratar", {
     method: "POST",
-    body: JSON.stringify({ planId: Number(data.planId), metodo: data.metodo, renovar: data.renovar === true, versionPlan: data.versionPlan }),
+    body: JSON.stringify({ planId: Number(data.planId), metodo: data.metodo, renovar: data.renovar === true, versionPlan: data.versionPlan, precioConfirmado: data.precioConfirmado }),
   });
   // Refresca el plan en el Dashboard/Planes (cuota, descargas, nombre del plan).
   await actualizarConsumo().catch(() => undefined);

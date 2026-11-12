@@ -17,6 +17,7 @@ function crearAdminRoutes(casos, auth) {
     return req.params.id;
   };
   r.get('/pagos', responder(() => casos.listarPagos()));
+  r.get('/auditoria', responder(req => casos.listarAuditoria(req.query)));
   r.get('/planes', responder(() => casos.listarPlanes()));
   r.post('/planes', responder(req => casos.guardarPlan(req.usuario.sub, null, req.body), 201));
   r.put('/planes/:id', responder(req => casos.guardarPlan(req.usuario.sub, idPlan(req), req.body)));

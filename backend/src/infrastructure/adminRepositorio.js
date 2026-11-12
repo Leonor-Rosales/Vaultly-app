@@ -2,6 +2,17 @@ const { ErrorApp } = require('../domain/errores');
 const campos = 'u.id, u.nombre_completo, u.correo_electronico, u.estado_cuenta, u.created_at';
 function crearAdminRepositorio(pool) {
   return {
+    async listarAuditoria({ pagina, accion, q }) {
+      const filtro = `a.modulo_afectado IN ('planes','administradores') AND ($1='' OR t.codigo=$1)
+        AND ($2='' OR u.nombre_completo ILIKE '%'||$2||'%' OR a.detalles_json->'nuevo'->>'nombre' ILIKE '%'||$2||'%' OR a.detalles_json->'nuevo'->>'nombre_completo' ILIKE '%'||$2||'%')`;
+      const desde = 'FROM auditoria a JOIN tipos_accion t ON t.id=a.tipo_accion_id LEFT JOIN usuarios u ON u.id=a.usuario_id';
+      const args = [accion, q];
+      const total = Number((await pool.query(`SELECT count(*) AS total ${desde} WHERE ${filtro}`, args)).rows[0].total);
+      const { rows } = await pool.query(`SELECT a.id::text,a.usuario_id,a.fecha_hora,a.modulo_afectado,a.detalles_json,t.codigo,
+        COALESCE(u.nombre_completo,'Administrador eliminado') AS administrador ${desde} WHERE ${filtro}
+        ORDER BY a.fecha_hora DESC,a.id DESC LIMIT 25 OFFSET $3`, [...args, (pagina - 1) * 25]);
+      return { items: rows, total, pagina, por_pagina: 25 };
+    },
     async listarPagos() {
       const resultado = await pool.query(`
         SELECT p.id, u.nombre_completo, u.correo_electronico, p.plan_nombre,
@@ -29,15 +40,21 @@ function crearAdminRepositorio(pool) {
           plan: id => one('SELECT * FROM planes WHERE id=$1 FOR UPDATE', [id]),
           usado: async id => !!(await one('SELECT 1 FROM suscripciones WHERE plan_id=$1 LIMIT 1', [id])),
           guardarPlan: (id, d, version) => {
-            const v = [d.nombre, d.precio_mensual, d.cuota_storage_gb, d.limite_descargas, d.permite_carpetas_publicas, d.activo];
-            return id ? one('UPDATE planes SET nombre=$1, precio_mensual=$2, cuota_storage_gb=$3, limite_descargas=$4, permite_carpetas_publicas=$5, activo=$6 WHERE id=$7 AND version=$8 RETURNING *', [...v, id, version])
-              : one('INSERT INTO planes(nombre, precio_mensual, cuota_storage_gb, limite_descargas, permite_carpetas_publicas, activo) VALUES($1,$2,$3,$4,$5,$6) RETURNING *', v);
+            const v = [d.nombre, d.precio_mensual, d.cuota_storage_gb, d.limite_descargas, d.permite_carpetas_publicas, d.activo, d.promocion_precio, d.promocion_inicio, d.promocion_fin];
+            return id ? one('UPDATE planes SET nombre=$1, precio_mensual=$2, cuota_storage_gb=$3, limite_descargas=$4, permite_carpetas_publicas=$5, activo=$6, promocion_precio=$7,promocion_inicio=$8,promocion_fin=$9 WHERE id=$10 AND version=$11 RETURNING *', [...v, id, version])
+              : one('INSERT INTO planes(nombre, precio_mensual, cuota_storage_gb, limite_descargas, permite_carpetas_publicas, activo,promocion_precio,promocion_inicio,promocion_fin) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *', v);
           },
           auditarPlan: (actor, accion, anterior, nuevo) => {
-            const foto = p => p ? Object.fromEntries(['id','version','nombre','precio_mensual','cuota_storage_gb','limite_descargas','permite_carpetas_publicas','activo'].map(k => [k, p[k]])) : null;
+            const foto = p => p ? Object.fromEntries(['id','version','nombre','precio_mensual','cuota_storage_gb','limite_descargas','permite_carpetas_publicas','activo','promocion_precio','promocion_inicio','promocion_fin'].map(k => [k, p[k]])) : null;
             return c.query(`INSERT INTO auditoria(usuario_id,tipo_accion_id,modulo_afectado,detalles_json)
               VALUES($1,(SELECT id FROM tipos_accion WHERE codigo=$2),'planes',$3)`,
               [actor, accion, { plan_id: nuevo.id, anterior: foto(anterior), nuevo: foto(nuevo) }]);
+          },
+          auditarAdministrador: (actor, accion, anterior, nuevo) => {
+            const foto = p => p ? Object.fromEntries(['id','nombre_completo','correo_electronico','estado_cuenta'].map(k => [k, p[k]])) : null;
+            return c.query(`INSERT INTO auditoria(usuario_id,tipo_accion_id,modulo_afectado,detalles_json)
+              VALUES($1,(SELECT id FROM tipos_accion WHERE codigo=$2),'administradores',$3)`,
+              [actor, accion, { administrador_id: nuevo.id, anterior: foto(anterior), nuevo: foto(nuevo) }]);
           },
           administrador: id => one(`SELECT ${campos} FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE u.id=$1 AND r.nombre='ADMIN'`, [id]),
           activos: async () => Number((await one("SELECT count(*) AS n FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='ADMIN' AND u.estado_cuenta='ACTIVO'")).n),

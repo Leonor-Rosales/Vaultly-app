@@ -3,7 +3,7 @@ const { crearArchivoRepositorio } = require('./archivoRepositorio');
 
 function crearCuotasRepositorio(pool) {
   return {
-    listarPlanes: async () => (await pool.query('SELECT * FROM planes WHERE activo ORDER BY precio_mensual, id')).rows,
+    listarPlanes: async () => (await pool.query('SELECT p.*, statement_timestamp() AS consultado_en FROM planes p WHERE activo ORDER BY precio_mensual, id')).rows,
     usuariosConReservasVencidas: async () => (await pool.query(`
       SELECT usuario_id FROM reservas_subida WHERE vence_en <= clock_timestamp()
       UNION SELECT usuario_id FROM reservas_descarga WHERE estado='RESERVADA' AND vence_en <= clock_timestamp()`)).rows.map(r => r.usuario_id),

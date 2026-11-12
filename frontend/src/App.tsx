@@ -5,6 +5,7 @@ import PlanesAdmin from './admin/PlanesAdmin';
 import PlanForm from './admin/PlanForm';
 import Administradores from './admin/Administradores';
 import Configuracion from './admin/Configuracion';
+import Auditoria from './admin/Auditoria';
 import Login from "./login/Login";
 import Registro from "./registro/Registro";
 
@@ -42,6 +43,7 @@ function App() {
           <Route path="planes/nuevo" element={<PlanForm />} />
           <Route path="planes/:id/editar" element={<PlanesAdmin key="editar" editar />} />
           <Route path="pagos" element={<HistorialPagos />} />
+          <Route path="auditoria" element={<Auditoria />} />
           <Route path="administradores" element={<Administradores />} />
           <Route path="configuracion" element={<Configuracion />} />
           <Route path="*" element={<Navigate to="/admin/planes" replace />} />

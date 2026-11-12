@@ -11,7 +11,19 @@ function validarPlan(d = {}) {
   exigir(Number.isInteger(d.cuota_storage_gb) && d.cuota_storage_gb > 0 && Number.isSafeInteger(d.cuota_storage_gb * policy.bytesPerGB), 'Almacenamiento inválido');
   exigir(d.limite_descargas === null || (Number.isInteger(d.limite_descargas) && d.limite_descargas >= 0 && d.limite_descargas <= 2147483647), 'Límite de descargas inválido');
   exigir(typeof d.activo === 'boolean' && typeof d.permite_carpetas_publicas === 'boolean', 'Opciones booleanas inválidas');
-  return { nombre: d.nombre.trim(), precio_mensual: d.precio_mensual, cuota_storage_gb: d.cuota_storage_gb, limite_descargas: d.limite_descargas, permite_carpetas_publicas: d.permite_carpetas_publicas, activo: d.activo };
+  let promocion = {};
+  if (['promocion_precio','promocion_inicio','promocion_fin'].some(k => d[k] !== undefined)) {
+    if (d.promocion_precio === null && d.promocion_inicio === null && d.promocion_fin === null) promocion = { promocion_precio: null, promocion_inicio: null, promocion_fin: null };
+    else {
+      exigir(typeof d.promocion_precio === 'number' && Number.isFinite(d.promocion_precio) && d.promocion_precio >= 0 && d.promocion_precio < d.precio_mensual && Math.abs(d.promocion_precio * 100 - Math.round(d.promocion_precio * 100)) < .00001, 'El precio promocional debe ser menor al habitual y puede ser Q0.00');
+      const inicio = typeof d.promocion_inicio === 'string' ? Date.parse(d.promocion_inicio) : NaN;
+      const fin = typeof d.promocion_fin === 'string' ? Date.parse(d.promocion_fin) : NaN;
+      exigir(Number.isFinite(inicio) && Number.isFinite(fin) && inicio < fin && /(?:Z|[+-]\d\d:\d\d)$/.test(d.promocion_inicio) && /(?:Z|[+-]\d\d:\d\d)$/.test(d.promocion_fin), 'Indica inicio y fin válidos de la promoción, con zona horaria');
+      exigir(d.nombre.trim().toLowerCase() !== 'free', 'Free no necesita una promoción');
+      promocion = { promocion_precio: d.promocion_precio, promocion_inicio: new Date(inicio).toISOString(), promocion_fin: new Date(fin).toISOString() };
+    }
+  }
+  return { nombre: d.nombre.trim(), precio_mensual: d.precio_mensual, cuota_storage_gb: d.cuota_storage_gb, limite_descargas: d.limite_descargas, permite_carpetas_publicas: d.permite_carpetas_publicas, activo: d.activo, ...promocion };
 }
 function validarAdministrador(d = {}, crear = false) {
   exigir(d !== null && typeof d === 'object' && !Array.isArray(d), 'Datos del administrador inválidos');

@@ -35,11 +35,14 @@ export const adaptarPago = (p: PagoApi): Pago => ({
   codigo: p.codigo,
   plan: p.plan,
   monto: p.monto,
-  metodo: NOMBRE_METODO[p.metodo] ?? p.metodo,
+  metodo: p.monto === 0 && p.comprobante?.promocion ? 'Activación sin cobro' : NOMBRE_METODO[p.metodo] ?? p.metodo,
   estado: p.estado,
 });
 
 export interface PlanApi {
+  precio_vigente?: number;
+  promocion_vigente?: boolean;
+  promocion_fin?: string | null;
   version: number;
   id: number;
   nombre: string;
@@ -53,7 +56,8 @@ export function adaptarPlan(p: PlanApi): Plan {
     version: p.version,
     id: String(p.id),
     nombre: p.nombre,
-    precio: Number(p.precio_mensual),
+    precio: Number(p.precio_vigente ?? p.precio_mensual),
+    ...(p.promocion_vigente && p.promocion_fin ? { precioHabitual: Number(p.precio_mensual), promocionHasta: p.promocion_fin } : {}),
     almacenamientoGb: p.cuota_storage_gb,
     descargasMensuales: p.limite_descargas,
   };

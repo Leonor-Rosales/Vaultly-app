@@ -3,6 +3,7 @@ const { ErrorApp } = require('../domain/errores');
 const { policy, vigente } = require('../domain/cuotas');
 const { codigoTransaccion, sumarMes } = require('../domain/renovacion');
 const { datosComprobante } = require('../domain/comprobante');
+const { precioContratacion } = require('../domain/promociones');
 
 const METODOS = { tarjeta: 'TARJETA' }; // solo tarjeta simulada; pagos viejos con transferencia se siguen mostrando
 
@@ -24,7 +25,7 @@ const presentar = (p) => ({
  */
 function crearCasosPagos({ repo }) {
   return {
-    contratar: (usuarioId, { planId, metodo, renovar, versionPlan } = {}) => {
+    contratar: (usuarioId, { planId, metodo, renovar, versionPlan, precioConfirmado } = {}) => {
       const id = Number(planId);
       if (!Number.isInteger(id) || id <= 0) throw new ErrorApp('Plan inválido.', 400, 'PLAN_INVALIDO');
       const metodoDb = Object.hasOwn(METODOS, metodo) ? METODOS[metodo] : undefined;
@@ -35,8 +36,13 @@ function crearCasosPagos({ repo }) {
         const plan = await tx.plan(id);
         if (!plan) throw new ErrorApp('El plan no existe o no está disponible.', 404, 'PLAN_NO_ENCONTRADO');
         if (versionPlan !== plan.version) throw new ErrorApp('El precio o las condiciones del plan cambiaron. Actualiza el resumen y vuelve a confirmar. No se realizó ningún cobro.', 409, 'PLAN_DESACTUALIZADO');
-        const monto = Number(plan.precio_mensual);
-        if (monto <= 0) throw new ErrorApp('El plan Free no requiere pago.', 400, 'PLAN_GRATUITO');
+        const oferta = precioContratacion(plan, tx.ahora);
+        const monto = oferta.precio;
+        // La versión no cambia al llegar una fecha: comprobar también el precio visto.
+        if ((plan.promocion_precio != null || precioConfirmado !== undefined) && (typeof precioConfirmado !== 'number' || !Number.isFinite(precioConfirmado) || precioConfirmado !== monto)) {
+          throw new ErrorApp('La promoción o el precio cambiaron. Actualiza el resumen y confirma nuevamente. No se realizó ningún cobro.', 409, 'PLAN_DESACTUALIZADO');
+        }
+        if (Number(plan.precio_mensual) <= 0) throw new ErrorApp('El plan Free no requiere pago.', 400, 'PLAN_GRATUITO');
 
         const activa = await tx.activa();
         if (vigente(activa, tx.ahora) && activa.plan_id === plan.id) {
@@ -53,7 +59,8 @@ function crearCasosPagos({ repo }) {
         const pago = await tx.registrarPago({
           id: randomUUID(), planId: plan.id, planNombre: plan.nombre, monto,
           metodo: metodoDb, estado: 'COMPLETADO', codigo: codigoTransaccion(), fecha: tx.ahora,
-          comprobante: datosComprobante(tx.cliente, plan, tx.ahora, fin),
+          comprobante: { ...datosComprobante(tx.cliente, plan, tx.ahora, fin), renovacionAutomatica: renovar === true,
+            ...(oferta.promocion ? { promocion: { precioHabitual: Number(plan.precio_mensual), finOferta: new Date(plan.promocion_fin).toISOString() } } : {}) },
         });
         return presentar(pago);
       });

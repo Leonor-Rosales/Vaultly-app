@@ -123,6 +123,19 @@
 .admin-app .cuenta-config-grid { gap: 24px; }
 .admin-app .admin-dialog { border-radius: 18px; }
 
+.admin-app .admin-promocion { padding: 0 18px 18px; border: 1px solid var(--admin-border); border-radius: 12px; margin-block: 18px; background: var(--admin-bg); }
+.admin-app .admin-promocion-resumen { display: block; margin-top: 8px; color: var(--admin-link); font-size: 11px; line-height: 1.6; }
+.admin-app .admin-auditoria-filtros { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin-bottom: 28px; }
+.admin-app .admin-auditoria-filtros label { flex: 1 1 230px; margin: 0; }
+.admin-app .admin-auditoria-filtros select { display: block; width: 100%; height: 41px; margin-top: 5px; padding: 8px 12px; border: 1px solid var(--admin-border); border-radius: 7px; background: var(--admin-bg); color: var(--admin-text); font: inherit; }
+.admin-app .admin-auditoria-filtros button { min-height: 41px; padding-block: 10px; }
+.admin-app .admin-auditoria-paginacion { display: flex; justify-content: flex-end; gap: 16px; align-items: center; flex-wrap: wrap; margin-block: 24px; font-size: 12px; }
+.admin-app .admin-auditoria-detalle { width: 100%; margin-top: 24px; }
+.admin-app .admin-auditoria-detalle .admin-table-scroll { margin-bottom: 22px; }
+.admin-app .admin-auditoria-detalle table { min-width: 0; table-layout: fixed; }
+.admin-app .admin-auditoria-detalle tbody th { border-radius: 0; background: transparent; color: var(--admin-text); font-size: 12px; border-top: 1px solid var(--admin-border); overflow-wrap: anywhere; }
+.admin-app .admin-auditoria-detalle tbody tr:first-child th { border-top: 0; }
+.admin-app .admin-auditoria-detalle td { overflow-wrap: anywhere; max-width: 300px; }
 @media (min-width: 761px) and (max-width: 1100px) {
   .admin-app .admin-sidebar { width: 224px; margin-left: 12px; }
   .admin-app .admin-sidebar nav :is(a, button) { font-size: 12px; padding-inline: 10px; gap: 9px; }

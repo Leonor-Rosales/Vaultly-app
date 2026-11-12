@@ -111,6 +111,7 @@ function ComprobantePago({ pago, onClose }: Props) {
                 <div><dt>Inicio</dt><dd>{fecha(datos.inicio)}</dd></div>
                 <div><dt>Vencimiento</dt><dd>{fecha(datos.fin)}</dd></div>
               </dl>
+              {datos.promocion && <p className="cp-legado">Promoción aplicada al período completo. Precio habitual de renovación: GTQ {datos.promocion.precioHabitual.toFixed(2)} / mes. Renovación automática: {datos.renovacionAutomatica ? 'aceptada' : 'desactivada'}.</p>}
             </> : <p className="cp-legado">La capacidad, las descargas y el período contratado no se guardaron en este pago histórico.</p>}
           </div>
         </section>

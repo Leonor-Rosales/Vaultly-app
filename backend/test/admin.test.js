@@ -41,11 +41,11 @@ test('todos los endpoints rechazan cliente, sesión ausente, token antiguo y cue
   const auth = crearRequiereAuth(token => { if (token === 'malo') throw Error(); return { sub: 'id', rol: 'ADMIN' }; }, async () => ({ rol, estado_cuenta: estado }));
   const app = express(); app.use(express.json());
   const caso = async () => { llamadas++; return []; };
-  app.use('/api/admin', crearAdminRoutes({ listarPlanes: caso, listarAdministradores: caso, guardarPlan: caso, guardarAdministrador: caso }, auth));
+  app.use('/api/admin', crearAdminRoutes({ listarAuditoria: caso, listarPlanes: caso, listarAdministradores: caso, guardarPlan: caso, guardarAdministrador: caso }, auth));
   const server = app.listen(0, '127.0.0.1'); await new Promise(r => server.once('listening', r));
   t.after(() => new Promise(r => server.close(r)));
   const url = `http://127.0.0.1:${server.address().port}/api/admin`;
-  const rutas = [['GET', '/planes'], ['POST', '/planes'], ['PUT', '/planes/1'], ['GET', '/administradores'], ['POST', '/administradores'], ['PUT', '/administradores/00000000-0000-4000-8000-000000000001']];
+  const rutas = [['GET', '/auditoria'], ['GET', '/planes'], ['POST', '/planes'], ['PUT', '/planes/1'], ['GET', '/administradores'], ['POST', '/administradores'], ['PUT', '/administradores/00000000-0000-4000-8000-000000000001']];
   for (const [token, role, state, status] of [[null, 'ADMIN', 'ACTIVO', 401], ['malo', 'ADMIN', 'ACTIVO', 401], ['valido', 'CLIENTE', 'ACTIVO', 403], ['valido', 'ADMIN', 'BLOQUEADO', 401]]) {
     rol = role; estado = state;
     for (const [method, path] of rutas) assert.equal((await fetch(url + path, { method, headers: token ? { Authorization: `Bearer ${token}` } : {} })).status, status);

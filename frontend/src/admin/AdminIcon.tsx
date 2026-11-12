@@ -1,6 +1,7 @@
 import { Icon } from '@iconify/react';
 // Datos locales para que las acciones y el logo no dependan de la API pública de iconos.
 const trazos: Record<string, string> = {
+  'lucide:history': '<path d="M3 11a9 9 0 1 1 2.7 7M3 4v7h7m2-4v5l3 2"/>',
   'lucide:vault': '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="m6 6 4 4m4 4 4 4M6 18l4-4m4-4 4-4"/>',
   'lucide:credit-card': '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',
   'lucide:clipboard-list': '<rect x="5" y="4" width="14" height="17" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 11h6m-6 5h4"/>',

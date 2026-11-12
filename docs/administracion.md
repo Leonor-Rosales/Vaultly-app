@@ -20,6 +20,7 @@ por defecto ni se habilita la elección de rol en el registro público.
 
 - `/admin/planes`: catálogo completo, creación, edición y cambio de estado.
 - `/admin/administradores`: búsqueda local por nombre/correo, alta, edición y estado.
+- `/admin/auditoria`: cambios de planes y gestión de administradores, con filtros y detalle anterior/nuevo.
 - `/admin/configuracion`: perfil, tema claro/oscuro, cambio de correo verificado y recuperación de contraseña.
 
 La configuración SMTP existente es necesaria para recibir el correo de recuperación.
@@ -45,7 +46,8 @@ Planes: `nombre`, `precio_mensual` numérico en quetzales (hasta dos decimales),
 `cuota_storage_gb` entero positivo en GB decimales (1 GB = 1 000 000 000 bytes,
 según `shared/usage-policy.json`), `limite_descargas` entero no negativo o `null`
 para ilimitadas, `permite_carpetas_publicas` y `activo` booleanos independientes.
-Solo `Free` admite precio cero. Los planes nuevos restantes requieren precio positivo.
+Solo `Free` admite precio habitual cero. Los restantes pueden ofrecer precio promocional
+Q0 con inicio y fin; consulta [Promociones y auditoría](promociones-auditoria.md).
 Los cambios administrativos se registran en la tabla `auditoria` junto con el plan,
 el responsable, la fecha y los valores anteriores y nuevos. Consulta
 [Seguridad de planes](seguridad-planes.md) para la migración 13 y sus pruebas.
