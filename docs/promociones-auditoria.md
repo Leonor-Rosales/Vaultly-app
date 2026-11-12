@@ -1,5 +1,25 @@
 # Promociones y auditoría administrativa
 
+## Tipos de promoción (migración 15)
+
+El selector **Tipo de promoción** permite **Porcentaje de descuento**, **Precio
+promocional fijo** o **Período gratis**. Solo se aplica un tipo por plan; no se
+acumulan descuentos. El formulario muestra el precio final del primer período.
+
+En porcentaje se admiten valores mayores a 0 y hasta 100, con dos decimales.
+Ejemplo: Q200 con 25 % de descuento queda en Q150. El servidor calcula en centavos
+y PostgreSQL vuelve a calcularlo en un trigger. El precio final enviado por un
+cliente no puede alterar ese resultado. Un descuento que no reduzca al menos un
+centavo se rechaza. Gratis fija Q0; precio fijo conserva el importe elegido.
+
+Aplicar `15_tipos_promociones.sql` con el migrador. Las ofertas anteriores se
+conservan: un importe Q0 se clasifica como gratis y los demás como precio fijo.
+Se guardan `promocion_tipo`, `promocion_porcentaje` y el precio resultante. Cambiar
+el tipo o el porcentaje incrementa la versión del plan y queda en auditoría.
+El comprobante guarda el tipo y porcentaje originales de la compra, aunque el
+administrador cambie la oferta posteriormente. Las reglas de fechas, primer
+período y renovación al precio habitual descritas abajo siguen siendo las mismas.
+
 ## Actualizar
 
 Aplicar `14_promociones_auditoria.sql` antes de reiniciar el backend y reconstruir

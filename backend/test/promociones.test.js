@@ -1,6 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { precioContratacion } = require('../src/domain/promociones');
+const { precioPromocional } = require('../src/domain/promociones');
 const { validarPlan } = require('../src/domain/administracion');
 const { crearCasosAdministracion } = require('../src/usecases/administracion');
 const { crearCasosPagos } = require('../src/usecases/pagos');
@@ -22,4 +23,20 @@ test('al vencer una oferta se exige reconfirmar el precio incluso sin cambiar ve
 test('auditoría solo acepta filtros acotados; consultas inválidas no llegan al repositorio', () => {
   const admin = crearCasosAdministracion({ repo: {} });
   for (const filtros of [{ pagina:'0' },{ pagina:'1 OR 1=1' },{ accion:'BORRAR' },{ accion:['PLAN_CREADO'] },{ q:'x'.repeat(101) }]) assert.throws(() => admin.listarAuditoria(filtros), { estado: 400 });
+});
+
+test('porcentaje y gratis se calculan en el servidor ignorando precios finales enviados', () => {
+  const d = validarPlan({ ...plan, promocion_tipo: 'PORCENTAJE', promocion_porcentaje: 25, promocion_precio: 1 });
+  assert.equal(d.promocion_precio, 150);
+  assert.equal(d.promocion_porcentaje, 25);
+  assert.equal(validarPlan({ ...plan, promocion_tipo: 'GRATIS', promocion_precio: 99 }).promocion_precio, 0);
+  assert.equal(validarPlan({ ...plan, promocion_tipo: 'PORCENTAJE', promocion_porcentaje: 100 }).promocion_precio, 0);
+  for (const promocion_porcentaje of [0,-1,101,25.555,'25',null]) assert.throws(() => validarPlan({ ...plan, promocion_tipo:'PORCENTAJE',promocion_porcentaje }));
+  assert.throws(() => validarPlan({ ...plan, promocion_tipo:'FIJO',promocion_porcentaje:25 }));
+  assert.throws(() => validarPlan({ ...plan, promocion_tipo:'GRATIS',promocion_porcentaje:100 }));
+  assert.throws(() => validarPlan({ ...plan, promocion_tipo:'OTRO' }));
+});
+test('redondeo monetario en centavos y descuento mínimo efectivo', () => {
+  for (const [precio,porcentaje,final] of [[199.99,25,149.99],[.01,50,.01],[200,33.33,133.34],[99999999.99,.01,99989999.99]]) assert.equal(precioPromocional({ precio_mensual:precio,promocion_tipo:'PORCENTAJE',promocion_porcentaje:porcentaje }),final);
+  assert.throws(() => validarPlan({ ...plan, precio_mensual:.01, promocion_tipo:'PORCENTAJE',promocion_porcentaje:1 }));
 });

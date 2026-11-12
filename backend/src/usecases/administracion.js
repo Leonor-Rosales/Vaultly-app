@@ -28,7 +28,12 @@ function crearCasosAdministracion({ repo, hashear }) {
         }
         // Un cliente antiguo que no envía estos campos no debe borrar una promoción.
         for (const campo of ['promocion_precio','promocion_inicio','promocion_fin']) if (d[campo] === undefined) d[campo] = anterior?.[campo] == null ? null : campo === 'promocion_precio' ? Number(anterior[campo]) : new Date(anterior[campo]).toISOString();
-        validarPlan(d);
+        // Conservar el tipo de ofertas existentes si un cliente anterior no lo envía.
+        if (datos.promocion_tipo === undefined && anterior?.promocion_tipo && d.promocion_precio != null) {
+          d.promocion_tipo = anterior.promocion_tipo;
+          d.promocion_porcentaje = anterior.promocion_porcentaje == null ? null : Number(anterior.promocion_porcentaje);
+        }
+        Object.assign(d, validarPlan(d));
         // Se permite retirar un plan gratuito antiguo, sin cambiar sus condiciones.
         const legadoRetirado = anterior && Number(anterior.precio_mensual) === 0 && !d.activo
           && ['nombre','cuota_storage_gb','limite_descargas','permite_carpetas_publicas'].every(k => anterior[k] === d[k]);

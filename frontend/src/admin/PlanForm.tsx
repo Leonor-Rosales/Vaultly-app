@@ -22,6 +22,10 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
   const aLocal = (iso?: string | null) => iso ? new Date(new Date(iso).getTime() - 6 * 3600000).toISOString().slice(0, 16) : '';
   const [promocion, setPromocion] = useState(plan?.promocion_precio != null);
   const [precioPromo, setPrecioPromo] = useState(String(plan?.promocion_precio ?? 0));
+  const [tipoPromo, setTipoPromo] = useState<'FIJO' | 'PORCENTAJE' | 'GRATIS'>(plan?.promocion_tipo ?? (plan?.promocion_precio != null && Number(plan.promocion_precio) === 0 ? 'GRATIS' : 'FIJO'));
+  const [porcentaje, setPorcentaje] = useState(String(plan?.promocion_porcentaje ?? 25));
+  const precioFinal = tipoPromo === 'GRATIS' ? 0 : tipoPromo === 'PORCENTAJE'
+    ? Math.round(Math.round(Number(precio) * 100) * (10000 - Math.round(Number(porcentaje) * 100)) / 10000) / 100 : Number(precioPromo);
   const [inicioPromo, setInicioPromo] = useState(aLocal(plan?.promocion_inicio));
   const [finPromo, setFinPromo] = useState(aLocal(plan?.promocion_fin));
   return <section className="admin-form-page"><Marca /><form className="admin-card" onSubmit={async e => {
@@ -31,7 +35,9 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
     setGuardando(true);
     try {
       await guardarPlan({ version: plan?.version, nombre: nombre.trim(), precio_mensual: Number(precio), cuota_storage_gb: Number(gb), limite_descargas: ilimitadas ? null : Number(limite), permite_carpetas_publicas: publicas, activo,
-        promocion_precio: promocion ? Number(precioPromo) : null,
+        promocion_precio: promocion ? precioFinal : null,
+        promocion_tipo: promocion ? tipoPromo : null,
+        promocion_porcentaje: promocion && tipoPromo === 'PORCENTAJE' ? Number(porcentaje) : null,
         promocion_inicio: promocion ? new Date(`${inicioPromo}:00-06:00`).toISOString() : null,
         promocion_fin: promocion ? new Date(`${finPromo}:00-06:00`).toISOString() : null,
       }, plan?.id);
@@ -47,7 +53,10 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
       {plan?.nombre !== 'Free' && <>
         <label className="admin-check"><input type="checkbox" checked={promocion} onChange={e => setPromocion(e.target.checked)} />Promoción temporal</label>
         {promocion && <div className="admin-promocion">
-          <label>Precio promocional (Q)<input required type="number" min="0" max={Math.max(0, Number(precio) - .01)} step="0.01" value={precioPromo} onChange={e => setPrecioPromo(e.target.value)} /></label>
+          <label>Tipo de promoción<select aria-label="Tipo de promoción" value={tipoPromo} onChange={e => setTipoPromo(e.target.value as typeof tipoPromo)}><option value="FIJO">Precio promocional fijo</option><option value="PORCENTAJE">Porcentaje de descuento</option><option value="GRATIS">Período gratis</option></select></label>
+          {tipoPromo === 'FIJO' && <label>Precio promocional (Q)<input required type="number" min="0" max={Math.max(0, Number(precio) - .01)} step="0.01" value={precioPromo} onChange={e => setPrecioPromo(e.target.value)} /></label>}
+          {tipoPromo === 'PORCENTAJE' && <label>Descuento (%)<input required type="number" min="0.01" max="100" step="0.01" value={porcentaje} onChange={e => setPorcentaje(e.target.value)} /></label>}
+          <p className="admin-ayuda admin-promocion-previa">Precio final del primer período: <strong>{Number.isFinite(precioFinal) && precioFinal >= 0 ? `Q${precioFinal.toFixed(2)}` : '—'}</strong>. Después, precio habitual: Q{Number(precio || 0).toFixed(2)} / mes.</p>
           <label>Inicio de promoción (Guatemala)<input required type="datetime-local" value={inicioPromo} onChange={e => setInicioPromo(e.target.value)} /></label>
           <label>Fin de promoción (Guatemala)<input required type="datetime-local" min={inicioPromo} value={finPromo} onChange={e => setFinPromo(e.target.value)} /></label>
           <Aviso variante="informacion">El precio promocional cubre un período mensual completo. La siguiente renovación automática será al precio habitual, solo si el cliente la acepta.</Aviso>

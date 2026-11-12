@@ -40,6 +40,8 @@ export const adaptarPago = (p: PagoApi): Pago => ({
 });
 
 export interface PlanApi {
+  promocion_tipo?: 'FIJO' | 'PORCENTAJE' | 'GRATIS' | null;
+  promocion_porcentaje?: string | number | null;
   precio_vigente?: number;
   promocion_vigente?: boolean;
   promocion_fin?: string | null;
@@ -57,7 +59,9 @@ export function adaptarPlan(p: PlanApi): Plan {
     id: String(p.id),
     nombre: p.nombre,
     precio: Number(p.precio_vigente ?? p.precio_mensual),
-    ...(p.promocion_vigente && p.promocion_fin ? { precioHabitual: Number(p.precio_mensual), promocionHasta: p.promocion_fin } : {}),
+    ...(p.promocion_vigente && p.promocion_fin ? { precioHabitual: Number(p.precio_mensual), promocionHasta: p.promocion_fin,
+      promocionTexto: p.promocion_tipo === 'PORCENTAJE' ? `${Number(p.promocion_porcentaje)} % de descuento` : p.promocion_tipo === 'GRATIS' ? 'Un período gratis' : 'Precio promocional',
+    } : {}),
     almacenamientoGb: p.cuota_storage_gb,
     descargasMensuales: p.limite_descargas,
   };

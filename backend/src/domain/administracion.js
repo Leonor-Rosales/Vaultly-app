@@ -2,6 +2,7 @@ const { ErrorApp } = require('./errores');
 const { emailValido } = require('./validaciones');
 const { validarPassword } = require('./passwordPolicy');
 const { policy } = require('./cuotas');
+const { precioPromocional } = require('./promociones');
 
 const exigir = (ok, mensaje) => { if (!ok) throw new ErrorApp(mensaje, 400); };
 function validarPlan(d = {}) {
@@ -12,15 +13,21 @@ function validarPlan(d = {}) {
   exigir(d.limite_descargas === null || (Number.isInteger(d.limite_descargas) && d.limite_descargas >= 0 && d.limite_descargas <= 2147483647), 'Límite de descargas inválido');
   exigir(typeof d.activo === 'boolean' && typeof d.permite_carpetas_publicas === 'boolean', 'Opciones booleanas inválidas');
   let promocion = {};
-  if (['promocion_precio','promocion_inicio','promocion_fin'].some(k => d[k] !== undefined)) {
-    if (d.promocion_precio === null && d.promocion_inicio === null && d.promocion_fin === null) promocion = { promocion_precio: null, promocion_inicio: null, promocion_fin: null };
+  if (['promocion_precio','promocion_inicio','promocion_fin','promocion_tipo','promocion_porcentaje'].some(k => d[k] !== undefined)) {
+    if (d.promocion_precio === null && d.promocion_inicio === null && d.promocion_fin === null && d.promocion_tipo == null && d.promocion_porcentaje == null) promocion = { promocion_precio: null, promocion_inicio: null, promocion_fin: null, promocion_tipo: null, promocion_porcentaje: null };
     else {
-      exigir(typeof d.promocion_precio === 'number' && Number.isFinite(d.promocion_precio) && d.promocion_precio >= 0 && d.promocion_precio < d.precio_mensual && Math.abs(d.promocion_precio * 100 - Math.round(d.promocion_precio * 100)) < .00001, 'El precio promocional debe ser menor al habitual y puede ser Q0.00');
+      const tipo = d.promocion_tipo ?? 'FIJO';
+      exigir(['FIJO','PORCENTAJE','GRATIS'].includes(tipo), 'Tipo de promoción inválido');
+      if (tipo === 'PORCENTAJE') exigir(typeof d.promocion_porcentaje === 'number' && Number.isFinite(d.promocion_porcentaje) && d.promocion_porcentaje > 0 && d.promocion_porcentaje <= 100 && Math.abs(d.promocion_porcentaje * 100 - Math.round(d.promocion_porcentaje * 100)) < .00001, 'El descuento debe ser mayor a 0 y hasta 100 %, con máximo dos decimales');
+      else exigir(d.promocion_porcentaje == null, 'No combines tipos de promoción');
+      if (tipo === 'FIJO') exigir(typeof d.promocion_precio === 'number' && Number.isFinite(d.promocion_precio) && Math.abs(d.promocion_precio * 100 - Math.round(d.promocion_precio * 100)) < .00001, 'Indica un precio promocional válido con hasta dos decimales');
+      const precio = precioPromocional({ ...d, promocion_tipo: tipo });
+      exigir(Number.isFinite(precio) && precio >= 0 && precio < d.precio_mensual, 'La promoción debe reducir el precio habitual al menos Q0.01');
       const inicio = typeof d.promocion_inicio === 'string' ? Date.parse(d.promocion_inicio) : NaN;
       const fin = typeof d.promocion_fin === 'string' ? Date.parse(d.promocion_fin) : NaN;
       exigir(Number.isFinite(inicio) && Number.isFinite(fin) && inicio < fin && /(?:Z|[+-]\d\d:\d\d)$/.test(d.promocion_inicio) && /(?:Z|[+-]\d\d:\d\d)$/.test(d.promocion_fin), 'Indica inicio y fin válidos de la promoción, con zona horaria');
       exigir(d.nombre.trim().toLowerCase() !== 'free', 'Free no necesita una promoción');
-      promocion = { promocion_precio: d.promocion_precio, promocion_inicio: new Date(inicio).toISOString(), promocion_fin: new Date(fin).toISOString() };
+      promocion = { promocion_precio: precio, promocion_inicio: new Date(inicio).toISOString(), promocion_fin: new Date(fin).toISOString(), promocion_tipo: tipo, promocion_porcentaje: tipo === 'PORCENTAJE' ? d.promocion_porcentaje : null };
     }
   }
   return { nombre: d.nombre.trim(), precio_mensual: d.precio_mensual, cuota_storage_gb: d.cuota_storage_gb, limite_descargas: d.limite_descargas, permite_carpetas_publicas: d.permite_carpetas_publicas, activo: d.activo, ...promocion };

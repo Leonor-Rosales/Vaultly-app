@@ -6,9 +6,11 @@ const acciones: Record<string, string> = {
   PLAN_CREADO: 'Plan creado', PLAN_EDITADO: 'Plan editado', PLAN_ACTIVADO: 'Plan activado', PLAN_DESACTIVADO: 'Plan desactivado',
   ADMIN_CREADO: 'Administrador creado', ADMIN_EDITADO: 'Administrador editado', ADMIN_ACTIVADO: 'Administrador activado', ADMIN_DESACTIVADO: 'Administrador desactivado',
 };
-const campos: Record<string, string> = { nombre: 'Nombre del plan', precio_mensual: 'Precio habitual (Q)', cuota_storage_gb: 'Almacenamiento (GB)', limite_descargas: 'Descargas mensuales', permite_carpetas_publicas: 'Carpetas públicas', activo: 'Activo', version: 'Versión', promocion_precio: 'Precio promocional (Q)', promocion_inicio: 'Inicio de promoción', promocion_fin: 'Fin de promoción', nombre_completo: 'Nombre', correo_electronico: 'Correo', estado_cuenta: 'Estado de la cuenta' };
+const campos: Record<string, string> = { nombre: 'Nombre del plan', precio_mensual: 'Precio habitual (Q)', cuota_storage_gb: 'Almacenamiento (GB)', limite_descargas: 'Descargas mensuales', permite_carpetas_publicas: 'Carpetas públicas', activo: 'Activo', version: 'Versión', promocion_tipo: 'Tipo de promoción', promocion_porcentaje: 'Descuento', promocion_precio: 'Precio promocional (Q)', promocion_inicio: 'Inicio de promoción', promocion_fin: 'Fin de promoción', nombre_completo: 'Nombre', correo_electronico: 'Correo', estado_cuenta: 'Estado de la cuenta' };
 const fecha = (valor: string) => new Date(valor).toLocaleString('es-GT', { timeZone: 'America/Guatemala', dateStyle: 'medium', timeStyle: 'short' });
 function valor(dato: unknown, campo: string) {
+  if (campo === 'promocion_tipo' && dato != null) return ({ FIJO: 'Precio fijo', PORCENTAJE: 'Porcentaje', GRATIS: 'Período gratis' } as Record<string, string>)[String(dato)] ?? String(dato);
+  if (campo === 'promocion_porcentaje' && dato != null) return `${Number(dato)} %`;
   if (dato === null && campo === 'limite_descargas') return 'Ilimitadas';
   if (dato == null) return '—';
   if (typeof dato === 'boolean') return dato ? 'Sí' : 'No';

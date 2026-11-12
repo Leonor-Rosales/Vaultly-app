@@ -1,5 +1,7 @@
 import { request } from './auth';
 export interface PlanAdmin {
+  promocion_tipo?: 'FIJO' | 'PORCENTAJE' | 'GRATIS' | null;
+  promocion_porcentaje?: number | string | null;
   promocion_precio?: number | string | null;
   promocion_inicio?: string | null;
   promocion_fin?: string | null;
@@ -12,7 +14,7 @@ export interface Administrador {
   id: string; nombre_completo: string; correo_electronico: string; estado_cuenta: string; created_at: string;
 }
 export const listarPlanes = () => request<PlanAdmin[]>('/api/admin/planes', { auth: true });
-export const guardarPlan = (datos: Omit<PlanAdmin, 'id' | 'version'> & { version?: number }, id?: number) => request<PlanAdmin>(`/api/admin/planes${id ? `/${id}` : ''}`, { auth: true, method: id ? 'PUT' : 'POST', body: { ...datos, ...(datos.promocion_precio !== undefined ? { promocion_precio: datos.promocion_precio === null ? null : Number(datos.promocion_precio) } : {}) } });
+export const guardarPlan = (datos: Omit<PlanAdmin, 'id' | 'version'> & { version?: number }, id?: number) => request<PlanAdmin>(`/api/admin/planes${id ? `/${id}` : ''}`, { auth: true, method: id ? 'PUT' : 'POST', body: { ...datos, ...(datos.promocion_precio !== undefined ? { promocion_precio: datos.promocion_precio === null ? null : Number(datos.promocion_precio) } : {}), ...(datos.promocion_porcentaje !== undefined ? { promocion_porcentaje: datos.promocion_porcentaje === null ? null : Number(datos.promocion_porcentaje) } : {}) } });
 export const listarAdministradores = () => request<Administrador[]>('/api/admin/administradores', { auth: true });
 export const guardarAdministrador = (datos: { nombre_completo: string; correo_electronico: string; activo: boolean; password?: string }, id?: string) => request<Administrador>(`/api/admin/administradores${id ? `/${id}` : ''}`, { auth: true, method: id ? 'PUT' : 'POST', body: datos });
 

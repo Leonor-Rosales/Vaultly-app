@@ -8,7 +8,7 @@ export type EstadoPago = "Completado" | "Pendiente";
 
 export interface DatosComprobante {
   renovacionAutomatica?: boolean;
-  promocion?: { precioHabitual: number; finOferta: string };
+  promocion?: { precioHabitual: number; finOferta: string; tipo?: 'FIJO' | 'PORCENTAJE' | 'GRATIS'; porcentaje?: number | null };
   version: 1;
   moneda: 'GTQ';
   cliente: { nombre: string; correo: string };

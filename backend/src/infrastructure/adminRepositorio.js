@@ -40,12 +40,12 @@ function crearAdminRepositorio(pool) {
           plan: id => one('SELECT * FROM planes WHERE id=$1 FOR UPDATE', [id]),
           usado: async id => !!(await one('SELECT 1 FROM suscripciones WHERE plan_id=$1 LIMIT 1', [id])),
           guardarPlan: (id, d, version) => {
-            const v = [d.nombre, d.precio_mensual, d.cuota_storage_gb, d.limite_descargas, d.permite_carpetas_publicas, d.activo, d.promocion_precio, d.promocion_inicio, d.promocion_fin];
-            return id ? one('UPDATE planes SET nombre=$1, precio_mensual=$2, cuota_storage_gb=$3, limite_descargas=$4, permite_carpetas_publicas=$5, activo=$6, promocion_precio=$7,promocion_inicio=$8,promocion_fin=$9 WHERE id=$10 AND version=$11 RETURNING *', [...v, id, version])
-              : one('INSERT INTO planes(nombre, precio_mensual, cuota_storage_gb, limite_descargas, permite_carpetas_publicas, activo,promocion_precio,promocion_inicio,promocion_fin) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *', v);
+            const v = [d.nombre, d.precio_mensual, d.cuota_storage_gb, d.limite_descargas, d.permite_carpetas_publicas, d.activo, d.promocion_precio, d.promocion_inicio, d.promocion_fin, d.promocion_tipo, d.promocion_porcentaje];
+            return id ? one('UPDATE planes SET nombre=$1, precio_mensual=$2, cuota_storage_gb=$3, limite_descargas=$4, permite_carpetas_publicas=$5, activo=$6, promocion_precio=$7,promocion_inicio=$8,promocion_fin=$9,promocion_tipo=$10,promocion_porcentaje=$11 WHERE id=$12 AND version=$13 RETURNING *', [...v, id, version])
+              : one('INSERT INTO planes(nombre, precio_mensual, cuota_storage_gb, limite_descargas, permite_carpetas_publicas, activo,promocion_precio,promocion_inicio,promocion_fin,promocion_tipo,promocion_porcentaje) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *', v);
           },
           auditarPlan: (actor, accion, anterior, nuevo) => {
-            const foto = p => p ? Object.fromEntries(['id','version','nombre','precio_mensual','cuota_storage_gb','limite_descargas','permite_carpetas_publicas','activo','promocion_precio','promocion_inicio','promocion_fin'].map(k => [k, p[k]])) : null;
+            const foto = p => p ? Object.fromEntries(['id','version','nombre','precio_mensual','cuota_storage_gb','limite_descargas','permite_carpetas_publicas','activo','promocion_precio','promocion_inicio','promocion_fin','promocion_tipo','promocion_porcentaje'].map(k => [k, p[k]])) : null;
             return c.query(`INSERT INTO auditoria(usuario_id,tipo_accion_id,modulo_afectado,detalles_json)
               VALUES($1,(SELECT id FROM tipos_accion WHERE codigo=$2),'planes',$3)`,
               [actor, accion, { plan_id: nuevo.id, anterior: foto(anterior), nuevo: foto(nuevo) }]);

@@ -60,7 +60,7 @@ function crearCasosPagos({ repo }) {
           id: randomUUID(), planId: plan.id, planNombre: plan.nombre, monto,
           metodo: metodoDb, estado: 'COMPLETADO', codigo: codigoTransaccion(), fecha: tx.ahora,
           comprobante: { ...datosComprobante(tx.cliente, plan, tx.ahora, fin), renovacionAutomatica: renovar === true,
-            ...(oferta.promocion ? { promocion: { precioHabitual: Number(plan.precio_mensual), finOferta: new Date(plan.promocion_fin).toISOString() } } : {}) },
+            ...(oferta.promocion ? { promocion: { precioHabitual: Number(plan.precio_mensual), finOferta: new Date(plan.promocion_fin).toISOString(), tipo: plan.promocion_tipo ?? 'FIJO', porcentaje: plan.promocion_porcentaje == null ? null : Number(plan.promocion_porcentaje) } } : {}) },
         });
         return presentar(pago);
       });

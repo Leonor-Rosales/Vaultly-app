@@ -86,6 +86,7 @@ function Planes() {
               return <article key={plan.id} className={`plan-card${esActual ? ' current' : ''}`}>
                 <div className="plan-card-heading"><h2 className="plan-name">{plan.nombre}</h2>{esActual && <span className="plan-badge">Tu plan</span>}</div>
                 <div className="plan-price"><strong>{formatPrecio(plan.precio)}</strong><span>/ mes</span></div>
+                {plan.promocionTexto && <span className="plan-badge">{plan.promocionTexto}</span>}
                 {plan.promocionHasta && <p className="planes-subtitle">Promoción: un período mensual a este precio. Después, {formatPrecio(plan.precioHabitual!)} / mes si aceptas renovar. Disponible hasta {new Date(plan.promocionHasta).toLocaleDateString('es-GT', { timeZone: 'America/Guatemala' })}.</p>}
                 <p className="plan-caption">{plan.precio === 0 ? 'Un espacio para comenzar.' : 'Espacio para seguir creando.'}</p>
                 <ul className="plan-features">

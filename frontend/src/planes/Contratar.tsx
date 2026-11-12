@@ -135,6 +135,7 @@ function Contratar() {
             <div className="ct-box">
               <div className="ct-box-title">{plan.nombre}</div>
               <div className="ct-box-detail">{formatPrecio(plan.precio)} / mes</div>
+              {plan.promocionTexto && <div className="ct-box-detail"><strong>{plan.promocionTexto}</strong></div>}
               {plan.promocionHasta && <div className="ct-box-detail">Promoción para un período mensual. Precio habitual: {formatPrecio(plan.precioHabitual!)} / mes. Disponible hasta {new Date(plan.promocionHasta).toLocaleString('es-GT', { timeZone: 'America/Guatemala' })} (Guatemala).</div>}
               <div className="ct-box-detail">{plan.almacenamientoGb} GB Almacenamiento</div>
               <div className="ct-box-detail">

@@ -1,4 +1,5 @@
 export interface Plan {
+  promocionTexto?: string;
   precioHabitual?: number;
   promocionHasta?: string;
   version: number;

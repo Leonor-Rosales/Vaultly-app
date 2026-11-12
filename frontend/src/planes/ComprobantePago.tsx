@@ -21,7 +21,7 @@ function ComprobantePago({ pago, onClose }: Props) {
     const anterior = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    cerrar.current?.focus();
+    cerrar.current?.focus({ preventScroll: true });
     const alTeclear = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if (e.key === 'Tab') {
@@ -111,7 +111,7 @@ function ComprobantePago({ pago, onClose }: Props) {
                 <div><dt>Inicio</dt><dd>{fecha(datos.inicio)}</dd></div>
                 <div><dt>Vencimiento</dt><dd>{fecha(datos.fin)}</dd></div>
               </dl>
-              {datos.promocion && <p className="cp-legado">Promoción aplicada al período completo. Precio habitual de renovación: GTQ {datos.promocion.precioHabitual.toFixed(2)} / mes. Renovación automática: {datos.renovacionAutomatica ? 'aceptada' : 'desactivada'}.</p>}
+              {datos.promocion && <p className="cp-legado">{datos.promocion.tipo === 'PORCENTAJE' ? `${datos.promocion.porcentaje} % de descuento. ` : datos.promocion.tipo === 'GRATIS' ? 'Un período gratis. ' : ''}Promoción aplicada al período completo. Precio habitual de renovación: GTQ {datos.promocion.precioHabitual.toFixed(2)} / mes. Renovación automática: {datos.renovacionAutomatica ? 'aceptada' : 'desactivada'}.</p>}
             </> : <p className="cp-legado">La capacidad, las descargas y el período contratado no se guardaron en este pago histórico.</p>}
           </div>
         </section>
