@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import "./cuenta/Propuesta.css";
+import "./admin/PropuestaAdmin.css";
 import AvisosPublicos from './components/AvisosPublicos';
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

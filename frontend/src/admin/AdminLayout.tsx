@@ -39,6 +39,7 @@ export default function AdminLayout() {
     <button className="admin-menu" aria-expanded={menu} aria-controls="admin-navegacion" onClick={() => setMenu(!menu)}><Icon icon="lucide:menu" /> Menú de administrador</button>
     <aside className={`admin-sidebar ${menu ? 'abierto' : ''}`}>
       <Marca />
+      <span className="admin-marca-contexto">Administración</span>
       <nav id="admin-navegacion" aria-label="Administración">
         {[
           ['planes', 'lucide:credit-card', 'Planes y facturación'],

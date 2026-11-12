@@ -1,0 +1,157 @@
+/* Alternativa visual de feature/propuesta: usa los colores y controles del admin. */
+#root:has(.admin-app) {
+  width: 100%;
+  border: 0;
+}
+
+.admin-app {
+  --propuesta-espacio: clamp(24px, 3.4vw, 56px);
+}
+
+.admin-app .admin-sidebar {
+  top: 18px;
+  align-self: flex-start;
+  width: 254px;
+  height: calc(100dvh - 36px);
+  min-height: 0;
+  margin: 18px 0 18px 18px;
+  padding: 30px 12px 0;
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
+}
+
+.admin-app .admin-sidebar .admin-marca {
+  padding-inline: 12px;
+  gap: 12px;
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: -.8px;
+}
+
+.admin-app .admin-sidebar .admin-marca > span { border-radius: 10px; font-size: 21px; }
+.admin-app .admin-marca-contexto {
+  margin: 16px 12px 0;
+  color: var(--admin-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.admin-app .admin-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 28px 0 20px;
+  padding-block: 3px;
+}
+
+.admin-app .admin-sidebar nav :is(a, button) {
+  position: relative;
+  flex-shrink: 0;
+  min-height: 46px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  white-space: normal;
+  text-align: left;
+}
+.admin-app .admin-sidebar nav a:hover { background: var(--admin-soft); }
+.admin-app .admin-sidebar nav a.active::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  width: 3px;
+  height: 19px;
+  border-radius: 3px;
+  background: var(--admin-accent);
+}
+
+.admin-app .admin-identidad {
+  flex-shrink: 0;
+  margin-inline: 4px;
+  padding: 20px 0;
+}
+.admin-app .admin-identidad > div { min-width: 0; }
+.admin-app .admin-identidad small { margin-top: 4px; padding: 2px 7px; border-radius: 5px; }
+
+.admin-app .admin-main { padding: 40px var(--propuesta-espacio) 48px; }
+.admin-app :is(h1.titulo-pagina, .cuenta-configuracion h1) {
+  font-size: clamp(28px, 2.6vw, 36px);
+  letter-spacing: -1px;
+  line-height: 1.2;
+}
+.admin-app .admin-heading { margin-bottom: 32px; gap: 24px; }
+.admin-app .admin-heading > div { min-width: 0; }
+.admin-app .admin-heading > :is(button, a) { flex-shrink: 0; }
+.admin-app .admin-intro { margin: 10px 0 0; line-height: 1.6; }
+
+/* Tablas con un encabezado diferenciado y filas más fáciles de recorrer. */
+.admin-app .admin-table-scroll {
+  padding: 12px 24px;
+  border-radius: 18px;
+}
+.admin-app .admin-table-scroll table { font-variant-numeric: tabular-nums; }
+.admin-app .admin-table-scroll th {
+  height: 46px;
+  padding: 12px 16px;
+  text-align: left;
+}
+.admin-app .admin-table-scroll th:first-child { border-radius: 10px 0 0 10px; }
+.admin-app .admin-table-scroll th:last-child { border-radius: 0 10px 10px 0; }
+.admin-app .admin-table-scroll td { height: 76px; padding: 18px 16px; text-align: left; }
+.admin-app .admin-table-scroll tbody tr:first-child td { border-top: 0; }
+.admin-app .admin-table-scroll td:first-child { font-weight: 600; }
+.admin-app .admin-table-scroll :is(th, td):last-child { text-align: center; }
+.admin-app .admin-table-scroll tbody tr:hover { background: var(--admin-bg); }
+.admin-app .admin-badge { padding: 5px 12px; text-align: center; }
+.admin-app .admin-search { display: block; max-width: 460px; margin-top: 0; }
+.admin-app .admin-search input { height: 46px; border-radius: 10px; background: var(--admin-surface); }
+
+/* Formularios, perfil y apariencia comparten la geometría del cliente. */
+.admin-app :is(.admin-card, .cuenta-card) { border-radius: 18px; padding: 30px; }
+.admin-app .admin-form-page { padding: 16px 0 32px; gap: 24px; }
+.admin-app .admin-form-page > .admin-marca { font-size: 28px; font-weight: 600; }
+.admin-app .admin-form-page > .admin-marca > span { width: 38px; height: 38px; font-size: 25px; border-radius: 10px; }
+.admin-app .admin-form-page > .admin-card { width: 480px; }
+.admin-app .admin-user-form { width: 520px; margin-block: 8px; }
+.admin-app .admin-card > h1 { font-size: 25px; margin-bottom: 10px; }
+.admin-app .admin-form-actions { padding-top: 24px; margin-top: 26px; border-top: 1px solid var(--admin-border); }
+.admin-app .cuenta-heading { margin-bottom: 32px; }
+.admin-app .cuenta-configuracion { max-width: none; }
+.admin-app .cuenta-config-grid { gap: 24px; }
+.admin-app .admin-dialog { border-radius: 18px; }
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .admin-app .admin-sidebar { width: 224px; margin-left: 12px; }
+  .admin-app .admin-sidebar nav :is(a, button) { font-size: 12px; padding-inline: 10px; gap: 9px; }
+  .admin-app .admin-heading { flex-wrap: wrap; }
+  .admin-app .admin-table-scroll { padding-inline: 12px; }
+}
+
+@media (max-width: 760px) {
+  .admin-app .admin-menu {
+    margin: 14px 18px 0;
+    background: var(--admin-surface);
+    color: var(--admin-text);
+    border: 1px solid var(--admin-border);
+    padding: 10px 14px;
+  }
+  .admin-app .admin-sidebar {
+    position: static;
+    width: calc(100% - 36px);
+    height: auto;
+    margin: 14px 18px 0;
+    padding: 22px 12px 0;
+  }
+  .admin-app .admin-sidebar nav { margin: 18px 0; }
+  .admin-app .admin-main { padding: 24px 18px 32px; }
+  .admin-app .admin-heading { gap: 18px; margin-bottom: 26px; }
+  .admin-app .admin-heading > :is(button, a) { max-width: 100%; }
+  .admin-app .admin-table-scroll { padding: 10px; border-radius: 14px; }
+  .admin-app .admin-table-scroll td { height: 66px; padding: 14px; }
+  .admin-app :is(.admin-card, .cuenta-card) { padding: 22px 18px; }
+  .admin-app .admin-form-page { padding-top: 0; }
+  .admin-app .admin-form-actions { gap: 12px; flex-wrap: wrap; }
+}
