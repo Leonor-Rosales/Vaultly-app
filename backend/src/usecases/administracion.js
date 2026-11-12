@@ -10,7 +10,7 @@ function crearCasosAdministracion({ repo, hashear }) {
     listarPlanes: () => repo.listarPlanes(),
     listarAdministradores: () => repo.listarAdministradores(),
     listarAuditoria: ({ pagina = '1', accion = '', q = '' } = {}) => {
-      if (typeof pagina !== 'string' || !/^[1-9]\d{0,5}$/.test(pagina) || typeof q !== 'string' || q.length > 100 || typeof accion !== 'string' || (accion && !/^(PLAN|ADMIN)_(CREADO|EDITADO|ACTIVADO|DESACTIVADO)$/.test(accion))) throw new ErrorApp('Filtros de auditoría inválidos', 400);
+      if (typeof pagina !== 'string' || !/^[1-9]\d{0,5}$/.test(pagina) || typeof q !== 'string' || q.length > 100 || typeof accion !== 'string' || (accion && !/^(?:(PLAN|ADMIN)_(CREADO|EDITADO|ACTIVADO|DESACTIVADO)|PLAN_(ARCHIVADO|ELIMINADO))$/.test(accion))) throw new ErrorApp('Filtros de auditoría inválidos', 400);
       return repo.listarAuditoria({ pagina: Number(pagina), accion, q: q.trim() });
     },
     async guardarPlan(actor, id, datos) {
@@ -21,6 +21,7 @@ function crearCasosAdministracion({ repo, hashear }) {
         if (id) {
           anterior = await tx.plan(id);
           if (!anterior) throw new ErrorApp('Plan no encontrado', 404);
+          if (anterior.archivado_en) throw new ErrorApp('Este plan ya fue retirado automáticamente del listado. Su historial se conserva en Auditoría.', 409, 'PLAN_ARCHIVADO');
           if (!Number.isInteger(datos.version) || datos.version !== anterior.version) {
             throw new ErrorApp('Otro administrador modificó este plan. Recarga el plan antes de guardar; tus cambios no se aplicaron.', 409, 'PLAN_DESACTUALIZADO');
           }

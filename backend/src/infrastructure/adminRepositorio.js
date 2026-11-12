@@ -1,15 +1,17 @@
 const { ErrorApp } = require('../domain/errores');
+const { fotoPlan } = require('../domain/auditoriaPlanes');
 const campos = 'u.id, u.nombre_completo, u.correo_electronico, u.estado_cuenta, u.created_at';
 function crearAdminRepositorio(pool) {
   return {
     async listarAuditoria({ pagina, accion, q }) {
+      const responsable = "CASE WHEN a.detalles_json->>'origen'='LIMPIEZA_AUTOMATICA' THEN 'Sistema automático' ELSE COALESCE(u.nombre_completo,'Administrador eliminado') END";
       const filtro = `a.modulo_afectado IN ('planes','administradores') AND ($1='' OR t.codigo=$1)
-        AND ($2='' OR u.nombre_completo ILIKE '%'||$2||'%' OR a.detalles_json->'nuevo'->>'nombre' ILIKE '%'||$2||'%' OR a.detalles_json->'nuevo'->>'nombre_completo' ILIKE '%'||$2||'%')`;
+        AND ($2='' OR (${responsable}) ILIKE '%'||$2||'%' OR a.detalles_json->'nuevo'->>'nombre' ILIKE '%'||$2||'%' OR a.detalles_json->'anterior'->>'nombre' ILIKE '%'||$2||'%' OR a.detalles_json->'nuevo'->>'nombre_completo' ILIKE '%'||$2||'%')`;
       const desde = 'FROM auditoria a JOIN tipos_accion t ON t.id=a.tipo_accion_id LEFT JOIN usuarios u ON u.id=a.usuario_id';
       const args = [accion, q];
       const total = Number((await pool.query(`SELECT count(*) AS total ${desde} WHERE ${filtro}`, args)).rows[0].total);
       const { rows } = await pool.query(`SELECT a.id::text,a.usuario_id,a.fecha_hora,a.modulo_afectado,a.detalles_json,t.codigo,
-        COALESCE(u.nombre_completo,'Administrador eliminado') AS administrador ${desde} WHERE ${filtro}
+        ${responsable} AS administrador ${desde} WHERE ${filtro}
         ORDER BY a.fecha_hora DESC,a.id DESC LIMIT 25 OFFSET $3`, [...args, (pagina - 1) * 25]);
       return { items: rows, total, pagina, por_pagina: 25 };
     },
@@ -22,9 +24,11 @@ function crearAdminRepositorio(pool) {
       `);
       return resultado.rows;
     },
-    listarPlanes: async () => (await pool.query(`SELECT p.*, (SELECT count(*)::int FROM suscripciones s
+    listarPlanes: async () => (await pool.query(`SELECT p.*, p.inactivo_desde + interval '720 hours' AS retiro_desde,
+      (EXISTS(SELECT 1 FROM suscripciones s WHERE s.plan_id=p.id) OR EXISTS(SELECT 1 FROM pagos pg WHERE pg.plan_id=p.id)) AS tiene_historial,
+      (SELECT count(*)::int FROM suscripciones s
       WHERE s.plan_id=p.id AND s.estado='ACTIVA' AND s.fecha_inicio<=now() AND s.fecha_fin>now()) AS suscripciones_vigentes
-      FROM planes p ORDER BY p.precio_mensual,p.id`)).rows,
+      FROM planes p WHERE p.archivado_en IS NULL ORDER BY p.precio_mensual,p.id`)).rows,
     listarAdministradores: async () => (await pool.query(`SELECT ${campos} FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE r.nombre='ADMIN' ORDER BY u.nombre_completo, u.id`)).rows,
     async transaccion(tipo, fn) {
       const c = await pool.connect();
@@ -45,10 +49,9 @@ function crearAdminRepositorio(pool) {
               : one('INSERT INTO planes(nombre, precio_mensual, cuota_storage_gb, limite_descargas, permite_carpetas_publicas, activo,promocion_precio,promocion_inicio,promocion_fin,promocion_tipo,promocion_porcentaje) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *', v);
           },
           auditarPlan: (actor, accion, anterior, nuevo) => {
-            const foto = p => p ? Object.fromEntries(['id','version','nombre','precio_mensual','cuota_storage_gb','limite_descargas','permite_carpetas_publicas','activo','promocion_precio','promocion_inicio','promocion_fin','promocion_tipo','promocion_porcentaje'].map(k => [k, p[k]])) : null;
             return c.query(`INSERT INTO auditoria(usuario_id,tipo_accion_id,modulo_afectado,detalles_json)
               VALUES($1,(SELECT id FROM tipos_accion WHERE codigo=$2),'planes',$3)`,
-              [actor, accion, { plan_id: nuevo.id, anterior: foto(anterior), nuevo: foto(nuevo) }]);
+              [actor, accion, { plan_id: nuevo.id, anterior: fotoPlan(anterior), nuevo: fotoPlan(nuevo) }]);
           },
           auditarAdministrador: (actor, accion, anterior, nuevo) => {
             const foto = p => p ? Object.fromEntries(['id','nombre_completo','correo_electronico','estado_cuenta'].map(k => [k, p[k]])) : null;

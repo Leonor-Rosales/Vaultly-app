@@ -4,9 +4,10 @@ import { listarAuditoria, type Auditoria as Resultado, type EventoAuditoria } fr
 
 const acciones: Record<string, string> = {
   PLAN_CREADO: 'Plan creado', PLAN_EDITADO: 'Plan editado', PLAN_ACTIVADO: 'Plan activado', PLAN_DESACTIVADO: 'Plan desactivado',
+  PLAN_ARCHIVADO: 'Plan retirado del listado', PLAN_ELIMINADO: 'Plan eliminado sin uso',
   ADMIN_CREADO: 'Administrador creado', ADMIN_EDITADO: 'Administrador editado', ADMIN_ACTIVADO: 'Administrador activado', ADMIN_DESACTIVADO: 'Administrador desactivado',
 };
-const campos: Record<string, string> = { nombre: 'Nombre del plan', precio_mensual: 'Precio habitual (Q)', cuota_storage_gb: 'Almacenamiento (GB)', limite_descargas: 'Descargas mensuales', permite_carpetas_publicas: 'Carpetas públicas', activo: 'Activo', version: 'Versión', promocion_tipo: 'Tipo de promoción', promocion_porcentaje: 'Descuento', promocion_precio: 'Precio promocional (Q)', promocion_inicio: 'Inicio de promoción', promocion_fin: 'Fin de promoción', nombre_completo: 'Nombre', correo_electronico: 'Correo', estado_cuenta: 'Estado de la cuenta' };
+const campos: Record<string, string> = { nombre: 'Nombre del plan', precio_mensual: 'Precio habitual (Q)', cuota_storage_gb: 'Almacenamiento (GB)', limite_descargas: 'Descargas mensuales', permite_carpetas_publicas: 'Carpetas públicas', activo: 'Activo', version: 'Versión', promocion_tipo: 'Tipo de promoción', promocion_porcentaje: 'Descuento', promocion_precio: 'Precio promocional (Q)', promocion_inicio: 'Inicio de promoción', promocion_fin: 'Fin de promoción', inactivo_desde: 'Inactivo desde', archivado_en: 'Retirado del listado el', nombre_completo: 'Nombre', correo_electronico: 'Correo', estado_cuenta: 'Estado de la cuenta' };
 const fecha = (valor: string) => new Date(valor).toLocaleString('es-GT', { timeZone: 'America/Guatemala', dateStyle: 'medium', timeStyle: 'short' });
 function valor(dato: unknown, campo: string) {
   if (campo === 'promocion_tipo' && dato != null) return ({ FIJO: 'Precio fijo', PORCENTAJE: 'Porcentaje', GRATIS: 'Período gratis' } as Record<string, string>)[String(dato)] ?? String(dato);
@@ -14,7 +15,7 @@ function valor(dato: unknown, campo: string) {
   if (dato === null && campo === 'limite_descargas') return 'Ilimitadas';
   if (dato == null) return '—';
   if (typeof dato === 'boolean') return dato ? 'Sí' : 'No';
-  if (campo === 'promocion_inicio' || campo === 'promocion_fin') return fecha(String(dato));
+  if (['promocion_inicio','promocion_fin','inactivo_desde','archivado_en'].includes(campo)) return fecha(String(dato));
   return String(dato);
 }
 function registro(evento: EventoAuditoria) {
@@ -55,6 +56,8 @@ export default function Auditoria() {
     </>}
     <div id="auditoria-detalle">{detalle && <section className="admin-card admin-auditoria-detalle" aria-label="Detalle de cambios">
       <h2>{registro(detalle)}</h2><p className="admin-ayuda">{acciones[detalle.codigo]} · {detalle.administrador} · {fecha(detalle.fecha_hora)}</p>
+      {detalle.codigo === 'PLAN_ARCHIVADO' && <p className="admin-ayuda">Retiro automático después de 30 días inactivo. Los pagos y suscripciones conservan su historial.</p>}
+      {detalle.codigo === 'PLAN_ELIMINADO' && <p className="admin-ayuda">Eliminado automáticamente después de 30 días inactivo, sin pagos ni suscripciones asociados.</p>}
       <div className="admin-table-scroll" tabIndex={0}><table><thead><tr><th scope="col">Campo</th><th scope="col">Antes</th><th scope="col">Después</th></tr></thead><tbody>{Object.entries(campos).filter(([c]) => c in (detalle.detalles_json.anterior ?? {}) || c in (detalle.detalles_json.nuevo ?? {})).map(([c, etiqueta]) => <tr key={c}><th scope="row">{etiqueta}</th><td>{valor(detalle.detalles_json.anterior?.[c], c)}</td><td>{valor(detalle.detalles_json.nuevo?.[c], c)}</td></tr>)}</tbody></table></div>
       <button type="button" className="admin-secondary" onClick={() => setDetalle(undefined)}>Cerrar detalle</button>
     </section>}</div>

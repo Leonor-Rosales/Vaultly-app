@@ -46,7 +46,7 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
         promocion_fin: promocion ? new Date(`${finPromo}:00-06:00`).toISOString() : null,
       }, plan?.id);
       toast.success(plan ? 'Plan actualizado' : 'Plan creado'); navigate('/admin/planes');
-    } catch (e) { setDesactualizado(e instanceof ApiError && e.code === 'PLAN_DESACTUALIZADO'); setError(e instanceof Error ? e.message : 'No se pudo guardar'); }
+    } catch (e) { setDesactualizado(e instanceof ApiError && (['PLAN_DESACTUALIZADO','PLAN_ARCHIVADO'].includes(e.code ?? '') || e.status === 404)); setError(e instanceof Error ? e.message : 'No se pudo guardar'); }
     finally { setGuardando(false); }
   }}>
     <h1 className="titulo-pagina">{plan ? 'Editar plan' : 'Crear nuevo plan'}</h1><p>Completa la información del {plan ? 'plan' : 'nuevo plan'}</p>
@@ -99,7 +99,7 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
       <label>Límite de descargas<input required={!ilimitadas} disabled={ilimitadas} type="number" min="0" max="2147483647" step="1" value={limite} onChange={e => setLimite(e.target.value)} placeholder="20" /></label>
       <label className="admin-check"><input type="checkbox" checked={ilimitadas} onChange={e => setIlimitadas(e.target.checked)} />Descargas ilimitadas</label>
       <label className="admin-check"><input type="checkbox" checked={publicas} onChange={e => setPublicas(e.target.checked)} />Permitir carpetas públicas</label>
-      <label className="admin-check"><input type="checkbox" checked={activo} onChange={e => setActivo(e.target.checked)} />Estado activo</label>
+      <label className="admin-check"><input type="checkbox" disabled={plan?.nombre === 'Free'} checked={activo} onChange={e => setActivo(e.target.checked)} />Estado activo</label>
       {error && <Aviso variante={desactualizado ? 'advertencia' : 'error'}>{error}{desactualizado && <button type="button" className="admin-secondary" onClick={recargar}>Recargar plan</button>}</Aviso>}
       <div className="admin-form-actions"><button type="button" className="admin-secondary" onClick={() => navigate('/admin/planes')}>Cancelar</button><button type="submit" disabled={desactualizado}>{guardando ? 'Guardando…' : plan ? 'Guardar cambios' : 'Crear plan'}</button></div>
     </fieldset>

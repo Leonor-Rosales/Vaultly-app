@@ -110,4 +110,19 @@ papelera.limpiar();
 setInterval(recuperarReservas, 60000).unref();
 recuperarReservas();
 
+// Revisión al arrancar y cada hora; los 30 días se calculan en la base de datos.
+const { limpiarPlanesInactivos } = require('./infrastructure/limpiezaPlanes');
+let limpiandoPlanes = false;
+async function limpiarPlanes() {
+  if (limpiandoPlanes) return;
+  limpiandoPlanes = true;
+  try {
+    const resultado = await limpiarPlanesInactivos(pool);
+    if (resultado.archivados || resultado.eliminados) console.log('Limpieza de planes:', resultado);
+  } catch (e) { console.error('Limpieza de planes pendiente:', e.message); }
+  finally { limpiandoPlanes = false; }
+}
+setInterval(limpiarPlanes, 3600000).unref();
+limpiarPlanes();
+
 app.listen(PORT, () => console.log(`Backend en http://localhost:${PORT}`));

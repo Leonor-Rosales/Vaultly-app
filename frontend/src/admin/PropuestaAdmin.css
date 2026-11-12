@@ -125,6 +125,7 @@
 
 .admin-app .admin-promocion { padding: 0 18px 18px; border: 1px solid var(--admin-border); border-radius: 12px; margin-block: 18px; background: var(--admin-bg); }
 .admin-app .admin-promocion-resumen { display: block; margin-top: 8px; color: var(--admin-link); font-size: 11px; line-height: 1.6; }
+.admin-app .admin-retiro-plan { display: block; max-width: 210px; margin-top: 8px; font-size: 11px; line-height: 1.5; color: var(--admin-muted); }
 .admin-app .admin-promocion select { display: block; width: 100%; margin-top: 5px; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: 7px; background: var(--admin-bg); color: var(--admin-text); font: inherit; }
 .admin-app .admin-promocion-previa { margin-top: 18px; line-height: 1.7; }
 .admin-app .admin-form-page > .admin-plan-card { width: 840px; }

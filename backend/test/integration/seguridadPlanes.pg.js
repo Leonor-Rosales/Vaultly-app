@@ -52,7 +52,7 @@ test('seguridad de planes: concurrencia, versiones de compra, auditoría atómic
   const otro = await admin.guardarPlan(actor, null, { ...datos, nombre: 'Rollback' });
   const roto = crearCasosAdministracion({ repo: { transaccion: (tipo, fn) => repo.transaccion(tipo, tx => fn({ ...tx, auditarPlan: async () => { throw Error('fallo auditoría'); } })) } });
   await assert.rejects(roto.guardarPlan(actor, otro.id, { ...otro, precio_mensual: 99 }), /fallo auditoría/);
-  assert.deepEqual((await repo.listarPlanes()).find(p => p.id === otro.id), otro.suscripciones_vigentes === undefined ? { ...otro, suscripciones_vigentes: 0 } : otro);
+  assert.deepEqual((await repo.listarPlanes()).find(p => p.id === otro.id), { ...otro, suscripciones_vigentes: 0, tiene_historial: false, retiro_desde: null });
   const { rows: [directo] } = await pool.query('UPDATE planes SET precio_mensual=79 WHERE id=$1 RETURNING version', [otro.id]);
   assert.equal(directo.version, otro.version + 1);
 });

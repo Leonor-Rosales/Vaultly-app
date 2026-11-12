@@ -10,6 +10,8 @@ Consulta [Seguridad de planes](docs/seguridad-planes.md) para los contratos de v
 Las promociones temporales a Q0 y la pantalla de auditoría requieren
 `14_promociones_auditoria.sql`; consulta [Promociones y auditoría](docs/promociones-auditoria.md).
 El selector de porcentaje, precio fijo o período gratis requiere `15_tipos_promociones.sql`.
+La limpieza tras 30 días inactivo requiere `16_retiro_planes.sql`; consulta
+[Retiro automático de planes](docs/retiro-planes.md).
 
 La administración de planes y usuarios está documentada en [Administración](docs/administracion.md),
 incluidas las reglas de suscripciones existentes y las pruebas del panel.

@@ -9,6 +9,7 @@
     "test:comprobantes": "node --test test/integration/comprobantes.pg.js",
     "test:seguridad-planes": "node --test test/integration/seguridadPlanes.pg.js",
     "test:promociones": "node --test test/integration/promociones.pg.js",
+    "test:retiro-planes": "node --test test/integration/retiroPlanes.pg.js",
     "test:admin": "node --test test/integration/admin.pg.js",
     "test:admin-configuracion": "node --test test/integration/cambioCorreo.pg.js",
     "migrate": "node scripts/migrar.js",
