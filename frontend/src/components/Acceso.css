@@ -1,0 +1,120 @@
+/* Las pantallas públicas usan su propia paleta, también si el dispositivo está
+   en modo oscuro. Los temas de cliente y administrador conservan sus reglas. */
+html:has(:is(.login-page, .registro-page, .rec-page)) {
+  color-scheme: light;
+  background: #fcfaf7;
+}
+
+#root:has(:is(.login-page, .registro-page, .rec-page)) {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  border: 0;
+  background: #fcfaf7;
+}
+
+:is(.login-page, .registro-page, .rec-page) {
+  width: 100%;
+  min-width: 0;
+  min-height: 100svh;
+  padding: 42px 16px 32px;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+:is(.login-page, .registro-page, .rec-page) :is(h1, h2, input, button) {
+  font-family: inherit;
+}
+
+:is(.login-page, .registro-page, .rec-page) :is(.login-card, .registro-card, .rec-card) {
+  max-width: 100%;
+  height: auto;
+}
+
+.login-page .login-card {
+  min-height: 550px;
+}
+
+:is(.login-page, .registro-page) .modal-overlay {
+  padding: 16px;
+}
+
+:is(.login-page, .registro-page) .registro-modal {
+  max-width: 100%;
+  max-height: calc(100svh - 32px);
+  overflow-y: auto;
+}
+
+@media (max-width: 480px) {
+  :is(.login-page, .registro-page, .rec-page) {
+    padding-top: 28px;
+  }
+
+  :is(.login-page, .registro-page) .logo,
+  .rec-page .rec-logo {
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  :is(.login-page, .registro-page) .logo-icon,
+  .rec-page .rec-logo-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    font-size: 30px;
+  }
+
+  :is(.login-page, .registro-page) .logo span,
+  .rec-page .rec-logo span {
+    font-size: 36px;
+  }
+
+  :is(.login-page, .registro-page, .rec-page) :is(.login-card, .registro-card, .rec-card) {
+    min-height: 0;
+    padding: 24px 20px;
+  }
+
+  :is(.login-page, .registro-page, .rec-page) h1 {
+    font-size: 25px;
+    line-height: 1.35;
+    margin-bottom: 10px;
+  }
+
+  :is(.login-page, .registro-page, .rec-page) :is(.subtitle, .rec-subtitle) {
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  :is(.login-page, .registro-page, .rec-page) label {
+    font-size: 13px;
+  }
+
+  :is(.login-page, .registro-page, .rec-page) input {
+    min-width: 0;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  :is(.login-page, .registro-page) .eye-button,
+  .rec-page .rec-eye {
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  :is(.login-page, .registro-page, .rec-page) :is(.login-button, .register-button, .rec-button) {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .login-page .forgot a,
+  :is(.login-page, .registro-page) .register {
+    font-size: 13px;
+  }
+
+  :is(.login-page, .registro-page) .registro-modal {
+    padding: 28px 20px;
+  }
+}
