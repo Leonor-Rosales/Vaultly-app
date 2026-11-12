@@ -9,9 +9,12 @@ function crearCasosAdministracion({ repo, hashear }) {
     listarPagos: () => repo.listarPagos(),
     listarPlanes: () => repo.listarPlanes(),
     listarAdministradores: () => repo.listarAdministradores(),
-    listarAuditoria: ({ pagina = '1', accion = '', q = '' } = {}) => {
+    listarAuditoria: ({ pagina = '1', accion = '', q = '', desde = '', hasta = '' } = {}) => {
       if (typeof pagina !== 'string' || !/^[1-9]\d{0,5}$/.test(pagina) || typeof q !== 'string' || q.length > 100 || typeof accion !== 'string' || (accion && !/^(?:(PLAN|ADMIN)_(CREADO|EDITADO|ACTIVADO|DESACTIVADO)|PLAN_(ARCHIVADO|ELIMINADO))$/.test(accion))) throw new ErrorApp('Filtros de auditoría inválidos', 400);
-      return repo.listarAuditoria({ pagina: Number(pagina), accion, q: q.trim() });
+      const fechaValida = valor => typeof valor === 'string' && (valor === '' || (/^\d{4}-\d{2}-\d{2}$/.test(valor) && valor >= '0001-01-01' && valor <= '9998-12-31' && Number.isFinite(Date.parse(`${valor}T00:00:00Z`)) && new Date(`${valor}T00:00:00Z`).toISOString().slice(0, 10) === valor));
+      if (!fechaValida(desde) || !fechaValida(hasta)) throw new ErrorApp('Indica fechas válidas para consultar la auditoría.', 400);
+      if (desde && hasta && desde > hasta) throw new ErrorApp('La fecha Desde no puede ser posterior a Hasta.', 400);
+      return repo.listarAuditoria({ pagina: Number(pagina), accion, q: q.trim(), desde, hasta });
     },
     async guardarPlan(actor, id, datos) {
       const d = validarPlan(datos);
@@ -48,6 +51,7 @@ function crearCasosAdministracion({ repo, hashear }) {
         if (!nuevo) throw new ErrorApp('El plan cambió. Recárgalo antes de guardar.', 409, 'PLAN_DESACTUALIZADO');
         const accion = !anterior ? 'PLAN_CREADO' : anterior.activo !== nuevo.activo ? (nuevo.activo ? 'PLAN_ACTIVADO' : 'PLAN_DESACTIVADO') : 'PLAN_EDITADO';
         await tx.auditarPlan(actor, accion, anterior, nuevo);
+        if (anterior?.activo && !nuevo.activo) await tx.encolarAvisosRetiro(nuevo);
         return nuevo;
       });
     },

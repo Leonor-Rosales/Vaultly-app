@@ -38,6 +38,43 @@ mismo orden de bloqueos. Un bloqueo asesor transaccional evita dobles limpiezas
 entre instancias. No hay una ruta pública para adelantar el reloj o disparar el borrado.
 Los errores se registran y el siguiente ciclo reintenta sin confirmar cambios parciales.
 
+## Correo a los clientes afectados
+
+Al confirmar la desactivación de un plan, se preparan en la misma transacción
+los avisos de sus suscripciones activas o pendientes que aún no hayan vencido,
+con o sin renovación automática. La tabla `correos_retiro_planes` (migración 17)
+evita duplicados por evento y cliente. Un fallo de auditoría o de preparación
+del correo revierte toda la desactivación.
+
+El backend procesa hasta 20 avisos al arrancar y cada minuto. Usa el transporte
+SMTP ya configurado y comparte la plantilla del correo de cambio de dirección.
+Incluye el plan, vencimiento en Guatemala, conservación de beneficios hasta esa
+fecha, paso a Free sin otro cobro si sigue desactivado y enlace al catálogo.
+No cambia las preferencias de renovación. No hay preferencias de correo
+configurables actualmente: este aviso es sobre la suscripción, no publicidad.
+
+Los fallos de transporte se reintentan con esperas de 1 minuto hasta un máximo
+de 1 hora. Antes de enviar se consulta el correo actual del cliente y se cancela
+el aviso si el plan fue reactivado o la suscripción dejó de estar vigente.
+Los bloqueos por fila evitan que dos procesos envíen el mismo pendiente a la vez.
+Si SMTP acepta el mensaje y el proceso cae antes de confirmar la base, podría
+repetirse el envío; se conserva el mismo Message-ID para esos reintentos.
+No se generan avisos retroactivos de desactivaciones anteriores a la migración.
+
+El formulario administrativo identifica los planes con contrataciones y deshabilita
+nombre, precio, almacenamiento, descargas y carpetas públicas. Las promociones y
+el estado siguen disponibles; el servidor conserva su validación independiente.
+
+## Avisos informativos
+
+La explicación del retiro de planes y la del primer período promocional incluyen
+una X para cerrarlas. Se reutiliza la plantilla `Aviso` con el componente
+`AvisoInformativo`. El cierre se recuerda por cuenta y por aviso en el navegador
+(`localStorage`), incluso al volver a iniciar sesión. Si cambia el texto, vuelve
+a mostrarse. Otro navegador o borrar sus datos también hará que aparezca.
+Si el almacenamiento está bloqueado, se cierra únicamente en la vista actual.
+Los errores, conflictos y advertencias importantes conservan su comportamiento.
+
 ## Pruebas
 
 ```powershell

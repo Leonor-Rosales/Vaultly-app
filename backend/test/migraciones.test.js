@@ -9,7 +9,7 @@ test('secuencia SQL completa y prefijos únicos', () => {
   assert.deepEqual(listarMigraciones().map(m => m.nombre), [
     '01_schema.sql', '02_seeds.sql', '03_planes_cuotas.sql',
     '04_descargas_biblioteca.sql', '05_pagos.sql', '06_biblioteca.sql', '07_contador_descargas.sql',
-    '08_cambio_correo.sql', '09_vistas_previas.sql','10_renovacion_planes.sql', '11_papelera.sql', '12_comprobantes_pago.sql', '13_seguridad_planes.sql', '14_promociones_auditoria.sql', '15_tipos_promociones.sql', '16_retiro_planes.sql',
+    '08_cambio_correo.sql', '09_vistas_previas.sql','10_renovacion_planes.sql', '11_papelera.sql', '12_comprobantes_pago.sql', '13_seguridad_planes.sql', '14_promociones_auditoria.sql', '15_tipos_promociones.sql', '16_retiro_planes.sql', '17_correos_retiro_planes.sql',
   ]);
 });
 

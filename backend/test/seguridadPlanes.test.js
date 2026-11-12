@@ -26,7 +26,7 @@ test('formularios antiguos no sobrescriben un cambio ni generan auditoría de é
 test('solo Free admite precio cero; planes gratuitos antiguos pueden retirarse', async () => {
   let auditado = 0;
   const tx = { actor: async () => ({ rol: 'ADMIN', estado_cuenta: 'ACTIVO' }), plan: async () => ({ ...base, precio_mensual: 0 }), usado: async () => false,
-    guardarPlan: async (_id, d) => ({ ...d, id: 2, version: 2 }), auditarPlan: async () => { auditado++; } };
+    guardarPlan: async (_id, d) => ({ ...d, id: 2, version: 2 }), auditarPlan: async () => { auditado++; }, encolarAvisosRetiro: async () => {} };
   const casos = crearCasosAdministracion({ repo: { transaccion: (_tipo, fn) => fn(tx) } });
   await assert.rejects(casos.guardarPlan('a', null, { ...base, precio_mensual: 0 }), { codigo: 'PRECIO_CERO_NO_PERMITIDO' });
   await assert.rejects(casos.guardarPlan('a', null, { ...base, nombre: 'FREE', precio_mensual: 0 }), { codigo: 'PLAN_FREE_PROTEGIDO' });

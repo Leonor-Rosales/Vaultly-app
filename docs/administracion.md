@@ -6,6 +6,8 @@ El panel original usa `usuarios`, `roles`, `planes` y `suscripciones`. La extens
 de configuración y correo requiere la migración 08; consulta
 [Configuración y seguridad](admin-configuracion-seguridad.md) antes de ejecutar esta versión.
 En instalaciones anteriores, ejecutar primero el migrador documentado en el README.
+El aviso de retiro por correo requiere la migración 17 y la configuración SMTP.
+Consulta [Retiro de planes](retiro-planes.md) para la cola y los reintentos.
 Reiniciar el backend y reconstruir el frontend:
 
 ```powershell

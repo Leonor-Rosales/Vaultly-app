@@ -70,12 +70,17 @@ Actualizar un resumen nunca ejecuta una compra automáticamente.
 ## Auditoría
 
 El menú administrativo incluye `/admin/auditoria`. Ofrece búsqueda por responsable
-o nombre del registro, filtro de acción, paginación de 25 eventos y detalle con
-valores anteriores y nuevos. Fechas y horas se muestran en Guatemala.
+o nombre del registro, filtro de acción, rango Desde/Hasta, paginación de 25 eventos
+y detalle con valores anteriores y nuevos. Fechas y horas se muestran en Guatemala.
+Las fechas incluyen los días completos en esa zona horaria; se permite indicar
+solo Desde o solo Hasta. Buscar aplica las fechas y reinicia la paginación.
+Limpiar filtros restablece búsqueda, acción y fechas, y vuelve a la primera página.
 
-`GET /api/admin/auditoria?pagina=1&accion=PLAN_EDITADO&q=Max` usa la misma protección
+`GET /api/admin/auditoria?pagina=1&accion=PLAN_EDITADO&q=Max&desde=2026-11-01&hasta=2026-11-12` usa la misma protección
 de administrador activo que el resto del panel. Las consultas usan parámetros y
-los filtros tienen validación de tipo y longitud. No hay rutas para editar o borrar
+los filtros tienen validación de tipo, longitud, fechas reales y orden del rango.
+La fecha final se consulta hasta la medianoche siguiente exclusiva para incluir
+todos los eventos de ese día. No hay rutas para editar o borrar
 la auditoría.
 
 Se muestran los eventos de planes ya registrados y los eventos nuevos de alta,

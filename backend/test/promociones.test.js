@@ -25,6 +25,18 @@ test('auditoría solo acepta filtros acotados; consultas inválidas no llegan al
   for (const filtros of [{ pagina:'0' },{ pagina:'1 OR 1=1' },{ accion:'BORRAR' },{ accion:['PLAN_CREADO'] },{ q:'x'.repeat(101) }]) assert.throws(() => admin.listarAuditoria(filtros), { estado: 400 });
 });
 
+test('auditoría valida fechas reales y rango antes de consultar; permite límites independientes', () => {
+  const recibidos = [];
+  const admin = crearCasosAdministracion({ repo: { listarAuditoria: filtros => recibidos.push(filtros) } });
+  for (const filtros of [{desde:'2026-02-29'},{hasta:'2026-11-31'},{desde:'2024-02-30'},{desde:'0000-01-01'},{hasta:'10000-01-01'},{desde:'2026-11-12T00:00:00Z'},{desde:['2026-11-12']},{hasta:null},{desde:"2026-11-12' OR 1=1"},{desde:'2026-11-13',hasta:'2026-11-12'}]) {
+    assert.throws(() => admin.listarAuditoria(filtros), {estado:400});
+  }
+  assert.equal(recibidos.length,0);
+  for (const filtros of [{},{desde:'2024-02-29'},{hasta:'2026-11-12'},{desde:'2026-11-12',hasta:'2026-11-12'}]) admin.listarAuditoria(filtros);
+  assert.equal(recibidos.length,4);
+  assert.deepEqual(recibidos[0],{pagina:1,accion:'',q:'',desde:'',hasta:''});
+});
+
 test('porcentaje y gratis se calculan en el servidor ignorando precios finales enviados', () => {
   const d = validarPlan({ ...plan, promocion_tipo: 'PORCENTAJE', promocion_porcentaje: 25, promocion_precio: 1 });
   assert.equal(d.promocion_precio, 150);

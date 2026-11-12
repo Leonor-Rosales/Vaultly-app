@@ -12,6 +12,9 @@ Las promociones temporales a Q0 y la pantalla de auditoría requieren
 El selector de porcentaje, precio fijo o período gratis requiere `15_tipos_promociones.sql`.
 La limpieza tras 30 días inactivo requiere `16_retiro_planes.sql`; consulta
 [Retiro automático de planes](docs/retiro-planes.md).
+Los avisos por correo al desactivar planes requieren `17_correos_retiro_planes.sql`
+y la configuración SMTP existente. Ejecuta `npm --prefix backend run migrate`
+antes de reiniciar el backend con esta versión.
 
 La administración de planes y usuarios está documentada en [Administración](docs/administracion.md),
 incluidas las reglas de suscripciones existentes y las pruebas del panel.

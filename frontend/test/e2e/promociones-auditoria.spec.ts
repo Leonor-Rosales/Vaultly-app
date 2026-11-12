@@ -60,6 +60,25 @@ for(const width of [1366,390]) test(`auditoría con detalle, filtros, paginació
   await page.getByRole('button',{name:'Buscar',exact:true}).click();
   await expect.poll(()=>filtros.at(-1)).toContain('q=Max');
   expect(filtros.some(f=>f.includes('accion=PLAN_EDITADO'))).toBe(true);
+  await page.getByLabel('Desde',{exact:true}).fill('2026-11-12');
+  await page.getByLabel('Hasta',{exact:true}).fill('2026-11-12');
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await expect.poll(()=>filtros.at(-1)).toContain('hasta=2026-11-12');
+  expect(new URLSearchParams(filtros.at(-1)).get('desde')).toBe('2026-11-12');
+  await page.getByRole('button',{name:'Siguiente',exact:true}).click();
+  await expect(page.getByText('Página 2 de 2')).toBeVisible();
+  expect(new URLSearchParams(filtros.at(-1)).get('hasta')).toBe('2026-11-12');
+  const solicitudes=filtros.length;
+  await page.getByLabel('Desde',{exact:true}).fill('2026-11-13');
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await expect(page.locator('.admin-main .aviso-advertencia')).toContainText('Desde no puede ser posterior');
+  expect(filtros.length).toBe(solicitudes);
+  await page.getByRole('button',{name:'Limpiar filtros',exact:true}).click();
+  await expect(page.getByText('Página 1 de 2')).toBeVisible();
+  for(const campo of ['Administrador o registro','Desde','Hasta']) await expect(page.getByLabel(campo,{exact:true})).toHaveValue('');
+  await expect(page.getByLabel('Acción',{exact:true})).toHaveValue('');
+  expect(Object.fromEntries(new URLSearchParams(filtros.at(-1)))).toEqual({pagina:'1',accion:'',q:'',desde:'',hasta:''});
+  await expect(page.locator('.admin-main .aviso-advertencia')).toHaveCount(0);
 });
 
 for(const width of [1366,390]) test(`promoción gratuita sin tarjeta y renovación opcional a ${width}px`,async({page},info)=>{

@@ -24,4 +24,7 @@
 .cuenta-theme .aviso-error { --aviso-color:var(--cuenta-error); --aviso-bg:var(--cuenta-error-bg); }
 .aviso-icono { flex-shrink:0; width:22px; height:22px; display:flex; align-items:center; justify-content:center; border:2px solid currentColor; border-radius:50%; font-weight:700; }
 .aviso-titulo { display:block; font-size:13px; margin-bottom:3px; }
-.cuenta-theme .aviso-cerrar { padding:0 6px; color:inherit; background:transparent; margin-left:auto; font-size:22px; }
+.cuenta-theme .vaultly-aviso > div { flex:1; min-width:0; }
+.cuenta-theme .aviso-cerrar { display:grid; place-items:center; flex-shrink:0; width:32px; height:32px; padding:0; border:0; border-radius:6px; color:inherit; background:transparent; margin-left:auto; font-size:22px; line-height:1; cursor:pointer; }
+.cuenta-theme .aviso-cerrar:hover { background:color-mix(in srgb, currentColor 10%, transparent); }
+.cuenta-theme .aviso-cerrar:focus-visible { outline:2px solid currentColor; outline-offset:2px; }

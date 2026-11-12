@@ -3,12 +3,15 @@ import { Link, useParams } from 'react-router-dom';
 import Icon from './AdminIcon';
 import { avisos as toast } from './avisos';
 import Aviso from '../components/Aviso';
+import AvisoInformativo from '../components/AvisoInformativo';
+import { useAdministrador } from './contexto';
 import { useConfirmar } from './confirmacionContexto';
 import { mensajeEstadoPlan, guardarPlan, listarPlanes } from '../services/admin';
 import { useListado } from './useListado';
 import PlanForm from './PlanForm';
 import { ApiError } from '../services/auth';
 export default function PlanesAdmin({ editar = false }: { editar?: boolean }) {
+  const usuario = useAdministrador();
   const confirmar = useConfirmar();
   const { id } = useParams();
   const { datos: planes, cargando, error, cargar } = useListado(listarPlanes);
@@ -22,7 +25,7 @@ export default function PlanesAdmin({ editar = false }: { editar?: boolean }) {
   }
   return <section className="admin-list-page"><header className="admin-heading"><div><h1 className="titulo-pagina">Planes y facturación</h1><p className="admin-intro">Gestiona los planes de suscripción disponibles en Vaultly</p></div><Link className="admin-button" to="/admin/planes/nuevo"><Icon icon="lucide:plus" />Crear nuevo plan</Link></header>
     <h2 className="titulo-seccion">Planes actuales</h2>
-    <Aviso variante="informacion">Los planes inactivos se retiran después de 30 días. Si tienen pagos o suscripciones anteriores, se ocultan conservando esos datos; si nunca se usaron, se eliminan. Los que aún tienen suscripciones vigentes esperan a que terminen. Reactivar un plan cancela su retiro.</Aviso>
+    <AvisoInformativo cuenta={usuario.id} id="retiro-planes">Los planes inactivos se retiran después de 30 días. Si tienen pagos o suscripciones anteriores, se ocultan conservando esos datos; si nunca se usaron, se eliminan. Los que aún tienen suscripciones vigentes esperan a que terminen. Reactivar un plan cancela su retiro.</AvisoInformativo>
     {conflicto && <Aviso variante="advertencia">{conflicto}<button type="button" className="admin-secondary" onClick={() => { setConflicto(''); cargar(); }}>Actualizar planes</button></Aviso>}
     {!planes.length ? <p>No hay planes. Crea el primer plan para comenzar.</p> : <div className="admin-table-scroll" tabIndex={0} aria-label="Planes actuales"><table><thead><tr>{['Plan', 'Precio', 'Almacenamiento', 'Descargas', 'Estado', 'Acciones'].map(t => <th key={t} scope="col">{t}</th>)}</tr></thead><tbody>{planes.map(p => <tr key={p.id}>
       <td>{p.nombre}</td><td>Q{Number(p.precio_mensual).toFixed(2)}{p.promocion_precio != null && <small className="admin-promocion-resumen">Promoción: Q{Number(p.promocion_precio).toFixed(2)}<br />{new Date(p.promocion_inicio!).toLocaleDateString('es-GT', { timeZone: 'America/Guatemala' })} – {new Date(p.promocion_fin!).toLocaleDateString('es-GT', { timeZone: 'America/Guatemala' })}</small>}</td><td>{p.cuota_storage_gb} GB</td><td>{p.limite_descargas === null ? 'Ilimitadas' : p.limite_descargas}</td><td><span className={`admin-badge ${p.activo ? '' : 'inactivo'}`}>{p.activo ? 'Activo' : 'Inactivo'}</span>

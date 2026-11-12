@@ -77,4 +77,17 @@ test('promoción gratuita conserva el período, renueva al habitual solo con con
   assert.equal((await pagos.historial(otro))[0].comprobante.promocion.porcentaje,25);
   const {rows:[cleared]} = await pool.query('UPDATE planes SET promocion_tipo=NULL,promocion_porcentaje=NULL,promocion_precio=NULL,promocion_inicio=NULL,promocion_fin=NULL WHERE id=$1 RETURNING *',[plan.id]);
   assert.equal(cleared.promocion_tipo,null);
+  // Medianoche de Guatemala (UTC-6), incluido el último microsegundo del día.
+  const fechas = ['2026-11-12T05:59:59.999999Z','2026-11-12T06:00:00Z','2026-11-13T05:59:59.999999Z','2026-11-13T06:00:00Z'];
+  for (const fecha of fechas) await pool.query("INSERT INTO auditoria(usuario_id,tipo_accion_id,modulo_afectado,detalles_json,fecha_hora) VALUES($1,(SELECT id FROM tipos_accion WHERE codigo='PLAN_EDITADO'),'planes',$2,$3)", [actor,{nuevo:{nombre:'Filtro fechas'},anterior:null},fecha]);
+  // El resultado no depende de la zona horaria de la sesión PostgreSQL.
+  await pool.query("SET TIME ZONE 'Asia/Tokyo'");
+  const filtro = {q:'Filtro fechas',accion:'PLAN_EDITADO',desde:'2026-11-12',hasta:'2026-11-12'};
+  const dia = await admin.listarAuditoria(filtro);
+  assert.equal(dia.total,2); assert.equal(dia.items.length,2);
+  assert.equal((await admin.listarAuditoria({...filtro,desde:''})).total,3);
+  assert.equal((await admin.listarAuditoria({...filtro,hasta:''})).total,3);
+  assert.equal((await admin.listarAuditoria({...filtro,desde:'2026-11-14',hasta:'2026-11-14'})).total,0);
+  assert.equal((await admin.listarAuditoria({...filtro,pagina:'2'})).items.length,0);
+  assert.equal((await admin.listarAuditoria({...filtro,accion:'PLAN_CREADO'})).total,0);
 });

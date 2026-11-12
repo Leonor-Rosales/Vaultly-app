@@ -24,8 +24,11 @@ function registro(evento: EventoAuditoria) {
 }
 
 export default function Auditoria() {
-  const [filtros, setFiltros] = useState({ pagina: 1, accion: '', q: '' });
+  const [filtros, setFiltros] = useState({ pagina: 1, accion: '', q: '', desde: '', hasta: '' });
   const [busqueda, setBusqueda] = useState('');
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
+  const [errorFechas, setErrorFechas] = useState('');
   const [resultado, setResultado] = useState<Resultado>();
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(true);
@@ -41,11 +44,25 @@ export default function Auditoria() {
   const consultar = (cambio: Partial<typeof filtros>) => { setCargando(true); setError(''); setDetalle(undefined); setFiltros(f => ({ ...f, ...cambio })); };
   return <section className="admin-list-page">
     <header className="admin-heading"><div><h1 className="titulo-pagina">Auditoría</h1><p className="admin-intro">Consulta quién modificó los planes y las cuentas administrativas, y revisa los cambios realizados.</p></div></header>
-    <form className="admin-auditoria-filtros" role="search" aria-label="Buscar en auditoría" onSubmit={e => { e.preventDefault(); consultar({ q: busqueda.trim(), pagina: 1 }); }}>
+    <form className="admin-auditoria-filtros" role="search" aria-label="Buscar en auditoría" onSubmit={e => {
+      e.preventDefault();
+      if (desde && hasta && desde > hasta) { setErrorFechas('La fecha Desde no puede ser posterior a Hasta.'); return; }
+      setErrorFechas(''); consultar({ q: busqueda.trim(), desde, hasta, pagina: 1 });
+    }}>
       <label>Administrador o registro<input type="search" value={busqueda} maxLength={100} placeholder="Nombre del administrador o del plan" onChange={e => setBusqueda(e.target.value)} /></label>
       <label>Acción<select aria-label="Acción" value={filtros.accion} onChange={e => consultar({ accion: e.target.value, pagina: 1 })}><option value="">Todas las acciones</option>{Object.entries(acciones).map(([codigo, nombre]) => <option key={codigo} value={codigo}>{nombre}</option>)}</select></label>
+      <label className="admin-auditoria-fecha">Desde<input type="date" min="0001-01-01" max="9998-12-31" value={desde} onChange={e => { setDesde(e.target.value); setErrorFechas(''); }} aria-describedby="auditoria-fechas-ayuda" /></label>
+      <label className="admin-auditoria-fecha">Hasta<input type="date" min="0001-01-01" max="9998-12-31" value={hasta} onChange={e => { setHasta(e.target.value); setErrorFechas(''); }} aria-describedby="auditoria-fechas-ayuda" /></label>
+      <p id="auditoria-fechas-ayuda" className="admin-ayuda admin-auditoria-fechas-ayuda">Fechas de Guatemala. Se incluye el día completo de inicio y fin; puedes indicar solo una fecha.</p>
+      <div className="admin-auditoria-acciones">
       <button type="submit">Buscar</button>
+      <button type="button" className="admin-secondary" onClick={() => {
+        setBusqueda(''); setDesde(''); setHasta(''); setErrorFechas('');
+        consultar({ pagina: 1, accion: '', q: '', desde: '', hasta: '' });
+      }}>Limpiar filtros</button>
+      </div>
     </form>
+    {errorFechas && <Aviso variante="advertencia">{errorFechas}</Aviso>}
     {cargando ? <p role="status">Consultando auditoría…</p> : error ? <Aviso variante="error">{error}<button type="button" onClick={() => { setCargando(true); setError(''); setRevision(r => r + 1); }}>Reintentar</button></Aviso> : !resultado?.items.length ? <Aviso variante="informacion">No hay movimientos que coincidan con esta búsqueda.</Aviso> : <>
       <p className="admin-ayuda">{resultado.total} movimientos · Fechas y horas de Guatemala</p>
       <div className="admin-table-scroll" tabIndex={0} aria-label="Movimientos de auditoría"><table><thead><tr>{['Fecha y hora','Administrador','Acción','Registro','Detalle'].map(c => <th key={c} scope="col">{c}</th>)}</tr></thead><tbody>{resultado.items.map(e => <tr key={e.id}>

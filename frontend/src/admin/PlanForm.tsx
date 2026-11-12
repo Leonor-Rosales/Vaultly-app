@@ -4,9 +4,13 @@ import { mensajeEstadoPlan, guardarPlan, type PlanAdmin } from '../services/admi
 import { Marca } from './AdminLayout';
 import { avisos as toast } from './avisos';
 import Aviso from '../components/Aviso';
+import AvisoInformativo from '../components/AvisoInformativo';
+import { useAdministrador } from './contexto';
 import { useConfirmar } from './confirmacionContexto';
 import { ApiError } from '../services/auth';
 export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recargar?: () => void }) {
+  const usuario = useAdministrador();
+  const protegido = plan?.tiene_suscripciones === true;
   const confirmar = useConfirmar();
   const navigate = useNavigate();
   const [nombre, setNombre] = useState(plan?.nombre ?? '');
@@ -51,8 +55,9 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
   }}>
     <h1 className="titulo-pagina">{plan ? 'Editar plan' : 'Crear nuevo plan'}</h1><p>Completa la información del {plan ? 'plan' : 'nuevo plan'}</p>
     <fieldset disabled={guardando}>
-      <label>Nombre del plan<input required maxLength={50} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Premium" /></label>
-      <label>Precio mensual (Q)<input required type="number" min={plan?.nombre === 'Free' || (plan && Number(plan.precio_mensual) === 0 && !activo) ? '0' : '0.01'} max="99999999.99" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="Q 0.00" /></label>
+      {protegido && <AvisoInformativo cuenta={usuario.id} id="plan-condiciones-protegidas">Este plan ya tiene contrataciones. Su nombre, precio, almacenamiento, descargas y carpetas públicas están protegidos para conservar lo contratado. Puedes gestionar promociones y su estado. Para ofrecer condiciones distintas, crea otro plan.</AvisoInformativo>}
+      <label>Nombre del plan<input required disabled={protegido || plan?.nombre === 'Free'} maxLength={50} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Premium" /></label>
+      <label>Precio mensual (Q)<input required disabled={protegido || plan?.nombre === 'Free'} type="number" min={plan?.nombre === 'Free' || (plan && Number(plan.precio_mensual) === 0 && !activo) ? '0' : '0.01'} max="99999999.99" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="Q 0.00" /></label>
       <p className="admin-ayuda admin-plan-ayuda-precio">Precio habitual para las renovaciones. Puedes ofrecer un descuento o un período gratis sin cambiarlo.</p>
       {plan?.nombre !== 'Free' && <>
         <label className="admin-check"><input type="checkbox" checked={promocion} onChange={e => setPromocion(e.target.checked)} />Promoción temporal</label>
@@ -92,13 +97,13 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
               <label>Fin de promoción (Guatemala)<input required type="datetime-local" min={inicioPromo} value={finPromo} onChange={e => setFinPromo(e.target.value)} /></label>
             </div>
           </section>
-          <Aviso variante="informacion">El precio promocional cubre un período mensual completo. La siguiente renovación automática será al precio habitual, solo si el cliente la acepta.</Aviso>
+          <AvisoInformativo cuenta={usuario.id} id="promociones-primer-periodo">El precio promocional cubre un período mensual completo. La siguiente renovación automática será al precio habitual, solo si el cliente la acepta.</AvisoInformativo>
         </div>}
       </>}
-      <label>Almacenamiento (GB)<input required type="number" min="1" max="9007199" step="1" value={gb} onChange={e => setGb(e.target.value)} placeholder="20" /></label>
-      <label>Límite de descargas<input required={!ilimitadas} disabled={ilimitadas} type="number" min="0" max="2147483647" step="1" value={limite} onChange={e => setLimite(e.target.value)} placeholder="20" /></label>
-      <label className="admin-check"><input type="checkbox" checked={ilimitadas} onChange={e => setIlimitadas(e.target.checked)} />Descargas ilimitadas</label>
-      <label className="admin-check"><input type="checkbox" checked={publicas} onChange={e => setPublicas(e.target.checked)} />Permitir carpetas públicas</label>
+      <label>Almacenamiento (GB)<input required disabled={protegido} type="number" min="1" max="9007199" step="1" value={gb} onChange={e => setGb(e.target.value)} placeholder="20" /></label>
+      <label>Límite de descargas<input required={!ilimitadas} disabled={protegido || ilimitadas} type="number" min="0" max="2147483647" step="1" value={limite} onChange={e => setLimite(e.target.value)} placeholder="20" /></label>
+      <label className="admin-check"><input type="checkbox" disabled={protegido} checked={ilimitadas} onChange={e => setIlimitadas(e.target.checked)} />Descargas ilimitadas</label>
+      <label className="admin-check"><input type="checkbox" disabled={protegido} checked={publicas} onChange={e => setPublicas(e.target.checked)} />Permitir carpetas públicas</label>
       <label className="admin-check"><input type="checkbox" disabled={plan?.nombre === 'Free'} checked={activo} onChange={e => setActivo(e.target.checked)} />Estado activo</label>
       {error && <Aviso variante={desactualizado ? 'advertencia' : 'error'}>{error}{desactualizado && <button type="button" className="admin-secondary" onClick={recargar}>Recargar plan</button>}</Aviso>}
       <div className="admin-form-actions"><button type="button" className="admin-secondary" onClick={() => navigate('/admin/planes')}>Cancelar</button><button type="submit" disabled={desactualizado}>{guardando ? 'Guardando…' : plan ? 'Guardar cambios' : 'Crear plan'}</button></div>

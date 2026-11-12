@@ -125,4 +125,19 @@ async function limpiarPlanes() {
 setInterval(limpiarPlanes, 3600000).unref();
 limpiarPlanes();
 
+const { enviarAvisosRetiro } = require('./infrastructure/enviarAvisosRetiro');
+const correoRetiro = require('./infrastructure/correoRetiroPlan').crearCorreoRetiroPlan(require('./infrastructure/mailer').enviarMensaje, FRONTEND_URL);
+let enviandoRetiros = false;
+async function procesarCorreosRetiro() {
+  if (enviandoRetiros) return;
+  enviandoRetiros = true;
+  try {
+    const resultado = await enviarAvisosRetiro(pool, correoRetiro);
+    if (resultado.fallos) console.error('Correos de retiro pendientes de reintento:', resultado.fallos);
+  } catch (e) { console.error('No se pudieron procesar los avisos de retiro:', e.message); }
+  finally { enviandoRetiros = false; }
+}
+setInterval(procesarCorreosRetiro, 60000).unref();
+procesarCorreosRetiro();
+
 app.listen(PORT, () => console.log(`Backend en http://localhost:${PORT}`));
