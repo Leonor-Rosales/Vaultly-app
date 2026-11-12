@@ -1,143 +1,19 @@
-require('dotenv').config(); // debe ir primero: el resto lee process.env al cargarse
-const express = require('express');
-const cors = require('cors');
+require('dotenv').config();
+const { app, servicios } = require('./app');
 
-const { PORT, FRONTEND_URL, BACKEND_URL } = require('./infrastructure/config');
-const tokens = require('./infrastructure/tokens');
-const { crearCasosAuth } = require('./usecases/auth');
-const { crearAuthController } = require('./controllers/authController');
-const { crearAuthRoutes } = require('./controllers/authRoutes');
-const { crearRequiereAuth } = require('./controllers/middleware/auth');
-const requiereAuth = crearRequiereAuth(tokens.verificarTokenSesion, require('./infrastructure/usuarioRepositorio').buscarPorIdConRol);
-const { conRegistro } = require('./usecases/decoradores');
-const { crearCuotasRepositorio } = require('./infrastructure/cuotasRepositorio');
-const { crearCasosCuotas } = require('./usecases/cuotas');
-const { crearPlanesRoutes } = require('./controllers/planesRoutes');
-const almacenamiento = require('./infrastructure/almacenamientoMinio');
-const cuotas = conRegistro(
-  crearCasosCuotas({ repo: crearCuotasRepositorio(require('./infrastructure/db')), almacenamiento }),
-  'cuotas'
-);
-const { crearPagosRepositorio } = require('./infrastructure/pagosRepositorio');
-const { crearCasosPagos } = require('./usecases/pagos');
-const pagos = conRegistro(
-  crearCasosPagos({ repo: crearPagosRepositorio(require('./infrastructure/db')) }),
-  'pagos'
-);
-const casosAuth = conRegistro(crearCasosAuth({
-  repo: require('./infrastructure/usuarioRepositorio'),
-  contrasenas: require('./infrastructure/contrasenas'),
-  tokens,
-  correo: require('./infrastructure/mailer'),
-  frontendUrl: FRONTEND_URL,
-  backendUrl: BACKEND_URL,
-}), 'auth');
-const authRoutes = crearAuthRoutes(crearAuthController({ casos: casosAuth, frontendUrl: FRONTEND_URL }), requiereAuth);
-const { crearArchivosRoutes } = require('./controllers/archivosRoutes');
-const { crearCasosArchivos } = require('./usecases/archivos');
-const { crearCasosVistasPrevias } = require('./usecases/vistasPrevias');
-const { crearVistaPreviaRepositorio } = require('./infrastructure/vistaPreviaRepositorio');
-const vistasPrevias = crearCasosVistasPrevias({
-  archivos: require('./infrastructure/archivoRepositorio'),
-  repo: crearVistaPreviaRepositorio(require('./infrastructure/db')),
-  almacenamiento,
-});
-const pool = require('./infrastructure/db');
-const papelera = require('./usecases/papelera').crearPapelera(
-  require('./infrastructure/papeleraRepositorio').crearPapeleraRepositorio(pool), almacenamiento
-);
-const archivosRoutes = crearArchivosRoutes(conRegistro({...crearCasosArchivos({
-  repositorio: require('./infrastructure/archivoRepositorio'),
-  almacenamiento,
-  cuotas,
-  vistasPrevias,
-}), eliminar: papelera.enviarArchivo}, 'archivos'), requiereAuth, vistasPrevias);
-
-const app = express();
-
-app.use(cors({ origin: FRONTEND_URL }));
-app.use(express.json());
-
-app.use('/api/auth', authRoutes);
-const { crearCambioCorreoRoutes } = require('./controllers/cambioCorreoRoutes');
-const { crearCasosCambioCorreo } = require('./usecases/cambioCorreo');
-const cambioCorreo = crearCasosCambioCorreo({
-  repo: require('./infrastructure/cambioCorreoRepositorio').crearCambioCorreoRepositorio(require('./infrastructure/db')),
-  contrasenas: require('./infrastructure/contrasenas'),
-  codigos: require('./infrastructure/codigosCorreo'),
-  correo: require('./infrastructure/correoCambio').crearCorreoCambio(require('./infrastructure/mailer').enviarMensaje),
-});
-app.use('/api/admin/cambio-correo', crearCambioCorreoRoutes(cambioCorreo, requiereAuth));
-app.use('/api/cuenta/cambio-correo', crearCambioCorreoRoutes(cambioCorreo, requiereAuth, ['ADMIN', 'CLIENTE']));
-const { crearCuentaRoutes } = require('./controllers/cuentaRoutes');
-const { crearCasosCuenta } = require('./usecases/cuenta');
-app.use('/api/cuenta', crearCuentaRoutes(crearCasosCuenta({
-  repo: require('./infrastructure/cuentaRepositorio').crearCuentaRepositorio(require('./infrastructure/db')),
-}), requiereAuth));
-const { crearAdminRoutes } = require('./controllers/adminRoutes');
-const { crearCasosAdministracion } = require('./usecases/administracion');
-const { crearAdminRepositorio } = require('./infrastructure/adminRepositorio');
-app.use('/api/admin', crearAdminRoutes(crearCasosAdministracion({
-  repo: crearAdminRepositorio(require('./infrastructure/db')),
-  hashear: require('./infrastructure/contrasenas').hashear,
-}), requiereAuth));
-const { crearCarpetasRoutes } = require('./controllers/carpetasRoutes');
-app.use('/api/carpetas', crearCarpetasRoutes(pool, requiereAuth, papelera));
-app.use('/api/papelera', require('./controllers/papeleraRoutes').crearPapeleraRoutes(papelera, requiereAuth));
-app.use('/api/archivos', archivosRoutes);
-app.use('/api/planes', crearPlanesRoutes(cuotas, requiereAuth, pagos));
-
-const { crearBibliotecaRoutes } = require('./controllers/bibliotecaController');
-const casosBiblioteca = conRegistro(require('./usecases/biblioteca'), 'biblioteca');
-
-app.use('/api/biblioteca', crearBibliotecaRoutes(casosBiblioteca, requiereAuth));
-
-app.use(require('./controllers/jsonInvalido'));
-
-// Recuperación idempotente. El bloqueo en PostgreSQL coordina varias instancias.
-let recuperando = false;
-async function recuperarReservas() {
-  if (recuperando) return;
-  recuperando = true;
-  try {
-    const resultado = await cuotas.recuperarReservas();
-    if (resultado.fallos) console.error('Reservas pendientes de recuperación:', resultado.fallos);
-  } catch (error) { console.error('No se pudieron recuperar reservas:', error.message); }
-  finally { recuperando = false; }
+// Vercel importa la aplicación; el modo local conserva su servidor y mantenimiento.
+if (require.main === module) {
+  const { PORT, FRONTEND_URL } = require('./infrastructure/config');
+  const { crearTareasMantenimiento, iniciarMantenimientoLocal } = require('./infrastructure/mantenimiento');
+  const { limpiarPlanesInactivos } = require('./infrastructure/limpiezaPlanes');
+  const { enviarAvisosRetiro } = require('./infrastructure/enviarAvisosRetiro');
+  const correoRetiro = require('./infrastructure/correoRetiroPlan').crearCorreoRetiroPlan(
+    require('./infrastructure/mailer').enviarMensaje, FRONTEND_URL,
+  );
+  iniciarMantenimientoLocal(crearTareasMantenimiento({
+    ...servicios, limpiarPlanesInactivos, enviarAvisosRetiro, correoRetiro,
+  }));
+  app.listen(PORT, () => console.log(`Backend en http://localhost:${PORT}`));
 }
-setInterval(() => papelera.limpiar(), 60000).unref();
-papelera.limpiar();
-setInterval(recuperarReservas, 60000).unref();
-recuperarReservas();
 
-// Revisión al arrancar y cada hora; los 30 días se calculan en la base de datos.
-const { limpiarPlanesInactivos } = require('./infrastructure/limpiezaPlanes');
-let limpiandoPlanes = false;
-async function limpiarPlanes() {
-  if (limpiandoPlanes) return;
-  limpiandoPlanes = true;
-  try {
-    const resultado = await limpiarPlanesInactivos(pool);
-    if (resultado.archivados || resultado.eliminados) console.log('Limpieza de planes:', resultado);
-  } catch (e) { console.error('Limpieza de planes pendiente:', e.message); }
-  finally { limpiandoPlanes = false; }
-}
-setInterval(limpiarPlanes, 3600000).unref();
-limpiarPlanes();
-
-const { enviarAvisosRetiro } = require('./infrastructure/enviarAvisosRetiro');
-const correoRetiro = require('./infrastructure/correoRetiroPlan').crearCorreoRetiroPlan(require('./infrastructure/mailer').enviarMensaje, FRONTEND_URL);
-let enviandoRetiros = false;
-async function procesarCorreosRetiro() {
-  if (enviandoRetiros) return;
-  enviandoRetiros = true;
-  try {
-    const resultado = await enviarAvisosRetiro(pool, correoRetiro);
-    if (resultado.fallos) console.error('Correos de retiro pendientes de reintento:', resultado.fallos);
-  } catch (e) { console.error('No se pudieron procesar los avisos de retiro:', e.message); }
-  finally { enviandoRetiros = false; }
-}
-setInterval(procesarCorreosRetiro, 60000).unref();
-procesarCorreosRetiro();
-
-app.listen(PORT, () => console.log(`Backend en http://localhost:${PORT}`));
+module.exports = app;
