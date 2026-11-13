@@ -69,7 +69,7 @@ function Planes() {
         {!retirado && planActual && actual?.venceEl && <section className="planes-renovacion" aria-label="Renovación del plan">
           <div>
             <strong>{actual.renovacionAutomatica ? 'Renovación automática activada' : 'Renovación automática desactivada'}</strong>
-            <span>{actual.renovacionAutomatica ? `Tu plan se renovará el ${actual.venceEl} por ${formatPrecio(planActual.precioHabitual ?? planActual.precio)} con un pago simulado.` : `Si no lo renuevas, el ${actual.venceEl} volverás al plan Free. La renovación cuesta ${formatPrecio(planActual.precioHabitual ?? planActual.precio)} / mes.`}</span>
+            <span>{actual.renovacionAutomatica ? `Tu plan se renovará el ${actual.venceEl} por ${formatPrecio(planActual.precioHabitual ?? planActual.precio, planActual.moneda)} con un pago simulado.` : `Si no lo renuevas, el ${actual.venceEl} volverás al plan Free. La renovación cuesta ${formatPrecio(planActual.precioHabitual ?? planActual.precio, planActual.moneda)} / mes.`}</span>
           </div>
           <button type="button" className="planes-history" disabled={guardando} onClick={() => void cambiarRenovacion()}>
             {actual.renovacionAutomatica ? 'No renovar' : 'Renovar automáticamente'}
@@ -85,9 +85,9 @@ function Planes() {
               const esActual = actual?.planId === plan.id;
               return <article key={plan.id} className={`plan-card${esActual ? ' current' : ''}`}>
                 <div className="plan-card-heading"><h2 className="plan-name">{plan.nombre}</h2>{esActual && <span className="plan-badge">Tu plan</span>}</div>
-                <div className="plan-price"><strong>{formatPrecio(plan.precio)}</strong><span>/ mes</span></div>
+                <div className="plan-price"><strong>{formatPrecio(plan.precio, plan.moneda)}</strong><span>/ mes</span></div>
                 {plan.promocionTexto && <span className="plan-badge">{plan.promocionTexto}</span>}
-                {plan.promocionHasta && <p className="planes-subtitle">Promoción: un período mensual a este precio. Después, {formatPrecio(plan.precioHabitual!)} / mes si aceptas renovar. Disponible hasta {new Date(plan.promocionHasta).toLocaleDateString('es-GT', { timeZone: 'America/Guatemala' })}.</p>}
+                {plan.promocionHasta && <p className="planes-subtitle">Promoción: un período mensual a este precio. Después, {formatPrecio(plan.precioHabitual!, plan.moneda)} / mes si aceptas renovar. Disponible hasta {new Date(plan.promocionHasta).toLocaleDateString('es-GT', { timeZone: 'America/Guatemala' })}.</p>}
                 <p className="plan-caption">{plan.precio === 0 ? 'Un espacio para comenzar.' : 'Espacio para seguir creando.'}</p>
                 <ul className="plan-features">
                   <li><span className="plan-feature-icon"><Icon icon="lucide:hard-drive" aria-hidden="true" /></span><div><strong>{plan.almacenamientoGb} GB</strong><span>de almacenamiento</span></div></li>

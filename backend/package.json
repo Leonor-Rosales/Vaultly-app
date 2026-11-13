@@ -18,7 +18,8 @@
     "test": "node --test test/*.test.js",
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "start:vistas-previas:http": "node src/workers/vistasPreviasHttp.js"
+    "start:vistas-previas:http": "node src/workers/vistasPreviasHttp.js",
+    "test:catalogo-usd": "node --test test/integration/catalogoUsd.pg.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

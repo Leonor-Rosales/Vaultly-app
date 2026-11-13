@@ -22,7 +22,7 @@ function validarPlan(d = {}) {
       else exigir(d.promocion_porcentaje == null, 'No combines tipos de promoción');
       if (tipo === 'FIJO') exigir(typeof d.promocion_precio === 'number' && Number.isFinite(d.promocion_precio) && Math.abs(d.promocion_precio * 100 - Math.round(d.promocion_precio * 100)) < .00001, 'Indica un precio promocional válido con hasta dos decimales');
       const precio = precioPromocional({ ...d, promocion_tipo: tipo });
-      exigir(Number.isFinite(precio) && precio >= 0 && precio < d.precio_mensual, 'La promoción debe reducir el precio habitual al menos Q0.01');
+      exigir(Number.isFinite(precio) && precio >= 0 && precio < d.precio_mensual, 'La promoción debe reducir el precio habitual al menos 0.01 en la moneda del plan');
       const inicio = typeof d.promocion_inicio === 'string' ? Date.parse(d.promocion_inicio) : NaN;
       const fin = typeof d.promocion_fin === 'string' ? Date.parse(d.promocion_fin) : NaN;
       exigir(Number.isFinite(inicio) && Number.isFinite(fin) && inicio < fin && /(?:Z|[+-]\d\d:\d\d)$/.test(d.promocion_inicio) && /(?:Z|[+-]\d\d:\d\d)$/.test(d.promocion_fin), 'Indica inicio y fin válidos de la promoción, con zona horaria');

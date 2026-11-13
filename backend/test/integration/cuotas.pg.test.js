@@ -34,6 +34,8 @@ test('integración aislada PostgreSQL + MinIO: cuotas, concurrencia y migracione
   const sql = (name) => fs.readFileSync(path.resolve(__dirname, '../../..', 'init-db', name), 'utf8');
   await pool.query(sql('01_schema.sql'));
   await pool.query(sql('02_seeds.sql'));
+  // Este escenario comprueba las cuotas históricas anteriores a la migración 18.
+  await pool.query("UPDATE planes SET limite_descargas=CASE WHEN nombre='Free' THEN 2 WHEN nombre='Basic Open' THEN 10 ELSE NULL END");
   const usuario = async () => {
     const id = randomUUID();
     await pool.query("INSERT INTO usuarios(id,rol_id,nombre_completo,correo_electronico,password_hash) VALUES($1,1,'Prueba',$2,'hash-ficticio')", [id, `${id}@example.test`]);

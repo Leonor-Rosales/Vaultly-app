@@ -1,3 +1,4 @@
+import { formatPrecio } from '../planes/planesData';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mensajeEstadoPlan, guardarPlan, type PlanAdmin } from '../services/admin';
@@ -10,6 +11,8 @@ import { useConfirmar } from './confirmacionContexto';
 import { ApiError } from '../services/auth';
 export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recargar?: () => void }) {
   const usuario = useAdministrador();
+  const moneda = plan?.moneda ?? 'USD';
+  const simbolo = moneda === 'USD' ? 'US$' : 'Q';
   const protegido = plan?.tiene_suscripciones === true;
   const confirmar = useConfirmar();
   const navigate = useNavigate();
@@ -59,7 +62,7 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
         ? 'Este plan ya tiene contrataciones. Su nombre, precio, almacenamiento, descargas y carpetas públicas están protegidos para conservar lo contratado. Free debe mantenerse activo y no admite promociones. Para ofrecer beneficios distintos, crea un nuevo plan.'
         : 'Este plan ya tiene contrataciones. Su nombre, precio, almacenamiento, descargas y carpetas públicas están protegidos para conservar lo contratado. Puedes gestionar promociones y su estado. Para cambiar almacenamiento o descargas, crea un nuevo plan y desactiva este cuando corresponda.'}</AvisoInformativo>}
       <label>Nombre del plan<input required disabled={protegido || plan?.nombre === 'Free'} maxLength={50} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Premium" /></label>
-      <label>Precio mensual (Q)<input required disabled={protegido || plan?.nombre === 'Free'} type="number" min={plan?.nombre === 'Free' || (plan && Number(plan.precio_mensual) === 0 && !activo) ? '0' : '0.01'} max="99999999.99" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="Q 0.00" /></label>
+      <label>Precio mensual ({moneda})<input required disabled={protegido || plan?.nombre === 'Free'} type="number" min={plan?.nombre === 'Free' || (plan && Number(plan.precio_mensual) === 0 && !activo) ? '0' : '0.01'} max="99999999.99" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder={`${simbolo} 0.00`} /></label>
       <p className="admin-ayuda admin-plan-ayuda-precio">Precio habitual para las renovaciones. Puedes ofrecer un descuento o un período gratis sin cambiarlo.</p>
       {plan?.nombre !== 'Free' && <>
         <label className="admin-check"><input type="checkbox" checked={promocion} onChange={e => setPromocion(e.target.checked)} />Promoción temporal</label>
@@ -69,9 +72,9 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
             <p id="promo-tipos-ayuda" className="admin-ayuda">Selecciona una sola opción. Cada una cambia cómo se calcula el primer período.</p>
             <div className="promo-opciones">
               {([
-                ['FIJO', 'Q', 'Precio fijo', 'Tú decides cuánto pagará.', 'Ejemplo: primer período a Q49'],
-                ['PORCENTAJE', '%', 'Porcentaje de descuento', 'Descuenta una parte del precio habitual.', 'Ejemplo: 25 % de Q200 → Q150'],
-                ['GRATIS', '0', 'Período gratis', 'El primer período cuesta Q0.', 'Después, precio habitual si renueva'],
+                ['FIJO', simbolo, 'Precio fijo', 'Tú decides cuánto pagará.', `Ejemplo: primer período a ${simbolo}1.00`],
+                ['PORCENTAJE', '%', 'Porcentaje de descuento', 'Descuenta una parte del precio habitual.', `Ejemplo: 25 % de ${simbolo}4.00 → ${simbolo}3.00`],
+                ['GRATIS', '0', 'Período gratis', `El primer período cuesta ${simbolo}0.`, 'Después, precio habitual si renueva'],
               ] as const).map(([tipo, simbolo, titulo, descripcion, ejemplo]) => <label className="promo-opcion" key={tipo}>
                 <input type="radio" name="tipo-promocion" aria-label={titulo} value={tipo} checked={tipoPromo === tipo} onChange={() => setTipoPromo(tipo)} />
                 <span className="promo-simbolo" aria-hidden="true">{simbolo}</span>
@@ -81,15 +84,15 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
           </fieldset>
           <section className="promo-beneficio" aria-labelledby="promo-beneficio-titulo">
             <h2 id="promo-beneficio-titulo">2. {tipoPromo === 'GRATIS' ? 'Revisa el beneficio' : 'Define el beneficio'}</h2>
-            {tipoPromo === 'FIJO' && <label>Precio promocional (Q)<input required type="number" min="0" max={Math.max(0, Number(precio) - .01)} step="0.01" value={precioPromo} onChange={e => setPrecioPromo(e.target.value)} /></label>}
+            {tipoPromo === 'FIJO' && <label>Precio promocional ({moneda})<input required type="number" min="0" max={Math.max(0, Number(precio) - .01)} step="0.01" value={precioPromo} onChange={e => setPrecioPromo(e.target.value)} /></label>}
             {tipoPromo === 'PORCENTAJE' && <label>Descuento (%)<input required type="number" min="0.01" max="100" step="0.01" value={porcentaje} onChange={e => setPorcentaje(e.target.value)} /></label>}
             {tipoPromo === 'GRATIS' && <p className="admin-ayuda">No necesitas indicar un importe: el primer período mensual completo será gratis.</p>}
           </section>
           <section className="promo-resumen admin-promocion-previa" aria-label="Vista previa de la promoción" aria-live="polite">
             <span className="promo-resumen-etiqueta">ASÍ LO VERÁ EL CLIENTE</span>
             {!precioHabitualValido ? <p>Escribe el precio mensual habitual para calcular la promoción.</p> : !beneficioValido ? <p>Indica un beneficio válido que reduzca el precio habitual.</p> : <div className="promo-precios">
-              <div><span>Primer período</span><strong>Q{precioFinal.toFixed(2)}</strong><small>{tipoPromo === 'PORCENTAJE' ? `${Number(porcentaje)} % de descuento` : tipoPromo === 'GRATIS' ? 'Un período mensual gratis' : 'Precio promocional fijo'}</small></div>
-              <div><span>Renovaciones</span><strong>Q{Number(precio).toFixed(2)}</strong><small>Por mes, solo si acepta renovar</small></div>
+              <div><span>Primer período</span><strong>{formatPrecio(precioFinal, moneda)}</strong><small>{tipoPromo === 'PORCENTAJE' ? `${Number(porcentaje)} % de descuento` : tipoPromo === 'GRATIS' ? 'Un período mensual gratis' : 'Precio promocional fijo'}</small></div>
+              <div><span>Renovaciones</span><strong>{formatPrecio(Number(precio), moneda)}</strong><small>Por mes, solo si acepta renovar</small></div>
             </div>}
           </section>
           <section className="promo-vigencia" aria-labelledby="promo-vigencia-titulo">

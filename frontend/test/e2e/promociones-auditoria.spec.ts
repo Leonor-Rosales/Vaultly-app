@@ -24,13 +24,13 @@ test('administrador programa una promoción a cero conservando el precio normal 
   await page.getByLabel('Almacenamiento (GB)').fill('100');
   await page.getByLabel('Descargas ilimitadas',{exact:true}).check();
   await page.getByRole('checkbox',{name:'Promoción temporal'}).check();
-  await page.getByLabel('Precio promocional (Q)').fill('0');
+  await page.getByLabel('Precio promocional (USD)').fill('0');
   await page.getByLabel('Inicio de promoción (Guatemala)').fill('2030-11-01T00:00');
   await page.getByLabel('Fin de promoción (Guatemala)').fill('2030-11-20T00:00');
   await page.getByRole('button',{name:'Crear plan',exact:true}).click();
   await expect(page).toHaveURL(/\/admin\/planes$/);
   expect(guardado).toMatchObject({precio_mensual:200,promocion_precio:0,promocion_inicio:'2030-11-01T06:00:00.000Z',promocion_fin:'2030-11-20T06:00:00.000Z'});
-  await expect(page.locator('.admin-table-scroll')).toContainText('Promoción: Q0.00');
+  await expect(page.locator('.admin-table-scroll')).toContainText('Promoción: US$0.00');
 });
 
 for(const width of [1366,390]) test(`auditoría con detalle, filtros, paginación y tema a ${width}px`,async({page},info)=>{
@@ -45,7 +45,7 @@ for(const width of [1366,390]) test(`auditoría con detalle, filtros, paginació
   await page.goto('/admin/auditoria');
   await expect(page.getByRole('heading',{name:'Auditoría',exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Ver cambios',exact:true}).click();
-  await expect(page.getByRole('region',{name:'Detalle de cambios'})).toContainText('Precio promocional (Q)');
+  await expect(page.getByRole('region',{name:'Detalle de cambios'})).toContainText('Precio promocional');
   await expect(page.getByRole('region',{name:'Detalle de cambios'})).toContainText('0.00');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:info.outputPath('auditoria-claro.png'),fullPage:true});
@@ -91,7 +91,7 @@ for(const width of [1366,390]) test(`promoción gratuita sin tarjeta y renovaci�
   await page.goto('/planes/contratar?plan=2');
   await expect(page.getByLabel('Número de tarjeta')).toHaveCount(0);
   await expect(page.getByRole('checkbox',{name:/Renovar automáticamente/})).not.toBeChecked();
-  await expect(page.locator('.ct-renovar')).toContainText('Q200.00');
+  await expect(page.locator('.ct-renovar')).toContainText('US$200.00');
   await page.screenshot({path:info.outputPath('contratacion-gratis.png'),fullPage:true});
   await page.getByRole('button',{name:'Activar plan gratis',exact:true}).click();
   await expect(page).toHaveURL(/\/planes\/historial$/);

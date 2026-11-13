@@ -19,7 +19,7 @@ export default function HistorialPagos() {
           <tbody>{datos.map(pago => <tr key={pago.id}>
             <td><time dateTime={pago.creado_en}>{fecha.format(new Date(pago.creado_en))}</time></td>
             <td>{pago.nombre_completo}</td><td>{pago.correo_electronico}</td>
-            <td>{pago.plan_nombre}</td><td>{formatPrecio(Number(pago.monto))}</td>
+            <td>{pago.plan_nombre}</td><td>{formatPrecio(Number(pago.monto), pago.moneda ?? 'GTQ')}</td>
             <td>{pago.estado === 'COMPLETADO' ? 'Completado' : 'Pendiente'}</td>
           </tr>)}</tbody>
         </table>

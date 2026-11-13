@@ -40,6 +40,7 @@ export const adaptarPago = (p: PagoApi): Pago => ({
 });
 
 export interface PlanApi {
+  moneda?: 'USD' | 'GTQ';
   promocion_tipo?: 'FIJO' | 'PORCENTAJE' | 'GRATIS' | null;
   promocion_porcentaje?: string | number | null;
   precio_vigente?: number;
@@ -56,6 +57,7 @@ export interface PlanApi {
 export function adaptarPlan(p: PlanApi): Plan {
   return {
     version: p.version,
+    moneda: p.moneda ?? 'USD',
     id: String(p.id),
     nombre: p.nombre,
     precio: Number(p.precio_vigente ?? p.precio_mensual),

@@ -76,7 +76,7 @@ function ComprobantePago({ pago, onClose }: Props) {
         </header>
 
         <h2 className="cp-title">Comprobante de pago</h2>
-        <p className="cp-sub">Suscripción mensual · Importes en quetzales (GTQ)</p>
+        <p className="cp-sub">Suscripción mensual · Importes en {datos?.moneda === 'USD' ? 'dólares (USD)' : 'quetzales (GTQ)'}</p>
 
         <section className="cp-seccion" aria-labelledby="cp-compra">
         <h3 id="cp-compra">Datos de la compra</h3>
@@ -111,7 +111,7 @@ function ComprobantePago({ pago, onClose }: Props) {
                 <div><dt>Inicio</dt><dd>{fecha(datos.inicio)}</dd></div>
                 <div><dt>Vencimiento</dt><dd>{fecha(datos.fin)}</dd></div>
               </dl>
-              {datos.promocion && <p className="cp-legado">{datos.promocion.tipo === 'PORCENTAJE' ? `${datos.promocion.porcentaje} % de descuento. ` : datos.promocion.tipo === 'GRATIS' ? 'Un período gratis. ' : ''}Promoción aplicada al período completo. Precio habitual de renovación: GTQ {datos.promocion.precioHabitual.toFixed(2)} / mes. Renovación automática: {datos.renovacionAutomatica ? 'aceptada' : 'desactivada'}.</p>}
+              {datos.promocion && <p className="cp-legado">{datos.promocion.tipo === 'PORCENTAJE' ? `${datos.promocion.porcentaje} % de descuento. ` : datos.promocion.tipo === 'GRATIS' ? 'Un período gratis. ' : ''}Promoción aplicada al período completo. Precio habitual de renovación: {datos.moneda} {datos.promocion.precioHabitual.toFixed(2)} / mes. Renovación automática: {datos.renovacionAutomatica ? 'aceptada' : 'desactivada'}.</p>}
             </> : <p className="cp-legado">La capacidad, las descargas y el período contratado no se guardaron en este pago histórico.</p>}
           </div>
         </section>

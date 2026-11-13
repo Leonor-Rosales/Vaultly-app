@@ -30,9 +30,9 @@ for(const [tipo,final] of [['PORCENTAJE',150],['FIJO',49],['GRATIS',0]] as const
   } else await page.getByRole('radio',{name:nombres[tipo],exact:true}).check();
   await expect(page.getByRole('radio',{checked:true})).toHaveCount(1);
   if(tipo==='PORCENTAJE') await page.getByLabel('Descuento (%)').fill('25');
-  if(tipo==='FIJO') await page.getByLabel('Precio promocional (Q)').fill('49');
-  if(tipo==='GRATIS') await expect(page.getByLabel('Precio promocional (Q)')).toHaveCount(0);
-  await expect(page.locator('.admin-promocion-previa')).toContainText(`Q${final.toFixed(2)}`);
+  if(tipo==='FIJO') await page.getByLabel('Precio promocional (USD)').fill('49');
+  if(tipo==='GRATIS') await expect(page.getByLabel('Precio promocional (USD)')).toHaveCount(0);
+  await expect(page.locator('.admin-promocion-previa')).toContainText(`US$${final.toFixed(2)}`);
   await page.getByLabel('Inicio de promoción (Guatemala)').fill('2030-11-01T00:00');
   await page.getByLabel('Fin de promoción (Guatemala)').fill('2030-11-20T00:00');
   if(tipo==='PORCENTAJE') {
@@ -50,7 +50,7 @@ for(const width of [1366,390]) test(`cliente ve porcentaje y comprobante con des
   await page.setViewportSize({width,height:1000});await sesion(page,'CLIENTE');
   await page.route('**/api/planes',route=>route.fulfill({json:[{id:2,version:1,nombre:'Max',precio_mensual:'200.00',precio_vigente:150,promocion_vigente:true,promocion_tipo:'PORCENTAJE',promocion_porcentaje:'25.00',promocion_fin:'2030-11-20T06:00:00Z',cuota_storage_gb:100,limite_descargas:null}]}));
   let solicitud: Record<string,unknown>|undefined;
-  const pago={id:'pago',codigo:'DESCUENTO-001',fecha:'2026-11-11T18:00:00Z',plan:'Max',monto:150,metodo:'tarjeta',estado:'Completado',comprobante:{version:1,moneda:'GTQ',cliente:{nombre:'Ana López',correo:'ana@example.test'},almacenamientoGb:100,descargasMensuales:null,inicio:'2026-11-11T18:00:00Z',fin:'2026-12-11T18:00:00Z',promocion:{precioHabitual:200,finOferta:'2030-11-20T06:00:00Z',tipo:'PORCENTAJE',porcentaje:25},renovacionAutomatica:false}};
+  const pago={id:'pago',codigo:'DESCUENTO-001',fecha:'2026-11-11T18:00:00Z',plan:'Max',monto:150,metodo:'tarjeta',estado:'Completado',comprobante:{version:1,moneda:'USD',cliente:{nombre:'Ana López',correo:'ana@example.test'},almacenamientoGb:100,descargasMensuales:null,inicio:'2026-11-11T18:00:00Z',fin:'2026-12-11T18:00:00Z',promocion:{precioHabitual:200,finOferta:'2030-11-20T06:00:00Z',tipo:'PORCENTAJE',porcentaje:25},renovacionAutomatica:false}};
   await page.route('**/api/planes/contratar',route=>{solicitud=route.request().postDataJSON();return route.fulfill({json:pago});});
   await page.route('**/api/planes/pagos',route=>route.fulfill({json:[pago]}));
   await page.goto('/planes/contratar?plan=2');
@@ -64,6 +64,6 @@ for(const width of [1366,390]) test(`cliente ve porcentaje y comprobante con des
   await page.getByRole('button',{name:'Descargar comprobante DESCUENTO-001'}).click();
   expect(await page.locator('.cp-sheet').evaluate(el=>el.scrollTop)).toBe(0);
   await expect(page.getByRole('dialog')).toContainText('25 % de descuento');
-  await expect(page.getByRole('dialog')).toContainText(/GTQ\s*150.00/);
+  await expect(page.getByRole('dialog')).toContainText(/USD\s*150.00/);
   await page.screenshot({path:info.outputPath('comprobante-porcentaje.png'),fullPage:true});
 });

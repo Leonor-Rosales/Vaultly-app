@@ -134,9 +134,9 @@ function Contratar() {
             <span className="ct-label">Plan seleccionado</span>
             <div className="ct-box">
               <div className="ct-box-title">{plan.nombre}</div>
-              <div className="ct-box-detail">{formatPrecio(plan.precio)} / mes</div>
+              <div className="ct-box-detail">{formatPrecio(plan.precio, plan.moneda)} / mes</div>
               {plan.promocionTexto && <div className="ct-box-detail"><strong>{plan.promocionTexto}</strong></div>}
-              {plan.promocionHasta && <div className="ct-box-detail">Promoción para un período mensual. Precio habitual: {formatPrecio(plan.precioHabitual!)} / mes. Disponible hasta {new Date(plan.promocionHasta).toLocaleString('es-GT', { timeZone: 'America/Guatemala' })} (Guatemala).</div>}
+              {plan.promocionHasta && <div className="ct-box-detail">Promoción para un período mensual. Precio habitual: {formatPrecio(plan.precioHabitual!, plan.moneda)} / mes. Disponible hasta {new Date(plan.promocionHasta).toLocaleString('es-GT', { timeZone: 'America/Guatemala' })} (Guatemala).</div>}
               <div className="ct-box-detail">{plan.almacenamientoGb} GB Almacenamiento</div>
               <div className="ct-box-detail">
                 {plan.descargasMensuales === null
@@ -155,7 +155,7 @@ function Contratar() {
               </label>
               <div className="ct-total">
                 <span>Total a pagar</span>
-                <strong>{formatPrecio(plan.precio).replace("Q", "Q ")}</strong>
+                <strong>{formatPrecio(plan.precio, plan.moneda)}</strong>
               </div>
             </div>
           </div>
@@ -163,7 +163,7 @@ function Contratar() {
 
         <section className="ct-payment" aria-labelledby="ct-payment-title">
         <h2 id="ct-payment-title">{gratis ? 'Activa tu promoción' : 'Datos de la tarjeta'}</h2>
-        {gratis ? <Aviso variante="informacion">Pagarás Q0.00 por un período mensual completo desde la activación, aunque la promoción termine antes. Sin renovación automática volverás a Free al vencer.</Aviso> : <>
+        {gratis ? <Aviso variante="informacion">Pagarás {formatPrecio(0, plan.moneda)} por un período mensual completo desde la activación, aunque la promoción termine antes. Sin renovación automática volverás a Free al vencer.</Aviso> : <>
         <p className="ct-payment-intro">Pago simulado: utiliza datos ficticios para completar la contratación.</p>
 
         <div className="ct-field">
@@ -253,7 +253,7 @@ function Contratar() {
         <label className="ct-renovar">
           <input type="checkbox" checked={renovar} onChange={(e) => setRenovar(e.target.checked)} />
           <span>
-            <strong>Renovar automáticamente cada mes{plan.promocionHasta ? ` por ${formatPrecio(plan.precioHabitual!)} al terminar el período promocional` : ''}</strong>
+            <strong>Renovar automáticamente cada mes{plan.promocionHasta ? ` por ${formatPrecio(plan.precioHabitual!, plan.moneda)} al terminar el período promocional` : ''}</strong>
             <small>Si no la marcas, al vencer tu plan volverás al plan Free. Puedes cambiarlo cuando quieras desde Planes.</small>
           </span>
         </label>

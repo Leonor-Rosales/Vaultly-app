@@ -15,8 +15,8 @@ test('contratación conserva cliente, beneficios y vigencia aunque cambien perfi
     listarPagos: async () => pagos,
   };
   const casos = crearCasosPagos({ repo: { conUsuario: (_id, fn) => fn(tx) } });
-  const compra = await casos.contratar('cliente', { planId: 2, versionPlan: 1, metodo: 'tarjeta', comprobante: { moneda: 'USD' } });
-  assert.equal(compra.comprobante.moneda, 'GTQ');
+  const compra = await casos.contratar('cliente', { planId: 2, versionPlan: 1, metodo: 'tarjeta', comprobante: { moneda: 'GTQ' } });
+  assert.equal(compra.comprobante.moneda, 'USD');
   assert.equal(compra.comprobante.inicio, suscripcion.inicio.toISOString());
   assert.equal(compra.comprobante.fin, suscripcion.fin.toISOString());
   cliente.nombre_completo = 'Nombre nuevo'; cliente.correo_electronico = 'nuevo@example.test';

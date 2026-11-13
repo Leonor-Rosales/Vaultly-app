@@ -92,7 +92,7 @@ function Historial() {
                 <span className="pago-fecha">{pago.fecha}</span>
                 <span className="pago-codigo">{pago.codigo}</span>
                 <span className="pago-plan">{pago.plan}</span>
-                <span className="pago-muted">{formatPrecio(pago.monto)}</span>
+                <span className="pago-muted">{formatPrecio(pago.monto, pago.comprobante?.moneda ?? 'GTQ')}</span>
                 <span className="pago-muted">{pago.metodo}</span>
                 <span
                   className={`pago-estado ${pago.estado === "Completado" ? "completado" : "pendiente"}`}

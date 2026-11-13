@@ -45,7 +45,7 @@ function crearCasosAdministracion({ repo, hashear }) {
           throw new ErrorApp('Free debe conservar su nombre, precio cero y estado activo.', 400, 'PLAN_FREE_PROTEGIDO');
         }
         if (d.nombre !== 'Free' && d.precio_mensual === 0 && !legadoRetirado) {
-          throw new ErrorApp('Solo el plan Free puede tener precio cero. Indica un precio mayor que Q0.00.', 400, 'PRECIO_CERO_NO_PERMITIDO');
+          throw new ErrorApp('Solo el plan Free puede tener precio cero. Indica un precio mayor que cero.', 400, 'PRECIO_CERO_NO_PERMITIDO');
         }
         const nuevo = await tx.guardarPlan(id, d, anterior?.version);
         if (!nuevo) throw new ErrorApp('El plan cambió. Recárgalo antes de guardar.', 409, 'PLAN_DESACTUALIZADO');

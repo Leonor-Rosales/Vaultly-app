@@ -20,7 +20,7 @@ function crearAdminRepositorio(pool) {
     async listarPagos() {
       const resultado = await pool.query(`
         SELECT p.id, u.nombre_completo, u.correo_electronico, p.plan_nombre,
-               p.monto, p.estado, p.creado_en
+               p.monto, p.estado, p.creado_en, COALESCE(p.comprobante->>'moneda','GTQ') AS moneda
         FROM pagos p JOIN usuarios u ON u.id = p.usuario_id
         ORDER BY p.creado_en DESC, p.id DESC
       `);

@@ -1,5 +1,6 @@
 import { request } from './auth';
 export interface PlanAdmin {
+  moneda?: 'USD' | 'GTQ';
   tiene_suscripciones?: boolean;
   inactivo_desde?: string | null;
   archivado_en?: string | null;
@@ -24,6 +25,7 @@ export const listarAdministradores = () => request<Administrador[]>('/api/admin/
 export const guardarAdministrador = (datos: { nombre_completo: string; correo_electronico: string; activo: boolean; password?: string }, id?: string) => request<Administrador>(`/api/admin/administradores${id ? `/${id}` : ''}`, { auth: true, method: id ? 'PUT' : 'POST', body: datos });
 
 export interface PagoAdmin {
+  moneda?: 'USD' | 'GTQ';
   id: string;
   nombre_completo: string;
   correo_electronico: string;

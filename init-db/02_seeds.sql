@@ -15,10 +15,10 @@ INSERT INTO planes (
     activo
 )
 VALUES
-    ('Free',           5,   2,    0.00, FALSE, TRUE),
-    ('Basic Open',    15,  10,   50.00, TRUE,  TRUE),
-    ('Pro Developer', 50, NULL, 150.00, TRUE,  TRUE),
-    ('Max Vault',    100, NULL, 200.00, TRUE,  TRUE)
+    ('Free',           5,   5,    0.00, FALSE, TRUE),
+    ('Basic Open',    15,  50,    1.20, TRUE,  TRUE),
+    ('Pro Developer', 50, 200,    2.50, TRUE,  TRUE),
+    ('Max Vault',    100, 500,    3.80, TRUE,  TRUE)
 ON CONFLICT (nombre) DO NOTHING;
 
 INSERT INTO metodos_pago (nombre, descripcion)

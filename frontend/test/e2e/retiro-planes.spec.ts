@@ -103,7 +103,7 @@ for(const width of [1366,390]) test(`plan contratado protege las condiciones y e
   });
   await page.goto('/admin/planes/2/editar');
   await expect(page.getByText('Este plan ya tiene contrataciones.',{exact:false})).toBeVisible();
-  for(const nombre of ['Nombre del plan','Precio mensual (Q)','Almacenamiento (GB)','Límite de descargas','Descargas ilimitadas','Permitir carpetas públicas']) await expect(page.getByLabel(nombre,{exact:true})).toBeDisabled();
+  for(const nombre of ['Nombre del plan','Precio mensual (USD)','Almacenamiento (GB)','Límite de descargas','Descargas ilimitadas','Permitir carpetas públicas']) await expect(page.getByLabel(nombre,{exact:true})).toBeDisabled();
   await expect(page.getByLabel('Promoción temporal',{exact:true})).toBeEnabled();
   await expect(page.getByLabel('Estado activo',{exact:true})).toBeEnabled();
   await page.screenshot({path:info.outputPath('plan-protegido.png'),fullPage:true});

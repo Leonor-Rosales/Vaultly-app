@@ -4,7 +4,7 @@ import { adaptarPago, adaptarPlan } from '../src/services/adaptadoresPlanesPagos
 
 test('Adapter: planes convierten ID y precio y conservan cero e ilimitadas', () => {
   const origen = Object.freeze({ id: 7, version: 3, nombre: 'Premium', cuota_storage_gb: 100, precio_mensual: '29.90', limite_descargas: null });
-  assert.deepEqual(adaptarPlan(origen), { id: '7', version: 3, nombre: 'Premium', almacenamientoGb: 100, precio: 29.9, descargasMensuales: null });
+  assert.deepEqual(adaptarPlan(origen), { id: '7', moneda: 'USD', version: 3, nombre: 'Premium', almacenamientoGb: 100, precio: 29.9, descargasMensuales: null });
   const gratis = adaptarPlan({ ...origen, precio_mensual: '0.00', limite_descargas: 0 });
   assert.equal(gratis.precio, 0);
   assert.equal(gratis.descargasMensuales, 0);
