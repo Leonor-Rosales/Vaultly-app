@@ -53,9 +53,11 @@ export default function PlanForm({ plan, recargar }: { plan?: PlanAdmin; recarga
     } catch (e) { setDesactualizado(e instanceof ApiError && (['PLAN_DESACTUALIZADO','PLAN_ARCHIVADO'].includes(e.code ?? '') || e.status === 404)); setError(e instanceof Error ? e.message : 'No se pudo guardar'); }
     finally { setGuardando(false); }
   }}>
-    <h1 className="titulo-pagina">{plan ? 'Editar plan' : 'Crear nuevo plan'}</h1><p>Completa la información del {plan ? 'plan' : 'nuevo plan'}</p>
+    <h1 className="titulo-pagina">{plan ? protegido ? 'Gestionar plan' : 'Editar plan' : 'Crear nuevo plan'}</h1><p>{protegido ? plan?.nombre === 'Free' ? 'Consulta las condiciones protegidas del plan Free.' : 'Gestiona las promociones y el estado del plan.' : `Completa la información del ${plan ? 'plan' : 'nuevo plan'}`}</p>
     <fieldset disabled={guardando}>
-      {protegido && <AvisoInformativo cuenta={usuario.id} id="plan-condiciones-protegidas">Este plan ya tiene contrataciones. Su nombre, precio, almacenamiento, descargas y carpetas públicas están protegidos para conservar lo contratado. Puedes gestionar promociones y su estado. Para ofrecer condiciones distintas, crea otro plan.</AvisoInformativo>}
+      {protegido && <AvisoInformativo cuenta={usuario.id} id="plan-condiciones-protegidas">{plan?.nombre === 'Free'
+        ? 'Este plan ya tiene contrataciones. Su nombre, precio, almacenamiento, descargas y carpetas públicas están protegidos para conservar lo contratado. Free debe mantenerse activo y no admite promociones. Para ofrecer beneficios distintos, crea un nuevo plan.'
+        : 'Este plan ya tiene contrataciones. Su nombre, precio, almacenamiento, descargas y carpetas públicas están protegidos para conservar lo contratado. Puedes gestionar promociones y su estado. Para cambiar almacenamiento o descargas, crea un nuevo plan y desactiva este cuando corresponda.'}</AvisoInformativo>}
       <label>Nombre del plan<input required disabled={protegido || plan?.nombre === 'Free'} maxLength={50} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej. Premium" /></label>
       <label>Precio mensual (Q)<input required disabled={protegido || plan?.nombre === 'Free'} type="number" min={plan?.nombre === 'Free' || (plan && Number(plan.precio_mensual) === 0 && !activo) ? '0' : '0.01'} max="99999999.99" step="0.01" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="Q 0.00" /></label>
       <p className="admin-ayuda admin-plan-ayuda-precio">Precio habitual para las renovaciones. Puedes ofrecer un descuento o un período gratis sin cambiarlo.</p>
