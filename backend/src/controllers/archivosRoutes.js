@@ -5,6 +5,14 @@ const { pipeline } = require('node:stream/promises');
 const { ErrorApp } = require('../domain/errores');
 const { transmitirDescarga } = require('./transmitirDescarga');
 
+// multer entrega los nombres de archivo como Latin-1: se recupera el UTF-8 original.
+// Si el nombre ya viene bien, se deja igual.
+function corregirNombre(nombre) {
+  if (typeof nombre !== 'string' || /[^\u0000-\u00ff]/.test(nombre)) return nombre;
+  const convertido = Buffer.from(nombre, 'latin1').toString('utf8');
+  return convertido.includes('\uFFFD') ? nombre : convertido;
+}
+
 function crearArchivosRoutes(casos, requiereAuth, vistasPrevias) {
   const router = express.Router();
   const upload = multer({
@@ -35,7 +43,7 @@ function crearArchivosRoutes(casos, requiereAuth, vistasPrevias) {
   }));
   router.post('/', upload.single('archivo'), manejar('No se pudo subir el archivo', async (req, res) => {
     const datos = req.file && {
-      nombreOriginal: req.file.originalname,
+      nombreOriginal: corregirNombre(req.file.originalname),
       tipoMime: req.file.mimetype,
       contenido: req.file.buffer,
       ...(req.body?.carpeta_id !== undefined && { carpetaId: req.body.carpeta_id }),
@@ -83,4 +91,4 @@ function crearArchivosRoutes(casos, requiereAuth, vistasPrevias) {
   }));
   return router;
 }
-module.exports = { crearArchivosRoutes };
+module.exports = { crearArchivosRoutes, corregirNombre };
